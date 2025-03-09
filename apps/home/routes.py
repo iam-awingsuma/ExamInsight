@@ -29,7 +29,8 @@ def tables():
 
 @blueprint.route('/all-users')
 def allusers():
-    return render_template('pages/users-all.html', segment='all users', parent='users')
+    users = Users.query.all()  # Fetch all users from the database
+    return render_template('pages/users-all.html', users=users, segment='all users', parent='users')
 
 @blueprint.route('/add-users', methods=['GET', 'POST'])
 def addusers():
