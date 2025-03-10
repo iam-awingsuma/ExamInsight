@@ -7,5 +7,25 @@
         </ol>
         <h4 class="font-weight-bolder mb-0 text-uppercase">{{ segment|replace_value("_") }}</h4>
       </nav>
+      <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
+        <div class="ms-md-auto pe-md-3 d-flex align-items-center">
+          <!-- <div class="input-group">
+            <span class="input-group-text text-body"><i class="fas fa-search" aria-hidden="true"></i></span>
+            <input type="text" class="form-control" placeholder="Type here...">
+          </div> -->
+          <div class="navbar-nav justify-content-end">
+            <div class="d-flex px-2 py-1">
+              <div class="nav-item d-flex align-items-center">
+                <div class="d-flex flex-column text-end">
+                  <h6 class="mb-0 text-sm">{{ current_user.first_name }}&nbsp;{{ current_user.last_name }}</h6>
+                  <p class="text-xs text-secondary mb-0">{{current_user.designation}}</p>
+                </div>
+                <div style="margin-left: 10px;">
+                  <img src="{{ url_for('static', filename='assets/images/avatars/' + (current_user.profile_image)) }}" class="avatar avatar-sm me-2" alt="user1">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
 </nav>
