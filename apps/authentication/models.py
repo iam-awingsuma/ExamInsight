@@ -1,8 +1,3 @@
-# -*- encoding: utf-8 -*-
-"""
-Copyright (c) 2019 - present AppSeed.us
-"""
-
 from flask_login import UserMixin
 
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -25,6 +20,7 @@ class Users(db.Model, UserMixin):
     email         = db.Column(db.String(64), unique=True)
     password      = db.Column(db.LargeBinary)
     profile_image = db.Column(db.String(255), default='profile.png')
+    is_admin      = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, **kwargs):
         for property, value in kwargs.items():
@@ -86,7 +82,3 @@ def request_loader(request):
     username = request.form.get('username')
     user = Users.query.filter_by(username=username).first()
     return user if user else None
-
-class OAuth(OAuthConsumerMixin, db.Model):
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="cascade"), nullable=False)
-    user = db.relationship(Users)

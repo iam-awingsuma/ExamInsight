@@ -443,7 +443,6 @@ setTimeout(function() {
 }, 100);
 
 // Tabs navigation resize
-
 window.addEventListener('resize', function(event) {
   total.forEach(function(item, i) {
     item.querySelector('.moving-tab').remove();

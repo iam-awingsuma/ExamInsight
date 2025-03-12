@@ -1,6 +1,6 @@
 import os
 from apps.home import blueprint
-from flask import render_template, request, redirect, url_for, request, flash
+from flask import render_template, request, redirect, url_for, request, flash, get_flashed_messages
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
@@ -9,11 +9,27 @@ from apps import db
 from flask_login import (
     current_user,
     login_user,
-    logout_user
+    logout_user,
+    login_required
 )
+
+from functools import wraps
 
 from apps.authentication.forms import CreateAccountForm
 from apps.authentication.models import Users
+from apps.authentication.routes import admin_required
+
+
+# Role-based access control decorator
+# def admin_required(f):
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         if not current_user.is_authenticated or not current_user.is_admin:
+#             flash('Admin access required.', 'error')
+#             return redirect(url_for('authentication_blueprint.login'))
+#         return f(*args, **kwargs)
+#     return decorated_function
+
 
 @blueprint.route('/')
 @blueprint.route('/index')
@@ -62,14 +78,23 @@ def addusers():
                                    msg='E-mail already registered.',
                                    success=False,
                                    form=create_account_form)
+        
+        # Create user data dictionary from form
+        # user_data = {
+        #     'username': request.form['username'],
+        #     'email': request.form['email'],
+        #     'password': request.form['password'],
+        #     'is_admin': False  # Default to regular user
+        # }
+
+        # Check if this is the first user (make them admin)
+        if Users.query.count() == 0:
+            user['is_admin'] = True
 
         # else we can create the user
         user = Users(**request.form)
         db.session.add(user)
         db.session.commit()
-
-        # Delete user from session
-        # logout_user()
 
         return render_template('pages/users-add.html',
                                segment='add users',
@@ -81,9 +106,6 @@ def addusers():
     else:
         return render_template('pages/users-add.html', segment='add users', parent='users', form=create_account_form)
 
-@blueprint.route('/rp-users')
-def rpusers():
-    return render_template('pages/users-rp.html', segment='roles and permissions', parent='users')
 
 # Define the upload folder & allowed extensions
 UPLOAD_FOLDER = 'static/assets/images/avatars'
@@ -137,27 +159,64 @@ def profile():
 
     return render_template('pages/profile.html', segment='profile')
 
-# @blueprint.route('/profile', methods=['GET', 'POST'])
-# def profile():
-#     if request.method == 'POST':
-#         first_name = request.form.get('first_name')
-#         last_name = request.form.get('last_name')
-#         designation = request.form.get('designation')
-#         address = request.form.get('address')
+# Grant admin rights route for users
+@blueprint.route('/make_admin/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def make_admin(user_id):
+    user = Users.query.get_or_404(user_id)
+    user.is_admin = True
+    db.session.commit()
+    flash(f'User {user.username} is granted admin rights.', 'success')
+    return redirect(url_for('home_blueprint.allusers'))
 
-#         current_user.first_name = first_name
-#         current_user.last_name = last_name
-#         current_user.designation = designation
-#         current_user.address = address
+# Remove admin rights route for users
+@blueprint.route('/remove_admin/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def remove_admin(user_id):
+    user = Users.query.get_or_404(user_id)
+    # Prevent removing the last admin
+    admin_count = Users.query.filter_by(is_admin=True).count()
+    if admin_count <= 1 and user.is_admin:
+        flash('Sorry, last admin account cannot be removed.', 'error')
+    else:
+        user.is_admin = False
+        db.session.commit()
+        flash(f'Admin rights removed from {user.username}.', 'success')
+    return redirect(url_for('home_blueprint.allusers'))
 
-#         try:
-#             db.session.commit()
-#         except Exception as e:
-#             db.session.rollback()
 
-#         return redirect(url_for('home_blueprint.profile'))
-
-#     return render_template('pages/profile.html', segment='profile')
+# Delete User Route for Admins
+@blueprint.route('/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = Users.query.get_or_404(user_id)
+    
+    # Don't allow deleting yourself
+    if user.id == current_user.id:
+        flash('You cannot delete your own account while logged in.', 'error')
+        return redirect(url_for('home_blueprint.allusers'))
+    
+    # Don't allow deleting the last admin
+    if user.is_admin:
+        admin_count = Users.query.filter_by(is_admin=True).count()
+        if admin_count <= 1:
+            flash('Cannot delete the last admin account.', 'error')
+            return redirect(url_for('home_blueprint.allusers'))
+    
+    # Store username before deletion for the flash message
+    deleted_user = user.username
+    
+    # Delete the user
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash(f'User {deleted_user} has been deleted successfully.', 'success')
+    messages = get_flashed_messages()
+    print(messages)  # Check if messages exist in the backend
+    return redirect(url_for('home_blueprint.allusers'))
 
 
 # Helper - Extract current page name from request

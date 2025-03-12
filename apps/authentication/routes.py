@@ -1,10 +1,11 @@
 
-from flask import render_template, redirect, request, url_for
+from flask import render_template, redirect, request, url_for, flash, abort
 from flask_login import (
     current_user,
     login_user,
     logout_user
 )
+from functools import wraps
 
 from apps import db, login_manager
 from apps.authentication import blueprint
@@ -14,8 +15,18 @@ from apps.config import Config
 
 from apps.authentication.util import verify_pass
 
-# Login & Registration
+# Role-based access control decorator
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash('Admin access required.', 'error')
+            return redirect(url_for('auth_blueprint.login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
+
+# Login & Registration
 @blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     login_form = LoginForm(request.form)
@@ -30,77 +41,92 @@ def login():
 
         # if user not found
         if not user:
-
             user = Users.find_by_email(user_id)
-
             if not user:
                 return render_template( 'authentication/login.html',
-                                        msg='Unknown User or Email',
-                                        form=login_form)
+                                       msg='Unknown User or Email', form=login_form)
 
         # Check the password
         if verify_pass(password, user.password):
-
             login_user(user)
-            return redirect(url_for('home_blueprint.index'))
+            # return redirect(url_for('home_blueprint.index'))
+        
+            # Redirect based on user role
+            if user.is_admin:
+                # redirect to index.html with user management access
+                return redirect(url_for('home_blueprint.index'))
+            else:
+                # redirect to index.html without user management acess
+                return redirect(url_for('home_blueprint.index'))
 
         # Something (user or pass) is not ok
         return render_template('authentication/login.html',
-                               msg='Wrong user or password',
-                               form=login_form)
+                               msg='Wrong user or password', form=login_form)
 
     if not current_user.is_authenticated:
-        return render_template('authentication/login.html',
-                               form=login_form)
+        return render_template('authentication/login.html', form=login_form)
+    
+    # Redirect based on user role when already logged in
+    if current_user.is_admin:
+        return redirect(url_for('home_blueprint.index'))
+    
     return redirect(url_for('home_blueprint.index'))
 
 
-@blueprint.route('/register', methods=['GET', 'POST'])
-def register():
-    create_account_form = CreateAccountForm(request.form)
-    if 'register' in request.form:
+# @blueprint.route('/register', methods=['GET', 'POST'])
+# def register():
+#     create_account_form = CreateAccountForm(request.form)
+#     if 'register' in request.form:
 
-        username = request.form['username']
-        email = request.form['email']
+#         username = request.form['username']
+#         email = request.form['email']
 
-        # Check usename exists
-        user = Users.query.filter_by(username=username).first()
-        if user:
-            return render_template('authentication/register.html',
-                                   msg='Username already registered',
-                                   success=False,
-                                   form=create_account_form)
+#         # Check usename exists
+#         user = Users.query.filter_by(username=username).first()
+#         if user:
+#             return render_template('authentication/register.html',
+#                                    msg='Username already registered',
+#                                    success=False,
+#                                    form=create_account_form)
 
-        # Check email exists
-        user = Users.query.filter_by(email=email).first()
-        if user:
-            return render_template('authentication/register.html',
-                                   msg='Email already registered',
-                                   success=False,
-                                   form=create_account_form)
+#         # Check email exists
+#         user = Users.query.filter_by(email=email).first()
+#         if user:
+#             return render_template('authentication/register.html',
+#                                    msg='Email already registered',
+#                                    success=False,
+#                                    form=create_account_form)
+        
+#         # Create user data dictionary from form
+#         # user_data = {
+#         #     'username': request.form['username'],
+#         #     'email': request.form['email'],
+#         #     'password': request.form['password'],
+#         #     'is_admin': False  # Default to regular user
+#         # }
 
-        # else we can create the user
-        user = Users(**request.form)
-        db.session.add(user)
-        db.session.commit()
+#         # Create and save the user
+#         user = Users(**request.form)
+#         db.session.add(user)
+#         db.session.commit()
 
-        # Delete user from session
-        logout_user()
+#         # Delete user from session
+#         logout_user()
 
-        return render_template('authentication/register.html',
-                               msg='User created successfully.',
-                               success=True,
-                               form=create_account_form)
+#         return render_template('authentication/register.html',
+#                                msg='User created successfully.',
+#                                success=True,
+#                                form=create_account_form)
 
-    else:
-        return render_template('authentication/register.html', form=create_account_form)
+#     else:
+#         return render_template('authentication/register.html', form=create_account_form)
 
 
 @blueprint.route('/logout')
 def logout():
     logout_user()
-    # return redirect(url_for('home_blueprint.index'))
     return redirect('/login')
+
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
