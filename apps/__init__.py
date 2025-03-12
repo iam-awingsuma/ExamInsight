@@ -28,10 +28,8 @@ def register_extensions(app):
     login_manager.init_app(app)
 
 def register_blueprints(app):
-    # for module_name in ('authentication', 'home', 'dyn_dt'):
     for module_name in ('authentication', 'home'):
         try:
-            # module = import_module('apps.{}.routes'.format(module_name))
             module = import_module(f'apps.{module_name}.routes')
             app.register_blueprint(module.blueprint)
             print(f"Registered blueprint: { module_name }")
@@ -49,6 +47,7 @@ def create_app(config):
     STATIC_FOLDER = os.path.join(templates_dir,'static')
 
     app = Flask(__name__, static_url_path=static_prefix, template_folder=TEMPLATES_FOLDER, static_folder=STATIC_FOLDER)
+    app.secret_key = "your_secret_key"  # Required for session management
 
     app.config.from_object(config)
     register_extensions(app)

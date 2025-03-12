@@ -1,6 +1,6 @@
 import os
 from apps.home import blueprint
-from flask import render_template, request, redirect, url_for, request, flash, get_flashed_messages
+from flask import render_template, request, redirect, url_for, request, flash, get_flashed_messages, session, Flask
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
@@ -20,22 +20,12 @@ from apps.authentication.models import Users
 from apps.authentication.routes import admin_required
 
 
-# Role-based access control decorator
-# def admin_required(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         if not current_user.is_authenticated or not current_user.is_admin:
-#             flash('Admin access required.', 'error')
-#             return redirect(url_for('authentication_blueprint.login'))
-#         return f(*args, **kwargs)
-#     return decorated_function
-
-
 @blueprint.route('/')
 @blueprint.route('/index')
 @login_required
 def index():
     # return render_template('pages/index.html', segment='dashboard', parent="dashboard")
+    # logged_in = session.get('logged_in', False) # check if user is logged in for session management
     return render_template('pages/index.html', segment='dashboard')
 
 # define a new route for templates/pages/tables.html
@@ -50,18 +40,15 @@ def allusers():
 
 @blueprint.route('/add-users', methods=['GET', 'POST'])
 def addusers():
-    # return render_template('pages/users-add.html', segment='add users', parent='users')
     create_account_form = CreateAccountForm(request.form)
     if 'addusers' in request.form:
 
         username = request.form['username']
         email = request.form['email']
-        # designation = request.form['designation']
 
         # Check if username already exists
         user = Users.query.filter_by(username=username).first()
         if user:
-            # return render_template('authentication/register.html',
             return render_template('pages/users-add.html',
                                    segment='add users',
                                    parent='users',
@@ -78,14 +65,6 @@ def addusers():
                                    msg='E-mail already registered.',
                                    success=False,
                                    form=create_account_form)
-        
-        # Create user data dictionary from form
-        # user_data = {
-        #     'username': request.form['username'],
-        #     'email': request.form['email'],
-        #     'password': request.form['password'],
-        #     'is_admin': False  # Default to regular user
-        # }
 
         # Check if this is the first user (make them admin)
         if Users.query.count() == 0:
@@ -176,14 +155,18 @@ def make_admin(user_id):
 @admin_required
 def remove_admin(user_id):
     user = Users.query.get_or_404(user_id)
+
     # Prevent removing the last admin
     admin_count = Users.query.filter_by(is_admin=True).count()
     if admin_count <= 1 and user.is_admin:
         flash('Sorry, last admin account cannot be removed.', 'error')
     else:
-        user.is_admin = False
-        db.session.commit()
-        flash(f'Admin rights removed from {user.username}.', 'success')
+        if user.id == current_user.id:
+            flash('Sorry, cannot revoke admin rights for own account while logged in.', 'error')
+        else:
+            user.is_admin = False
+            db.session.commit()
+            flash(f'Admin rights removed from {user.username}.', 'success')
     return redirect(url_for('home_blueprint.allusers'))
 
 
