@@ -82,3 +82,33 @@ def request_loader(request):
     username = request.form.get('username')
     user = Users.query.filter_by(username=username).first()
     return user if user else None
+
+# Define the data model (table in database)
+class ExtExam(db.Model, UserMixin):
+
+    __tablename__ = 'ext_exam'
+
+    student_id = db.Column(db.Integer, primary_key=True)
+    surname = db.Column(db.String(100))
+    forename = db.Column(db.String(100))
+    gender = db.Column(db.String(64))
+    year = db.Column(db.String(64))
+    group = db.Column(db.String(64))
+    nationality = db.Column(db.String(64))
+    sped = db.Column(db.String(64))
+    status = db.Column(db.String(64))
+    date_of_birth = db.Column(db.String(64))
+    date_of_test = db.Column(db.String(64))
+    ngrt_level = db.Column(db.String(64))
+    sas = db.Column(db.Integer)
+    stanine = db.Column(db.Integer)
+    reading_age = db.Column(db.String(64))
+    prev_test_name = db.Column(db.String(64))
+    prev_sas = db.Column(db.Integer)
+    prev_stanine = db.Column(db.Integer)
+    progress_category = db.Column(db.String(64))
+    reader_profile = db.Column(db.String(100))
+    profile_description = db.Column(db.String(150))
+    
+    def __repr__(self):
+        return str(self.student_id)

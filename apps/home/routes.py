@@ -1,10 +1,13 @@
 import os
+import pandas as pd
 from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, request, flash, get_flashed_messages, session, Flask
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
 from apps import db
+
+from apps.authentication.models import ExtExam
 
 from flask_login import (
     current_user,
@@ -19,7 +22,6 @@ from apps.authentication.forms import CreateAccountForm
 from apps.authentication.models import Users
 from apps.authentication.routes import admin_required
 
-
 @blueprint.route('/')
 @blueprint.route('/index')
 @login_required
@@ -28,10 +30,11 @@ def index():
     # logged_in = session.get('logged_in', False) # check if user is logged in for session management
     return render_template('pages/index.html', segment='dashboard')
 
-# define a new route for templates/pages/tables.html
-@blueprint.route('/tables')
-def tables():
-    return render_template('pages/tables.html', segment='tables')
+
+# define a new route for templates/pages/upload.html
+@blueprint.route('/upload')
+def upload():
+    return render_template('pages/upload.html', segment='upload files')
 
 @blueprint.route('/all-users')
 def allusers():
@@ -137,6 +140,79 @@ def profile():
         return redirect(url_for('home_blueprint.profile'))
 
     return render_template('pages/profile.html', segment='profile')
+
+
+# define the CSV upload folder for temporary storage
+CSV_UPLOAD = 'static/assets/csv'
+
+# Ensure the CSV upload folder exists
+if not os.path.exists(CSV_UPLOAD):
+    os.makedirs(CSV_UPLOAD)
+
+@blueprint.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return redirect(request.url)
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return redirect(request.url)
+    
+    if file and file.filename.endswith('.csv'):
+        # Save the file temporarily
+        filepath = os.path.join(CSV_UPLOAD, file.filename)
+        file.save(filepath)
+        
+        # Read CSV and store in database
+        df = pd.read_csv(filepath)
+        
+        # Clear existing data (optional)
+        db.session.query(ExtExam).delete()
+        
+        # Insert new data
+        for index, row in df.iterrows():
+            entry = ExtExam(
+                student_id=int(row[0]),
+                surname=str(row[1]),
+                forename=str(row[2]),
+                gender=str(row[3]),
+                year=str(row[4]),
+                group=str(row[5]),
+                nationality=str(row[6]),
+                sped=str(row[7]),
+                status=str(row[8]),
+                date_of_birth=str(row[9]),
+                date_of_test=str(row[10]),
+                ngrt_level=str(row[11]),
+                sas=int(row[12]),
+                stanine=int(row[13]),
+                reading_age=str(row[14]),
+                prev_test_name=str(row[15]),
+                prev_sas=int(row[16]),
+                prev_stanine=int(row[17]),
+                progress_category=str(row[18]),
+                reader_profile=str(row[19]),
+                profile_description=str(row[20])
+            )
+            db.session.add(entry)
+        
+        db.session.commit()
+        
+        # Clean up temporary file
+        os.remove(filepath)
+        
+        return redirect(url_for('home_blueprint.display_data'))
+    
+    return redirect(request.url)
+
+
+# define a new route for templates/pages/display.html
+@blueprint.route('/display')
+def display():
+    data = ExtExam.query.all()
+    return render_template('pages/display.html', segment='display - external data', data=data)
+
 
 # Grant admin rights route for users
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])
