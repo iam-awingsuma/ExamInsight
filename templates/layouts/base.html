@@ -6,7 +6,7 @@
   {% block extrastyle %}{% endblock extrastyle %}
 </head>
 
-<body class="g-sidenav-show  bg-gray-100">
+<body class="g-sidenav-show bg-gray-100">
   {% block sidebar %}
     {% include "includes/sidebar.html" %}
   {% endblock sidebar %}
@@ -14,7 +14,7 @@
     {% block navigation %}
         {% include "includes/navigation.html" %}
     {% endblock navigation %}
-    
+    <hr class="horizontal dark mt-0">
     {% block content %}{% endblock content %}
   </main>
   

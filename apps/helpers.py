@@ -82,30 +82,6 @@ def splitUrlGetFilename(url):
     """ image url split and get file name  """
     return url.split('/')[-1]
 
-# def validateCurrency(currency):
-#     """ check currency  """
-#     # if check currency validate or not
-#     if currency not in list(Currency.keys()):
-#         raise ValidationError(
-#             f"{message['invalid_currency']}, expected {','.join(Currency.keys())}", 422)
-
-# def validatePaymentMethod(payment):
-#     """ check valid payment methods  """
-#     # if check PAYMENT_TYPE validate or not
-#     if payment not in list(PAYMENT_TYPE.keys()):
-#         raise ValidationError(
-#             f"{message['invalid_payment_method']}, expected {expectedValue(PAYMENT_TYPE)}", 422)
-        
-#     else:
-#         value = 0
-#         if payment == "cc":
-#             value =  1
-#         elif payment == "paypal":
-#             value = 2
-#         else:
-#             value = 3
-
-#     return value 
 
 def validateState(state):
     """ check valid state methods  """

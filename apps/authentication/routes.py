@@ -61,7 +61,7 @@ def login():
 
         # Something (user or pass) is not ok
         return render_template('authentication/login.html',
-                               msg='Wrong user or password', form=login_form)
+                               msg='Wrong username or password', form=login_form)
 
     if not current_user.is_authenticated:
         return render_template('authentication/login.html', form=login_form)

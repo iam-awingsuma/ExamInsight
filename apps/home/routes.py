@@ -2,12 +2,15 @@ import os
 import pandas as pd
 from apps.home import blueprint
 from flask import render_template, request, redirect, url_for, request, flash, get_flashed_messages, session, Flask
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
 from apps import db
+from sqlalchemy.exc import IntegrityError
 
-from apps.authentication.models import ExtExam
+from apps.authentication.models import NGRTB
+from apps.authentication.models import Students
 
 from flask_login import (
     current_user,
@@ -31,15 +34,10 @@ def index():
     return render_template('pages/index.html', segment='dashboard')
 
 
-# define a new route for templates/pages/upload.html
-@blueprint.route('/upload')
-def upload():
-    return render_template('pages/upload.html', segment='upload files')
-
 @blueprint.route('/all-users')
 def allusers():
     users = Users.query.all()  # Fetch all users from the database
-    return render_template('pages/users-all.html', users=users, segment='all users', parent='users')
+    return render_template('pages/users-all.html', users=users, segment='all users', parent='userMgt')
 
 @blueprint.route('/add-users', methods=['GET', 'POST'])
 def addusers():
@@ -54,7 +52,7 @@ def addusers():
         if user:
             return render_template('pages/users-add.html',
                                    segment='add users',
-                                   parent='users',
+                                   parent='userMgt',
                                    msg='Username already registered.',
                                    success=False,
                                    form=create_account_form)
@@ -64,7 +62,7 @@ def addusers():
         if user:
             return render_template('pages/users-add.html',
                                    segment='add users',
-                                   parent='users',
+                                   parent='userMgt',
                                    msg='E-mail already registered.',
                                    success=False,
                                    form=create_account_form)
@@ -80,13 +78,13 @@ def addusers():
 
         return render_template('pages/users-add.html',
                                segment='add users',
-                               parent='users',
+                               parent='userMgt',
                                msg='User created successfully.',
                                success=True,
                                form=create_account_form)
 
     else:
-        return render_template('pages/users-add.html', segment='add users', parent='users', form=create_account_form)
+        return render_template('pages/users-add.html', segment='add users', parent='userMgt', form=create_account_form)
 
 
 # Define the upload folder & allowed extensions
@@ -149,8 +147,9 @@ CSV_UPLOAD = 'static/assets/csv'
 if not os.path.exists(CSV_UPLOAD):
     os.makedirs(CSV_UPLOAD)
 
-@blueprint.route('/upload', methods=['POST'])
-def upload_file():
+
+@blueprint.route('/display_ngrtb', methods=['POST'])
+def upload_ngrtb():
     if 'file' not in request.files:
         return redirect(request.url)
     
@@ -168,51 +167,149 @@ def upload_file():
         df = pd.read_csv(filepath)
         
         # Clear existing data (optional)
-        db.session.query(ExtExam).delete()
+        # db.session.query(NGRTB).delete()
         
-        # Insert new data
         for index, row in df.iterrows():
-            entry = ExtExam(
-                student_id=int(row[0]),
-                surname=str(row[1]),
-                forename=str(row[2]),
-                gender=str(row[3]),
-                year=str(row[4]),
-                group=str(row[5]),
-                nationality=str(row[6]),
-                sped=str(row[7]),
-                status=str(row[8]),
-                date_of_birth=str(row[9]),
-                date_of_test=str(row[10]),
-                ngrt_level=str(row[11]),
-                sas=int(row[12]),
-                stanine=int(row[13]),
-                reading_age=str(row[14]),
-                prev_test_name=str(row[15]),
-                prev_sas=int(row[16]),
-                prev_stanine=int(row[17]),
-                progress_category=str(row[18]),
-                reader_profile=str(row[19]),
-                profile_description=str(row[20])
-            )
-            db.session.add(entry)
+            # Insert data into table - students
+            student_id=int(row['student_id'])
+
+            # Handle students table
+            student = Students.query.filter_by(student_id=student_id).first()
+            if student:
+                # Update existing student record
+                student.forename = str(row['forename'])
+                student.surname = str(row['surname'])
+                student.gender = str(row['gender'])
+                student.date_of_birth = str(row['date_of_birth'])
+                student.yrgrp = str(row['yrgrp'])
+                student.sped = str(row['sped'])
+                student.nationality = str(row['nationality'])
+                student.status = str(row['status'])
+            else:
+                # New student record
+                student = Students(
+                    student_id=student_id,
+                    forename=str(row['forename']),
+                    surname=str(row['surname']),
+                    gender=str(row['gender']),
+                    date_of_birth=str(row['date_of_birth']),
+                    yrgrp=str(row['yrgrp']),
+                    sped=str(row['sped']),
+                    nationality=str(row['nationality']),
+                    status=str(row['status'])
+                )
+                db.session.add(student)
+            
+            # Handle NGRTB table
+            ngrtb = NGRTB.query.filter_by(student_id=student_id).first()
+            if ngrtb:
+                # Update existing NGRTB record
+                ngrtb.ngrt_level = str(row['ngrt_level'])
+                ngrtb.sas = int(row['sas'])
+                ngrtb.stanine = int(row['stanine'])
+                ngrtb.reading_age = str(row['reading_age'])
+                ngrtb.prev_test_name = str(row['prev_test_name'])
+                ngrtb.prev_sas = int(row['prev_sas'])
+                ngrtb.prev_stanine = int(row['prev_stanine'])
+                ngrtb.progress_category = str(row['progress_category'])
+                ngrtb.reader_profile = str(row['reader_profile'])
+                ngrtb.profile_desc = str(row['profile_desc'])
+            else:
+                # New NGRTB record
+                ngrtb = NGRTB(
+                    student_id=student_id,
+                    ngrt_level=str(row['ngrt_level']),
+                    sas=int(row['sas']),
+                    stanine=int(row['stanine']),
+                    reading_age=str(row['reading_age']),
+                    prev_test_name=str(row['prev_test_name']),
+                    prev_sas=int(row['prev_sas']),
+                    prev_stanine=int(row['prev_stanine']),
+                    progress_category=str(row['progress_category']),
+                    reader_profile=str(row['reader_profile']),
+                    profile_desc=str(row['profile_desc'])
+                )
+                db.session.add(ngrtb)
         
-        db.session.commit()
-        
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Some records were skipped due to duplicates.", "warning")  # Duplicate message
+
         # Clean up temporary file
         os.remove(filepath)
-        
-        return redirect(url_for('home_blueprint.display_data'))
+        return redirect(url_for('home_blueprint.display_ngrtb'))
     
     return redirect(request.url)
 
 
-# define a new route for templates/pages/display.html
-@blueprint.route('/display')
-def display():
-    data = ExtExam.query.all()
-    return render_template('pages/display.html', segment='display - external data', data=data)
+# define a new route for templates/pages/display_ngrtb.html
+@blueprint.route('/display_ngrtb')
+def display_ngrtb():
+    ngrtb_data = NGRTB.query.all()  # Fetch all entries from NGRTB table
+    # student_data = Students.query.all()  # Fetch all entries from Students table  
+    student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
+    
+    # Check if either table is empty
+    ngrtb_empty = not ngrtb_data  # True if NGRTB is empty
+    students_empty = not student_data  # True if Students is empty
+    
+    # If both tables are empty
+    if ngrtb_empty and students_empty:
+        return render_template(
+            'pages/display_ngrtb.html',
+            segment='external data - NGRT (Form-B)',
+            parent='extBTest',
+            no_data=True,
+            ngrtb_data=None,
+            student_data=None,
+            msg_ngrtb='No NGRT-B data available.',
+            msg_students='No student data available.'
+        )
+    # If only NGRTB is empty
+    elif ngrtb_empty:
+        return render_template(
+            'pages/display_ngrtb.html',
+            segment='external data - NGRT (Form-B)',
+            parent='extBTest',
+            no_data=True,
+            msg_ngrtb='No NGRT-B data available.',
+            student_data=student_data,
+            ngrtb_data=None
+        )
+    # If only Students is empty
+    elif students_empty:
+        return render_template(
+            'pages/display_ngrtb.html',
+            segment='external data - NGRT (Form-B)',
+            parent='extBTest',
+            no_data=True,
+            msg_students='No student data available.',
+            ngrtb_data=ngrtb_data,
+            student_data=None
+        )
+    # If both tables have data
+    else:
+        combined_data = db.session.query(Students, NGRTB).join(Students, NGRTB.student_id == Students.student_id).order_by(Students.yrgrp, Students.forename).all()
+        return render_template(
+            'pages/display_ngrtb.html',
+            segment='external data - NGRT (Form-B)',
+            parent='extBTest',
+            no_data=False,
+            combined_data=combined_data
+        )
 
+
+# define a new route for templates/pages/display_ngrta.html
+@blueprint.route('/display_ngrta')
+def display_ngrta():
+    return render_template('pages/display_ngrta.html', segment='external data - NGRT (Form-A)', parent='extBTest')
+
+# define a new route for templates/pages/display_ngrtc.html
+@blueprint.route('/display_ngrtc')
+def display_ngrtc():
+    return render_template('pages/display_ngrtc.html', segment='external data - NGRT (Form-C)', parent='extBTest')
 
 # Grant admin rights route for users
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])

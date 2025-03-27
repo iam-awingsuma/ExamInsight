@@ -83,32 +83,49 @@ def request_loader(request):
     user = Users.query.filter_by(username=username).first()
     return user if user else None
 
-# Define the data model (table in database)
-class ExtExam(db.Model, UserMixin):
+# students_ngrtb = db.Table(
+#     'students_ngrtb',
+#     db.Column('student_id', db.Integer, db.ForeignKey('students.student_id')),
+#     db.Column('ngrtb_id', db.Integer, db.ForeignKey('ngrtb_id'))
+# )
 
-    __tablename__ = 'ext_exam'
+# Define the Students data model (table in database)
+class Students(db.Model, UserMixin):
 
-    student_id = db.Column(db.Integer, primary_key=True)
-    surname = db.Column(db.String(100))
-    forename = db.Column(db.String(100))
-    gender = db.Column(db.String(64))
-    year = db.Column(db.String(64))
-    group = db.Column(db.String(64))
-    nationality = db.Column(db.String(64))
-    sped = db.Column(db.String(64))
-    status = db.Column(db.String(64))
-    date_of_birth = db.Column(db.String(64))
-    date_of_test = db.Column(db.String(64))
-    ngrt_level = db.Column(db.String(64))
-    sas = db.Column(db.Integer)
-    stanine = db.Column(db.Integer)
-    reading_age = db.Column(db.String(64))
-    prev_test_name = db.Column(db.String(64))
-    prev_sas = db.Column(db.Integer)
-    prev_stanine = db.Column(db.Integer)
-    progress_category = db.Column(db.String(64))
-    reader_profile = db.Column(db.String(100))
-    profile_description = db.Column(db.String(150))
-    
+    __tablename__ = 'students'
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, unique=True, nullable=False)
+    forename = db.Column(db.String(100), nullable=False)
+    surname = db.Column(db.String(100), nullable=False)
+    gender = db.Column(db.String(64), nullable=False)
+    date_of_birth = db.Column(db.String(64), nullable=False)
+    yrgrp = db.Column(db.String(64), nullable=False)
+    sped = db.Column(db.String(64), nullable=True)
+    nationality = db.Column(db.String(64), nullable=False)
+    status = db.Column(db.String(64), nullable=True)
+    # ngrtb = db.relationship('NGRTB', secondary=students_ngrtb, backref='students')
+
+    def __repr__(self):
+        return str(self.student_id)
+
+# Define the data model (table in database) for NGRT-B
+class NGRTB(db.Model, UserMixin):
+
+    __tablename__ = 'ngrtb'
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.student_id'), nullable=False) # Foreign Key to Students table
+    ngrt_level = db.Column(db.String(64), nullable=False)
+    sas = db.Column(db.Integer, nullable=True)
+    stanine = db.Column(db.Integer, nullable=True)
+    reading_age = db.Column(db.String(64), nullable=True)
+    prev_test_name = db.Column(db.String(64), nullable=True)
+    prev_sas = db.Column(db.Integer, nullable=True)
+    prev_stanine = db.Column(db.Integer, nullable=True)
+    progress_category = db.Column(db.String(64), nullable=True)
+    reader_profile = db.Column(db.String(100), nullable=True)
+    profile_desc = db.Column(db.String(150), nullable=True)
+
     def __repr__(self):
         return str(self.student_id)

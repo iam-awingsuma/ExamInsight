@@ -10,141 +10,157 @@
     <div class="collapse navbar-collapse  w-auto h-auto " id="sidenav-collapse-main">
       <ul class="navbar-nav">
         {% if current_user.is_authenticated %}
-        <li class="nav-item">
-          <a class="nav-link {% if segment == 'dashboard' %}active{% endif %}" href="{{ url_for('home_blueprint.index') }}">
-            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center  me-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" width="18px" height="18px" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
-            </div>
-            <span class="nav-link-text ms-1">Dashboard</span>
-          </a>
-        </li>
+          <li class="nav-item">
+            <a class="nav-link {% if segment == 'dashboard' %}active{% endif %}" href="{{ url_for('home_blueprint.index') }}">
+              <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center  me-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" width="18px" height="18px" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+              </div>
+              <span class="nav-link-text ms-1">Dashboard</span>
+            </a>
+          </li>
+      
+          <li class="nav-item">
+            <a data-bs-toggle="collapse" href="#extBT-dropdown" class="nav-link {% if 'extBTest' in parent %}active{% endif %}" aria-controls="extBT-dropdown" role="button" aria-expanded="false">
+              <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center  me-2">
+                <svg fill="#000000" width="26px" height="26px" viewBox="0 -8 72 72" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M47.67,16.27H14.22a2,2,0,0,0-2,2V49.32a2,2,0,0,0,2,2H47.67a2,2,0,0,0,2-2V18.25A2,2,0,0,0,47.67,16.27ZM19.29,48.93H13.83V44.29h5.46Zm0-5.83H13.83V37.18h5.46Zm0-7.11H13.83V30.46h5.46Zm0-6.71H13.83V24.44h5.46ZM27,48.93H20.48V44.29H27v4.64Zm0-5.83H20.48V37.18H27V43.1ZM27,36H20.48V30.46H27V36Zm0-6.71H20.48V24.44H27v4.84Zm7.11,19.65H28.18V44.29h5.93v4.64Zm0-5.83H28.18V37.18h5.93V43.1Zm0-7.11H28.18V30.46h5.93V36Zm0-6.71H28.18V24.44h5.93v4.84Zm6.71,19.65H35.29V44.29h5.53Zm0-5.83H35.29V37.18h5.53Zm0-7.11H35.29V30.46h5.53Zm0-6.71H35.29V24.44h5.53Zm7.25,19.65H42V44.29h6.06Zm0-5.83H42V37.18h6.06Zm0-7.11H42V30.46h6.06Zm0-6.71H42V24.44h6.06ZM57.78,4.7H24.33a2,2,0,0,0-2,2v8.51h1.59V12.86H29.4v2.33h1.19V12.86H37.1v2.33h1.19V12.86h5.92v2.33H45.4V12.86h5.53V17.7h-.22a3.58,3.58,0,0,1,.15,1v.15h.07v5.53h-.07V25.6h.07v5.93h-.07v1.18h.07v4.65h-.07v2.37h6.92a2,2,0,0,0,2-2V6.68A2,2,0,0,0,57.78,4.7Zm.39,32.66H52.11V32.71h6.06v4.65Zm0-5.83H52.11V25.6h6.06v5.93Zm0-7.11H52.11V18.89h6.06v5.53Zm0-6.72H52.11V12.86h6.06V17.7Z"/>
+                </svg>
+              </div>
+              <span class="nav-link-text ms-1">Ext'l Benchmark Tests</span>
+            </a>
+            
+            <div class="collapse {% if 'extBTest' in parent %}show{% endif %}" id="extBT-dropdown">
+              <ul class="nav ms-4 ps-3">
+                <li class="nav-item {% if 'external data - NGRT (Form-A)' in segment %}active{% endif %}">
+                  <a class="nav-link {% if 'external data - NGRT (Form-A)' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.display_ngrta') }}">
+                    <span class="sidenav-mini-icon"> N-fA </span>
+                    <span class="sidenav-normal"> NGRT-A </span>
+                  </a>
+                </li>
 
-        <li class="nav-item">
-          <a class="nav-link {% if segment == 'display - ngrt data' %}active{% endif %}" href="{{ url_for('home_blueprint.display') }}">
-            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-              <svg fill="#000000" width="26px" height="26px" viewBox="0 -8 72 72" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg">
-                <path d="M47.67,16.27H14.22a2,2,0,0,0-2,2V49.32a2,2,0,0,0,2,2H47.67a2,2,0,0,0,2-2V18.25A2,2,0,0,0,47.67,16.27ZM19.29,48.93H13.83V44.29h5.46Zm0-5.83H13.83V37.18h5.46Zm0-7.11H13.83V30.46h5.46Zm0-6.71H13.83V24.44h5.46ZM27,48.93H20.48V44.29H27v4.64Zm0-5.83H20.48V37.18H27V43.1ZM27,36H20.48V30.46H27V36Zm0-6.71H20.48V24.44H27v4.84Zm7.11,19.65H28.18V44.29h5.93v4.64Zm0-5.83H28.18V37.18h5.93V43.1Zm0-7.11H28.18V30.46h5.93V36Zm0-6.71H28.18V24.44h5.93v4.84Zm6.71,19.65H35.29V44.29h5.53Zm0-5.83H35.29V37.18h5.53Zm0-7.11H35.29V30.46h5.53Zm0-6.71H35.29V24.44h5.53Zm7.25,19.65H42V44.29h6.06Zm0-5.83H42V37.18h6.06Zm0-7.11H42V30.46h6.06Zm0-6.71H42V24.44h6.06ZM57.78,4.7H24.33a2,2,0,0,0-2,2v8.51h1.59V12.86H29.4v2.33h1.19V12.86H37.1v2.33h1.19V12.86h5.92v2.33H45.4V12.86h5.53V17.7h-.22a3.58,3.58,0,0,1,.15,1v.15h.07v5.53h-.07V25.6h.07v5.93h-.07v1.18h.07v4.65h-.07v2.37h6.92a2,2,0,0,0,2-2V6.68A2,2,0,0,0,57.78,4.7Zm.39,32.66H52.11V32.71h6.06v4.65Zm0-5.83H52.11V25.6h6.06v5.93Zm0-7.11H52.11V18.89h6.06v5.53Zm0-6.72H52.11V12.86h6.06V17.7Z"/>
-              </svg>
-            </div>
-            <span class="nav-link-text ms-1">Display | NGRT</span>
-          </a>
-        </li>
-        {% if current_user.is_admin %}
-        <li class="nav-item">
-          <a class="nav-link {% if segment == 'upload' %}active{% endif %}" href="{{ url_for('home_blueprint.upload') }}">
-            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center  me-2">
-              <svg width="18px" height="18px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                <path fill="#444" d="M11 10v2h-6v-2h-5v6h16v-6h-5zM4 14h-2v-2h2v2z"></path>
-                <path fill="#444" d="M13 5l-5-5-5 5h3v6h4v-6z"></path>
-              </svg>
-            </div>
-            <span class="nav-link-text ms-1">Upload</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a data-bs-toggle="collapse" href="#dashboard-dropdown" class="nav-link {% if 'users' in parent %}active{% endif %}" aria-controls="dashboard-dropdown" role="button" aria-expanded="false">
-            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center  me-2">
-              <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-                viewBox="0 0 60 60" style="enable-background:new 0 0 60 60;" xml:space="preserve" width="18px" height="18px">
-              <g>
-                <path d="M41.014,45.389l-9.553-4.776C30.56,40.162,30,39.256,30,38.248v-3.381c0.229-0.28,0.47-0.599,0.719-0.951
-                  c1.239-1.75,2.232-3.698,2.954-5.799C35.084,27.47,36,26.075,36,24.5v-4c0-0.963-0.36-1.896-1-2.625v-5.319
-                  c0.056-0.55,0.276-3.824-2.092-6.525C30.854,3.688,27.521,2.5,23,2.5s-7.854,1.188-9.908,3.53
-                  c-2.368,2.701-2.148,5.976-2.092,6.525v5.319c-0.64,0.729-1,1.662-1,2.625v4c0,1.217,0.553,2.352,1.497,3.109
-                  c0.916,3.627,2.833,6.36,3.503,7.237v3.309c0,0.968-0.528,1.856-1.377,2.32l-8.921,4.866C1.801,46.924,0,49.958,0,53.262V57.5h46
-                  v-4.043C46,50.018,44.089,46.927,41.014,45.389z"/>
-                <path d="M55.467,46.526l-9.723-4.21c-0.23-0.115-0.485-0.396-0.704-0.771l6.525-0.005c0,0,0.377,0.037,0.962,0.037
-                  c1.073,0,2.638-0.122,4-0.707c0.817-0.352,1.425-1.047,1.669-1.907c0.246-0.868,0.09-1.787-0.426-2.523
-                  c-1.865-2.654-6.218-9.589-6.354-16.623c-0.003-0.121-0.397-12.083-12.21-12.18c-1.187,0.01-2.309,0.156-3.372,0.413
-                  c0.792,2.094,0.719,3.968,0.665,4.576v4.733c0.648,0.922,1,2.017,1,3.141v4c0,1.907-1.004,3.672-2.607,4.662
-                  c-0.748,2.022-1.738,3.911-2.949,5.621c-0.15,0.213-0.298,0.414-0.443,0.604v2.86c0,0.442,0.236,0.825,0.631,1.022l9.553,4.776
-                  c3.587,1.794,5.815,5.399,5.815,9.41V57.5H60v-3.697C60,50.711,58.282,47.933,55.467,46.526z"/>
-              </g>
-              </svg>
-            </div>
-            <span class="nav-link-text ms-1">User Management</span>
-          </a>
-          <div class="collapse {% if 'users' in parent %}show{% endif %} " id="dashboard-dropdown">
-            <ul class="nav ms-4 ps-3">
-              <li class="nav-item {% if 'all users' in segment %}active{% endif %}">
-                <a class="nav-link {% if 'all users' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.allusers') }}">
-                  <span class="sidenav-mini-icon"> L </span>
-                  <span class="sidenav-normal"> All Users </span>
-                </a>
-              </li>
+                <li class="nav-item {% if 'external data - NGRT (Form-B)' in segment %}active{% endif %}">
+                  <a class="nav-link {% if 'external data - NGRT (Form-B)' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.display_ngrtb') }}">
+                    <span class="sidenav-mini-icon"> N-fB </span>
+                    <span class="sidenav-normal"> NGRT-B </span>
+                  </a>
+                </li>
 
-              <li class="nav-item {% if 'add users' in segment %}active{% endif %}">
-                <a class="nav-link {% if 'add users' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.addusers') }}">
-                  <span class="sidenav-mini-icon"> A </span>
-                  <span class="sidenav-normal"> Add User </span>
-                </a>
-              </li>
-            </ul>
-        </li>
-        {% endif %}
-        <li class="nav-item mt-3">
-          <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account pages</h6>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if segment == 'profile' %}active{% endif %}" href="{{ url_for('home_blueprint.profile') }}">
-            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-              <svg version="1.1" width="20px" height="20px" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-              viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
-              <g>
+                <li class="nav-item {% if 'external data - NGRT (Form-C)' in segment %}active{% endif %}">
+                  <a class="nav-link {% if 'external data - NGRT (Form-C)' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.display_ngrtc') }}">
+                    <span class="sidenav-mini-icon"> N-fC </span>
+                    <span class="sidenav-normal"> NGRT-C </span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </li>
+
+          {% if current_user.is_admin %}
+            <li class="nav-item">
+              <a data-bs-toggle="collapse" href="#userMGT-dropdown" class="nav-link {% if 'userMgt' in parent %}active{% endif %}" aria-controls="userMGT-dropdown" role="button" aria-expanded="false">
+                <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center d-flex align-items-center justify-content-center  me-2">
+                  <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                    viewBox="0 0 60 60" style="enable-background:new 0 0 60 60;" xml:space="preserve" width="18px" height="18px">
+                  <g>
+                    <path d="M41.014,45.389l-9.553-4.776C30.56,40.162,30,39.256,30,38.248v-3.381c0.229-0.28,0.47-0.599,0.719-0.951
+                      c1.239-1.75,2.232-3.698,2.954-5.799C35.084,27.47,36,26.075,36,24.5v-4c0-0.963-0.36-1.896-1-2.625v-5.319
+                      c0.056-0.55,0.276-3.824-2.092-6.525C30.854,3.688,27.521,2.5,23,2.5s-7.854,1.188-9.908,3.53
+                      c-2.368,2.701-2.148,5.976-2.092,6.525v5.319c-0.64,0.729-1,1.662-1,2.625v4c0,1.217,0.553,2.352,1.497,3.109
+                      c0.916,3.627,2.833,6.36,3.503,7.237v3.309c0,0.968-0.528,1.856-1.377,2.32l-8.921,4.866C1.801,46.924,0,49.958,0,53.262V57.5h46
+                      v-4.043C46,50.018,44.089,46.927,41.014,45.389z"/>
+                    <path d="M55.467,46.526l-9.723-4.21c-0.23-0.115-0.485-0.396-0.704-0.771l6.525-0.005c0,0,0.377,0.037,0.962,0.037
+                      c1.073,0,2.638-0.122,4-0.707c0.817-0.352,1.425-1.047,1.669-1.907c0.246-0.868,0.09-1.787-0.426-2.523
+                      c-1.865-2.654-6.218-9.589-6.354-16.623c-0.003-0.121-0.397-12.083-12.21-12.18c-1.187,0.01-2.309,0.156-3.372,0.413
+                      c0.792,2.094,0.719,3.968,0.665,4.576v4.733c0.648,0.922,1,2.017,1,3.141v4c0,1.907-1.004,3.672-2.607,4.662
+                      c-0.748,2.022-1.738,3.911-2.949,5.621c-0.15,0.213-0.298,0.414-0.443,0.604v2.86c0,0.442,0.236,0.825,0.631,1.022l9.553,4.776
+                      c3.587,1.794,5.815,5.399,5.815,9.41V57.5H60v-3.697C60,50.711,58.282,47.933,55.467,46.526z"/>
+                  </g>
+                  </svg>
+                </div>
+                <span class="nav-link-text ms-1">User Management</span>
+              </a>
+              <div class="collapse {% if 'userMgt' in parent %}show{% endif %}" id="userMGT-dropdown">
+                <ul class="nav ms-4 ps-3">
+                  <li class="nav-item {% if 'all users' in segment %}active{% endif %}">
+                    <a class="nav-link {% if 'all users' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.allusers') }}">
+                      <span class="sidenav-mini-icon"> L </span>
+                      <span class="sidenav-normal"> All Users </span>
+                    </a>
+                  </li>
+
+                  <li class="nav-item {% if 'add users' in segment %}active{% endif %}">
+                    <a class="nav-link {% if 'add users' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.addusers') }}">
+                      <span class="sidenav-mini-icon"> A </span>
+                      <span class="sidenav-normal"> Add User </span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+          {% endif %}
+          <li class="nav-item mt-3">
+            <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Account pages</h6>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if segment == 'profile' %}active{% endif %}" href="{{ url_for('home_blueprint.profile') }}">
+              <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+                <svg version="1.1" width="20px" height="20px" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
                 <g>
                   <g>
-                    <path d="M309.333,213.333h149.333c5.888,0,10.667-4.779,10.667-10.667S464.555,192,458.667,192H309.333
-                      c-5.888,0-10.667,4.779-10.667,10.667S303.445,213.333,309.333,213.333z"/>
-                    <path d="M458.667,21.333H53.333C23.915,21.333,0,45.269,0,74.667v362.667c0,29.397,23.915,53.333,53.333,53.333h405.333
-                      c29.419,0,53.333-23.936,53.333-53.333V74.667C512,45.269,488.085,21.333,458.667,21.333z M138.667,64
-                      c5.888,0,10.667,4.779,10.667,10.667s-4.779,10.667-10.667,10.667S128,80.555,128,74.667S132.779,64,138.667,64z M96,64
-                      c5.888,0,10.667,4.779,10.667,10.667S101.888,85.333,96,85.333s-10.667-4.779-10.667-10.667S90.112,64,96,64z M53.333,64
-                      C59.221,64,64,68.779,64,74.667s-4.779,10.667-10.667,10.667s-10.667-4.779-10.667-10.667S47.445,64,53.333,64z M490.667,437.333
-                      c0,17.643-14.357,32-32,32H53.333c-17.643,0-32-14.357-32-32V128h469.333V437.333z"/>
-                    <path d="M53.333,405.333h213.333c5.888,0,10.667-4.8,10.667-10.688c0-26.731-18.133-49.941-44.053-56.427l-32.021-8l-1.344-5.355
-                      c8.32-9.173,14.208-20.885,16.661-33.045c5.696-2.944,9.813-8.533,10.667-15.253l2.304-18.56
-                      c0.704-5.632-1.024-11.307-4.757-15.573c-1.152-1.323-2.453-2.453-3.883-3.435l0.533-11.328l1.941-1.941
-                      c5.504-5.845,12.928-18.325,1.173-36.331c-5.547-8.533-17.067-18.731-40.149-18.731c-6.784,0-22.123,0-37.013,9.344
-                      c-43.904,1.536-49.067,25.195-49.067,43.072c0,3.52,0.619,10.112,1.237,15.616c-1.579,1.003-3.051,2.24-4.288,3.669
-                      c-3.797,4.309-5.547,10.005-4.821,15.659l2.304,18.56c0.875,6.955,5.291,12.715,11.797,15.552
-                      c2.389,11.627,7.979,22.891,15.765,31.829l-1.557,6.272l-32.021,8c-25.941,6.464-44.075,29.675-44.075,56.427
-                      C42.667,400.555,47.445,405.333,53.333,405.333z"/>
-                    <path d="M309.333,405.333h85.333c5.888,0,10.667-4.779,10.667-10.667S400.555,384,394.667,384h-85.333
-                      c-5.888,0-10.667,4.779-10.667,10.667S303.445,405.333,309.333,405.333z"/>
-                    <path d="M309.333,277.333h149.333c5.888,0,10.667-4.779,10.667-10.667S464.555,256,458.667,256H309.333
-                      c-5.888,0-10.667,4.779-10.667,10.667S303.445,277.333,309.333,277.333z"/>
-                    <path d="M309.333,341.333h149.333c5.888,0,10.667-4.779,10.667-10.667S464.555,320,458.667,320H309.333
-                      c-5.888,0-10.667,4.779-10.667,10.667S303.445,341.333,309.333,341.333z"/>
-                  </g>
-                </g>
-              </g>
-              </svg>
-            </div>
-            <span class="nav-link-text ms-1">Profile</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link  " href="{{ url_for('auth_blueprint.logout') }}">
-            <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
-              <svg width="16px" height="24px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                <title>spaceship</title>
-                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                  <g transform="translate(-1720.000000, -592.000000)" fill="#FFFFFF" fill-rule="nonzero">
-                    <g transform="translate(1716.000000, 291.000000)">
-                      <g transform="translate(4.000000, 301.000000)">
-                        <path class="color-background" d="M39.3,0.706666667 C38.9660984,0.370464027 38.5048767,0.192278529 38.0316667,0.216666667 C14.6516667,1.43666667 6.015,22.2633333 5.93166667,22.4733333 C5.68236407,23.0926189 5.82664679,23.8009159 6.29833333,24.2733333 L15.7266667,33.7016667 C16.2013871,34.1756798 16.9140329,34.3188658 17.535,34.065 C17.7433333,33.98 38.4583333,25.2466667 39.7816667,1.97666667 C39.8087196,1.50414529 39.6335979,1.04240574 39.3,0.706666667 Z M25.69,19.0233333 C24.7367525,19.9768687 23.3029475,20.2622391 22.0572426,19.7463614 C20.8115377,19.2304837 19.9992882,18.0149658 19.9992882,16.6666667 C19.9992882,15.3183676 20.8115377,14.1028496 22.0572426,13.5869719 C23.3029475,13.0710943 24.7367525,13.3564646 25.69,14.31 C26.9912731,15.6116662 26.9912731,17.7216672 25.69,19.0233333 L25.69,19.0233333 Z"></path>
-                        <path class="color-background opacity-6" d="M1.855,31.4066667 C3.05106558,30.2024182 4.79973884,29.7296005 6.43969145,30.1670277 C8.07964407,30.6044549 9.36054508,31.8853559 9.7979723,33.5253085 C10.2353995,35.1652612 9.76258177,36.9139344 8.55833333,38.11 C6.70666667,39.9616667 0,40 0,40 C0,40 0,33.2566667 1.855,31.4066667 Z"></path>
-                        <path class="color-background opacity-6" d="M17.2616667,3.90166667 C12.4943643,3.07192755 7.62174065,4.61673894 4.20333333,8.04166667 C3.31200265,8.94126033 2.53706177,9.94913142 1.89666667,11.0416667 C1.5109569,11.6966059 1.61721591,12.5295394 2.155,13.0666667 L5.47,16.3833333 C8.55036617,11.4946947 12.5559074,7.25476565 17.2616667,3.90166667 L17.2616667,3.90166667 Z"></path>
-                        <path class="color-background opacity-6" d="M36.0983333,22.7383333 C36.9280725,27.5056357 35.3832611,32.3782594 31.9583333,35.7966667 C31.0587397,36.6879974 30.0508686,37.4629382 28.9583333,38.1033333 C28.3033941,38.4890431 27.4704606,38.3827841 26.9333333,37.845 L23.6166667,34.53 C28.5053053,31.4496338 32.7452344,27.4440926 36.0983333,22.7383333 L36.0983333,22.7383333 Z"></path>
-                      </g>
+                    <g>
+                      <path d="M309.333,213.333h149.333c5.888,0,10.667-4.779,10.667-10.667S464.555,192,458.667,192H309.333
+                        c-5.888,0-10.667,4.779-10.667,10.667S303.445,213.333,309.333,213.333z"/>
+                      <path d="M458.667,21.333H53.333C23.915,21.333,0,45.269,0,74.667v362.667c0,29.397,23.915,53.333,53.333,53.333h405.333
+                        c29.419,0,53.333-23.936,53.333-53.333V74.667C512,45.269,488.085,21.333,458.667,21.333z M138.667,64
+                        c5.888,0,10.667,4.779,10.667,10.667s-4.779,10.667-10.667,10.667S128,80.555,128,74.667S132.779,64,138.667,64z M96,64
+                        c5.888,0,10.667,4.779,10.667,10.667S101.888,85.333,96,85.333s-10.667-4.779-10.667-10.667S90.112,64,96,64z M53.333,64
+                        C59.221,64,64,68.779,64,74.667s-4.779,10.667-10.667,10.667s-10.667-4.779-10.667-10.667S47.445,64,53.333,64z M490.667,437.333
+                        c0,17.643-14.357,32-32,32H53.333c-17.643,0-32-14.357-32-32V128h469.333V437.333z"/>
+                      <path d="M53.333,405.333h213.333c5.888,0,10.667-4.8,10.667-10.688c0-26.731-18.133-49.941-44.053-56.427l-32.021-8l-1.344-5.355
+                        c8.32-9.173,14.208-20.885,16.661-33.045c5.696-2.944,9.813-8.533,10.667-15.253l2.304-18.56
+                        c0.704-5.632-1.024-11.307-4.757-15.573c-1.152-1.323-2.453-2.453-3.883-3.435l0.533-11.328l1.941-1.941
+                        c5.504-5.845,12.928-18.325,1.173-36.331c-5.547-8.533-17.067-18.731-40.149-18.731c-6.784,0-22.123,0-37.013,9.344
+                        c-43.904,1.536-49.067,25.195-49.067,43.072c0,3.52,0.619,10.112,1.237,15.616c-1.579,1.003-3.051,2.24-4.288,3.669
+                        c-3.797,4.309-5.547,10.005-4.821,15.659l2.304,18.56c0.875,6.955,5.291,12.715,11.797,15.552
+                        c2.389,11.627,7.979,22.891,15.765,31.829l-1.557,6.272l-32.021,8c-25.941,6.464-44.075,29.675-44.075,56.427
+                        C42.667,400.555,47.445,405.333,53.333,405.333z"/>
+                      <path d="M309.333,405.333h85.333c5.888,0,10.667-4.779,10.667-10.667S400.555,384,394.667,384h-85.333
+                        c-5.888,0-10.667,4.779-10.667,10.667S303.445,405.333,309.333,405.333z"/>
+                      <path d="M309.333,277.333h149.333c5.888,0,10.667-4.779,10.667-10.667S464.555,256,458.667,256H309.333
+                        c-5.888,0-10.667,4.779-10.667,10.667S303.445,277.333,309.333,277.333z"/>
+                      <path d="M309.333,341.333h149.333c5.888,0,10.667-4.779,10.667-10.667S464.555,320,458.667,320H309.333
+                        c-5.888,0-10.667,4.779-10.667,10.667S303.445,341.333,309.333,341.333z"/>
                     </g>
                   </g>
                 </g>
-              </svg>
-            </div>
-            <span class="nav-link-text ms-1">Logout</span>
-          </a>
-        </li>
+                </svg>
+              </div>
+              <span class="nav-link-text ms-1">Profile</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link  " href="{{ url_for('auth_blueprint.logout') }}">
+              <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
+                <svg width="16px" height="24px" viewBox="0 0 40 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                  <title>spaceship</title>
+                  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g transform="translate(-1720.000000, -592.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                      <g transform="translate(1716.000000, 291.000000)">
+                        <g transform="translate(4.000000, 301.000000)">
+                          <path class="color-background" d="M39.3,0.706666667 C38.9660984,0.370464027 38.5048767,0.192278529 38.0316667,0.216666667 C14.6516667,1.43666667 6.015,22.2633333 5.93166667,22.4733333 C5.68236407,23.0926189 5.82664679,23.8009159 6.29833333,24.2733333 L15.7266667,33.7016667 C16.2013871,34.1756798 16.9140329,34.3188658 17.535,34.065 C17.7433333,33.98 38.4583333,25.2466667 39.7816667,1.97666667 C39.8087196,1.50414529 39.6335979,1.04240574 39.3,0.706666667 Z M25.69,19.0233333 C24.7367525,19.9768687 23.3029475,20.2622391 22.0572426,19.7463614 C20.8115377,19.2304837 19.9992882,18.0149658 19.9992882,16.6666667 C19.9992882,15.3183676 20.8115377,14.1028496 22.0572426,13.5869719 C23.3029475,13.0710943 24.7367525,13.3564646 25.69,14.31 C26.9912731,15.6116662 26.9912731,17.7216672 25.69,19.0233333 L25.69,19.0233333 Z"></path>
+                          <path class="color-background opacity-6" d="M1.855,31.4066667 C3.05106558,30.2024182 4.79973884,29.7296005 6.43969145,30.1670277 C8.07964407,30.6044549 9.36054508,31.8853559 9.7979723,33.5253085 C10.2353995,35.1652612 9.76258177,36.9139344 8.55833333,38.11 C6.70666667,39.9616667 0,40 0,40 C0,40 0,33.2566667 1.855,31.4066667 Z"></path>
+                          <path class="color-background opacity-6" d="M17.2616667,3.90166667 C12.4943643,3.07192755 7.62174065,4.61673894 4.20333333,8.04166667 C3.31200265,8.94126033 2.53706177,9.94913142 1.89666667,11.0416667 C1.5109569,11.6966059 1.61721591,12.5295394 2.155,13.0666667 L5.47,16.3833333 C8.55036617,11.4946947 12.5559074,7.25476565 17.2616667,3.90166667 L17.2616667,3.90166667 Z"></path>
+                          <path class="color-background opacity-6" d="M36.0983333,22.7383333 C36.9280725,27.5056357 35.3832611,32.3782594 31.9583333,35.7966667 C31.0587397,36.6879974 30.0508686,37.4629382 28.9583333,38.1033333 C28.3033941,38.4890431 27.4704606,38.3827841 26.9333333,37.845 L23.6166667,34.53 C28.5053053,31.4496338 32.7452344,27.4440926 36.0983333,22.7383333 L36.0983333,22.7383333 Z"></path>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+                </svg>
+              </div>
+              <span class="nav-link-text ms-1">Logout</span>
+            </a>
+          </li>
         {% endif %}
       </ul>
     </div>

@@ -7,7 +7,7 @@
 
 {% block content %}
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-2">
   <div class="row">
       <div class="col-sm-8">
           <div class="card">
@@ -53,7 +53,7 @@
                         </div>
                         <div class="col-sm-12 mb-2">
                           <div class="form-group">
-                              <button type="submit" class="btn btn-primary">Update</button>
+                              <button type="submit" class="btn btn-sm btn-primary shadow-2 mx-auto">Update</button>
                           </div>
                         </div>
               </div>
@@ -71,7 +71,7 @@
                           <h4 class="font-weight-bold h6">
                               <label for="exampleInputUsername" class="text-muted">Username:&nbsp;&nbsp;</label>{{ current_user.username }}
                           </h4>
-                          <p class="font-italic text-muted text-sm">
+                          <p class="text-muted text-sm">
                               {% if current_user.email %} {{ current_user.email }} {% endif %}
                           </p>
                       </div>
