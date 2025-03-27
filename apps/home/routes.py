@@ -301,6 +301,16 @@ def display_ngrtb():
         )
 
 
+# define a new route for templates/pages/internalexam_m.html
+@blueprint.route('/intlexam_m')
+def intlexam_m():
+    return render_template('pages/intlexam_m.html', segment='internal assessment (midterm)', parent='intAssmnt')
+
+# define a new route for templates/pages/internalexam_f.html
+@blueprint.route('/intlexam_f')
+def intlexam_f():
+    return render_template('pages/intlexam_f.html', segment='internal assessment (final)', parent='intAssmnt')
+
 # define a new route for templates/pages/display_ngrta.html
 @blueprint.route('/display_ngrta')
 def display_ngrta():
