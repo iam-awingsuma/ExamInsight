@@ -1,0 +1,18 @@
+| for admin users
+Menu: Student Manager (Main menu item 4 - after benchmark tests)
+    Displays all students from the database table in a tabular format
+    *** Searcheable (by Student ID, Name)
+    *** buttons/features:
+        *** Edit/update student records
+        *** Upload student picture/photo
+
+| for non-admin users:
+Menu: Data Analysis
+** AI integration for intelligent data analysis and interpretation
+    *** Individual Student
+    *** Class-wise
+    *** Year Group
+
+Menu: Reports
+
+Analytics (Dynamic Dashboard)
