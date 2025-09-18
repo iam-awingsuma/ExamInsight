@@ -18,7 +18,7 @@
                 <h5>IMPORT DATA:<br />Upload CSV File for NGRT-B</h5>
               </div>
               <div class="card-body text-center pt-4">
-                <form method="post" action="{{ url_for('home_blueprint.upload_ngrtb') }}" enctype="multipart/form-data">
+                <form method="post" action="{{ url_for('home_blueprint.display_ngrtb') }}" enctype="multipart/form-data">
                   <div class="form-group">
                     <input class="form-control form-control-sm w-75 mb-4 mx-auto" type="file" name="file" accept=".csv">
                     <input class="btn btn-sm btn-primary shadow-2 mx-auto" type="submit" value="Upload">

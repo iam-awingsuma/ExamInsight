@@ -10,6 +10,7 @@ from apps import db
 from sqlalchemy.exc import IntegrityError
 
 from apps.authentication.models import NGRTB
+from apps.authentication.models import NGRTC
 from apps.authentication.models import Students
 
 from flask_login import (
@@ -243,9 +244,8 @@ def upload_ngrtb():
     
     return redirect(request.url)
 
-
 # define a new route for templates/pages/display_ngrtb.html
-@blueprint.route('/display_ngrtb')
+@blueprint.route('/display_ngrtb', methods=['GET'])
 def display_ngrtb():
     ngrtb_data = NGRTB.query.all()  # Fetch all entries from NGRTB table
     # student_data = Students.query.all()  # Fetch all entries from Students table  
@@ -301,6 +301,158 @@ def display_ngrtb():
         )
 
 
+@blueprint.route('/display_ngrtc', methods=['POST'])
+def upload_ngrtc():
+    if 'file' not in request.files:
+        return redirect(request.url)
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return redirect(request.url)
+    
+    if file and file.filename.endswith('.csv'):
+        # Save the file temporarily
+        filepath = os.path.join(CSV_UPLOAD, file.filename)
+        file.save(filepath)
+        
+        # Read CSV and store in database
+        df = pd.read_csv(filepath)
+        
+        # Clear existing data (optional)
+        # db.session.query(NGRTC).delete()
+        
+        for index, row in df.iterrows():
+            # Insert data into table - students
+            student_id=int(row['student_id'])
+
+            # Handle students table
+            student = Students.query.filter_by(student_id=student_id).first()
+            if student:
+                # Update existing student record
+                student.forename = str(row['forename'])
+                student.surname = str(row['surname'])
+                student.gender = str(row['gender'])
+                student.date_of_birth = str(row['date_of_birth'])
+                student.yrgrp = str(row['yrgrp'])
+                student.sped = str(row['sped'])
+                student.nationality = str(row['nationality'])
+                student.status = str(row['status'])
+            else:
+                # New student record
+                student = Students(
+                    student_id=student_id,
+                    forename=str(row['forename']),
+                    surname=str(row['surname']),
+                    gender=str(row['gender']),
+                    date_of_birth=str(row['date_of_birth']),
+                    yrgrp=str(row['yrgrp']),
+                    sped=str(row['sped']),
+                    nationality=str(row['nationality']),
+                    status=str(row['status'])
+                )
+                db.session.add(student)
+            
+            # Handle NGRTC table
+            ngrtc = NGRTC.query.filter_by(student_id=student_id).first()
+            if ngrtc:
+                # Update existing NGRTC record
+                ngrtc.ngrt_level = str(row['ngrt_level'])
+                ngrtc.sas = int(row['sas'])
+                ngrtc.stanine = int(row['stanine'])
+                ngrtc.reading_age = str(row['reading_age'])
+                ngrtc.prev_test_name = str(row['prev_test_name'])
+                ngrtc.prev_sas = int(row['prev_sas'])
+                ngrtc.prev_stanine = int(row['prev_stanine'])
+                ngrtc.progress_category = str(row['progress_category'])
+                ngrtc.reader_profile = str(row['reader_profile'])
+                ngrtc.profile_desc = str(row['profile_desc'])
+            else:
+                # New NGRTC record
+                ngrtc = NGRTC(
+                    student_id=student_id,
+                    ngrt_level=str(row['ngrt_level']),
+                    sas=int(row['sas']),
+                    stanine=int(row['stanine']),
+                    reading_age=str(row['reading_age']),
+                    prev_test_name=str(row['prev_test_name']),
+                    prev_sas=int(row['prev_sas']),
+                    prev_stanine=int(row['prev_stanine']),
+                    progress_category=str(row['progress_category']),
+                    reader_profile=str(row['reader_profile']),
+                    profile_desc=str(row['profile_desc'])
+                )
+                db.session.add(ngrtc)
+        
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Some records were skipped due to duplicates.", "warning")  # Duplicate message
+
+        # Clean up temporary file
+        os.remove(filepath)
+        return redirect(url_for('home_blueprint.display_ngrtc'))
+    
+    return redirect(request.url)
+
+# define a new route for templates/pages/display_ngrtc.html
+@blueprint.route('/display_ngrtc', methods=['GET'])
+def display_ngrtc():
+    ngrtc_data = NGRTC.query.all()  # Fetch all entries from NGRTC table
+    # student_data = Students.query.all()  # Fetch all entries from Students table  
+    student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
+    
+    # Check if either table is empty
+    ngrtc_empty = not ngrtc_data  # True if NGRTC is empty
+    students_empty = not student_data  # True if Students is empty
+    
+    # If both tables are empty
+    if ngrtc_empty and students_empty:
+        return render_template(
+            'pages/display_ngrtc.html',
+            segment='external data - NGRT (Form-C)',
+            parent='extBTest',
+            no_data=True,
+            ngrtc_data=None,
+            student_data=None,
+            msg_ngrtc='No NGRT-C data available.',
+            msg_students='No student data available.'
+        )
+    # If only NGRTC is empty
+    elif ngrtc_empty:
+        return render_template(
+            'pages/display_ngrtc.html',
+            segment='external data - NGRT (Form-C)',
+            parent='extBTest',
+            no_data=True,
+            msg_ngrtc='No NGRT-C data available.',
+            student_data=student_data,
+            ngrtc_data=None
+        )
+    # If only Students is empty
+    elif students_empty:
+        return render_template(
+            'pages/display_ngrtc.html',
+            segment='external data - NGRT (Form-C)',
+            parent='extBTest',
+            no_data=True,
+            msg_students='No student data available.',
+            ngrtc_data=ngrtc_data,
+            student_data=None
+        )
+    # If both tables have data
+    else:
+        combined_data = db.session.query(Students, NGRTC).join(Students, NGRTC.student_id == Students.student_id).order_by(Students.yrgrp, Students.forename).all()
+        return render_template(
+            'pages/display_ngrtc.html',
+            segment='external data - NGRT (Form-C)',
+            parent='extBTest',
+            no_data=False,
+            combined_data=combined_data
+        )
+
+
 # define a new route for templates/pages/internalexam_m.html
 @blueprint.route('/intlexam_m')
 def intlexam_m():
@@ -316,10 +468,10 @@ def intlexam_f():
 def display_ngrta():
     return render_template('pages/display_ngrta.html', segment='external data - NGRT (Form-A)', parent='extBTest')
 
-# define a new route for templates/pages/display_ngrtc.html
-@blueprint.route('/display_ngrtc')
-def display_ngrtc():
-    return render_template('pages/display_ngrtc.html', segment='external data - NGRT (Form-C)', parent='extBTest')
+# # define a new route for templates/pages/display_ngrtc.html
+# @blueprint.route('/display_ngrtc')
+# def display_ngrtc():
+#     return render_template('pages/display_ngrtc.html', segment='external data - NGRT (Form-C)', parent='extBTest')
 
 # Grant admin rights route for users
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])
