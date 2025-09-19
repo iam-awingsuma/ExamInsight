@@ -1,5 +1,5 @@
 
-from flask import Blueprint, app
+from flask import Blueprint
 
 blueprint = Blueprint(
     # blueprint for apps/authentication
@@ -7,6 +7,3 @@ blueprint = Blueprint(
     __name__,
     url_prefix=''
 )
-
-from apps.home import blueprint as home_blueprint
-app.register_blueprint(home_blueprint)

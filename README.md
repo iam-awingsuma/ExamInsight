@@ -27,4 +27,6 @@ Set up the environment
 Windows:
 <code>flask run</code>
 or
-<code>flask --app run.py run</code>
+<code>flask --app run.py run</code><br/>
+or use the most common and recommended way to enable auto-reloading 
+<code>flask --app run.py --debug run</code>
