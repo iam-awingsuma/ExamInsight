@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from apps.authentication.models import NGRTA
 from apps.authentication.models import NGRTB
 from apps.authentication.models import NGRTC
+from apps.authentication.models import InternalExam
 from apps.authentication.models import Students
 
 from flask_login import (
@@ -592,16 +593,146 @@ def display_ngrtc():
             combined_data=combined_data
         )
 
+# # define a new route for templates/pages/internalexam_m.html
+# @blueprint.route('/intlexam_m')
+# def intlexam_m():
+#     return render_template('pages/intlexam_m.html', segment='internal assessment (midterm)', parent='intAssmnt')
 
-# define a new route for templates/pages/internalexam_m.html
-@blueprint.route('/intlexam_m')
-def intlexam_m():
-    return render_template('pages/intlexam_m.html', segment='internal assessment (midterm)', parent='intAssmnt')
+# define a new route for templates/pages/internalexam.html
+# @blueprint.route('/intlexam')
+# def intlexam():
+#     return render_template('pages/intlexam.html', segment='internal assessment (final term)', parent='intAssmnt')
 
-# define a new route for templates/pages/internalexam_f.html
-@blueprint.route('/intlexam_f')
-def intlexam_f():
-    return render_template('pages/intlexam_f.html', segment='internal assessment (final)', parent='intAssmnt')
+@blueprint.route('/display_intlexam', methods=['POST'])
+def upload_intlexam():
+    if 'file' not in request.files:
+        return redirect(request.url)
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return redirect(request.url)
+    
+    if file and file.filename.endswith('.csv'):
+        # Save the file temporarily
+        filepath = os.path.join(CSV_UPLOAD, file.filename)
+        file.save(filepath)
+        
+        # Read CSV and store in database
+        df = pd.read_csv(filepath)
+        
+        for index, row in df.iterrows():
+            
+            student_id=int(row['student_id'])
+
+            # Handle internal_exam table
+            internalexam = InternalExam.query.filter_by(student_id=student_id).first()
+            if internalexam:
+                # Update existing Internal Exam records
+                internalexam.eng_prevPct = int(row['eng_prevPct'])
+                internalexam.eng_prevGr = str(row['eng_prevGr'])
+                internalexam.eng_currPct = int(row['eng_currPct'])
+                internalexam.eng_currGr = str(row['eng_currGr'])
+                internalexam.eng_progcat = str(row['eng_progcat'])
+                internalexam.maths_prevPct = int(row['maths_prevPct'])
+                internalexam.maths_prevGr = str(row['maths_prevGr'])
+                internalexam.maths_currPct = int(row['maths_currPct'])
+                internalexam.maths_currGr = str(row['maths_currGr'])
+                internalexam.maths_progcat = str(row['maths_progcat'])
+                internalexam.sci_prevPct = int(row['sci_prevPct'])
+                internalexam.sci_prevGr = str(row['sci_prevGr'])
+                internalexam.sci_currPct = int(row['sci_currPct'])
+                internalexam.sci_currGr = str(row['sci_currGr'])
+                internalexam.sci_progcat = str(row['sci_progcat'])
+            else:
+                # New Internal Exam records
+                internalexam = InternalExam(
+                    student_id=student_id,
+                    eng_prevPct = int(row['eng_prevPct']),
+                    eng_prevGr = str(row['eng_prevGr']),
+                    eng_currPct = int(row['eng_currPct']),
+                    eng_currGr = str(row['eng_currGr']),
+                    eng_progcat = str(row['eng_progcat']),
+                    maths_prevPct = int(row['maths_prevPct']),
+                    maths_prevGr = str(row['maths_prevGr']),
+                    maths_currPct = int(row['maths_currPct']),
+                    maths_currGr = str(row['maths_currGr']),
+                    maths_progcat = str(row['maths_progcat']),
+                    sci_prevPct = int(row['sci_prevPct']),
+                    sci_prevGr = str(row['sci_prevGr']),
+                    sci_currPct = int(row['sci_currPct']),
+                    sci_currGr = str(row['sci_currGr']),
+                    sci_progcat = str(row['sci_progcat'])
+                )
+                db.session.add(internalexam)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Some records were skipped due to duplicates.", "warning")  # Duplicate message
+
+        # Clean up temporary file
+        os.remove(filepath)
+        return redirect(url_for('home_blueprint.display_intlexam'))
+    
+    return redirect(request.url)
+
+# define a new route for templates/pages/intlexam.html
+@blueprint.route('/display_intlexam', methods=['GET'])
+def display_intlexam():
+    intlexam_data = InternalExam.query.all()  # Fetch all entries from internal_exam table
+    # Fetch all entries from Students table  
+    student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
+    
+    # Check if either table is empty
+    intlexam_empty = not intlexam_data  # True if internalexam is empty
+    students_empty = not student_data  # True if Students is empty
+    
+    # If both tables are empty
+    if intlexam_empty and students_empty:
+        return render_template(
+            'pages/intlexam.html',
+            segment='internal assessment (final term)',
+            parent='intAssmnt',
+            no_data=True,
+            intlexam_data=None,
+            student_data=None,
+            msg_intlexam='No Internal Exam data available.',
+            msg_students='No student data available.'
+        )
+    # If only internalexam is empty
+    elif intlexam_empty:
+        return render_template(
+            'pages/intlexam.html',
+            segment='internal assessment (final term)',
+            parent='intAssmnt',
+            no_data=True,
+            msg_intlexam='No Internal Exam data available.',
+            student_data=student_data,
+            intlexam_data=None
+        )
+    # If only Students is empty
+    elif students_empty:
+        return render_template(
+            'pages/intlexam.html',
+            segment='internal assessment (final term)',
+            parent='intAssmnt',
+            no_data=True,
+            msg_students='No student data available.',
+            intlexam_data=intlexam_data,
+            student_data=None
+        )
+    # If both tables have data
+    else:
+        combined_data = db.session.query(Students, InternalExam).join(Students, InternalExam.student_id == Students.student_id).order_by(Students.yrgrp, Students.forename).all()
+        return render_template(
+            'pages/intlexam.html',
+            segment='internal assessment (final term)',
+            parent='intAssmnt',
+            no_data=False,
+            combined_data=combined_data
+        )
+
 
 # Grant admin rights route for users
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])

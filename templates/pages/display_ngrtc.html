@@ -55,10 +55,10 @@
     <table class="table align-items-center mb-0">
         <thead>
             <tr>
-                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-3">Student Information</th>
-                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-2">Prior Exam</th>
-                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-2">Latest Exam</th>
-                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-2">Progress Category / Reader Profile & Description</th>
+                <th class="text-uppercase text-dark text-xs font-weight-bolder ps-3">Student Information</th>
+                <th class="text-uppercase text-dark text-xs font-weight-bolder ps-2">Prior Exam</th>
+                <th class="text-uppercase text-dark text-xs font-weight-bolder ps-2">Latest Exam</th>
+                <th class="text-uppercase text-dark text-xs font-weight-bolder ps-2">Progress Category / Reader Profile & Description</th>
             </tr>
         </thead>
         <tbody>
@@ -105,7 +105,17 @@
             <td style="width: 1%;">
               <div>
                 <div class="d-flex flex-column justify-content-center">
-                  <h6 class="mb-0 text-xs text-uppercase text-primary">{{entry.progress_category}}</h6>
+                  {% if entry.progress_category == 'Much higher' %}
+                    <h6 class="text-xs p-1 mb-0 bg-gradient-success text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                  {% elif entry.progress_category == 'Higher' %}
+                    <h6 class="text-xs p-1 mb-0 bg-gradient-info text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                  {% elif entry.progress_category == 'Expected' %}
+                    <h6 class="text-xs p-1 mb-0 bg-gradient-warning text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                  {% elif entry.progress_category == 'Lower' %}
+                    <h6 class="text-xs p-1 mb-0 bg-gradient-danger text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                  {% else %}
+                    <h6 class="text-xs p-1 mb-0 bg-gradient-secondary text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                  {% endif %}
                   <p class="text-xs text-secondary mb-0">{{entry.reader_profile}}<br />{{entry.profile_desc if entry else ''}}</p>
                 </div>
               </div>

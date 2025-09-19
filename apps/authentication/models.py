@@ -166,3 +166,29 @@ class NGRTC(db.Model, UserMixin):
 
     def __repr__(self):
         return str(self.student_id)
+    
+# Define the Internal Exam data model (table in database)
+class InternalExam(db.Model, UserMixin):
+
+    __tablename__ = 'internalexam'
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, unique=True, nullable=False)
+    eng_prevPct = db.Column(db.Integer, nullable=True)
+    eng_prevGr = db.Column(db.String(3), nullable=True)
+    eng_currPct = db.Column(db.Integer, nullable=True)
+    eng_currGr = db.Column(db.String(3), nullable=True)
+    eng_progcat = db.Column(db.String(20), nullable=True)
+    maths_prevPct = db.Column(db.Integer, nullable=True)
+    maths_prevGr = db.Column(db.String(3), nullable=True)
+    maths_currPct = db.Column(db.Integer, nullable=True)
+    maths_currGr = db.Column(db.String(3), nullable=True)
+    maths_progcat = db.Column(db.String(20), nullable=True)
+    sci_prevPct = db.Column(db.Integer, nullable=True)
+    sci_prevGr = db.Column(db.String(3), nullable=True)
+    sci_currPct = db.Column(db.Integer, nullable=True)
+    sci_currGr = db.Column(db.String(3), nullable=True)
+    sci_progcat = db.Column(db.String(20), nullable=True)
+
+    def __repr__(self):
+        return str(self.student_id)
