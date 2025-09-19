@@ -18,7 +18,7 @@
                 <h5>IMPORT DATA:<br />Upload CSV File for NGRT-A</h5>
               </div>
               <div class="card-body text-center pt-4">
-                <form method="post" action="#" enctype="multipart/form-data">
+                <form method="post" action="{{ url_for('home_blueprint.display_ngrta') }}" enctype="multipart/form-data">
                   <div class="form-group">
                     <input class="form-control form-control-sm w-75 mb-4 mx-auto" type="file" name="file" accept=".csv">
                     <input class="btn btn-sm btn-primary shadow-2 mx-auto" type="submit" value="Upload">
@@ -32,6 +32,78 @@
     </section>
   {% endif %}
     <h5>International Benchmark Exam | New Group Reading Test (NGRT) - Form A</h5>
+  {% if no_data and ngrta_data is none and student_data is none %}
+    <p class="d-block text-danger">
+      WARNING!!!<br />
+      &#10008; {{ msg_students }}<br />
+      &#10008; {{ msg_ngrta }}<br />
+      Please contact your administrator to upload the required data.
+    </p>
+  {% elif no_data and ngrta_data is none %}
+    <p class="d-block text-danger">
+      WARNING!!!<br />
+      &#10008; {{ msg_ngrta }}<br />
+      Please contact your administrator to upload the required data.
+    </p>
+  {% elif no_data and student_data is none %}
+    <p class="d-block text-danger">
+      WARNING!!!<br />
+      &#10008; {{ msg_students }}<br />
+      Please contact your administrator to upload the required data.
+    </p>
+  {% else %}
+    <table class="table align-items-center mb-0">
+        <thead>
+            <tr>
+                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-3">Student Information</th>
+                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-2">Latest Exam</th>
+                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7 ps-2">Reader Profile & Description</th>
+            </tr>
+        </thead>
+        <tbody>
+          {% for student, entry in combined_data %}
+          <tr>
+            <td style="width: 1%;">
+              <div class="d-flex px-2 py-1">
+                <div class="d-flex flex-column justify-content-center">
+                  <h6 class="mb-0 text-xs">{{ student.student_id }}&nbsp;
+                    <span class="text-xs text-secondary mb-0">
+                      {{student.forename}}&nbsp;{{student.surname}}
+                    </span>
+                  </h6>
+                  <p class="text-xs text-secondary mb-0">
+                    {{student.gender}},&nbsp;{{student.nationality}}
+                  </p>
+                  <p class="text-xs text-secondary mb-0">
+                    {{student.status}},&nbsp;Year&nbsp;<span class="text-uppercase">{{student.yrgrp}}</span>
+                  </p>
+                </div>
+              </div>
+            </td>
+
+            <td style="width: 1%;">
+              <div>
+                <div class="d-flex flex-column justify-content-center">
+                  <p class="text-xs text-secondary mb-0">{{entry.ngrt_level}}<br />
+                    SAS: {{entry.sas}}<br />
+                    Stanine: {{entry.stanine}}</p>
+                </div>
+              </div>
+            </td>
+
+            <td style="width: 1%;">
+              <div>
+                <div class="d-flex flex-column justify-content-center">
+                  <p class="text-xs text-secondary mb-0">{{entry.profile_desc}}</p>
+                </div>
+              </div>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+  {% endif %}
 </div>
 
 {% endblock content %}

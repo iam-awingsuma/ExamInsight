@@ -9,6 +9,7 @@ from flask_login import login_required, current_user
 from apps import db
 from sqlalchemy.exc import IntegrityError
 
+from apps.authentication.models import NGRTA
 from apps.authentication.models import NGRTB
 from apps.authentication.models import NGRTC
 from apps.authentication.models import Students
@@ -147,6 +148,145 @@ CSV_UPLOAD = 'static/assets/csv'
 # Ensure the CSV upload folder exists
 if not os.path.exists(CSV_UPLOAD):
     os.makedirs(CSV_UPLOAD)
+
+
+@blueprint.route('/display_ngrta', methods=['POST'])
+def upload_ngrta():
+    if 'file' not in request.files:
+        return redirect(request.url)
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return redirect(request.url)
+    
+    if file and file.filename.endswith('.csv'):
+        # Save the file temporarily
+        filepath = os.path.join(CSV_UPLOAD, file.filename)
+        file.save(filepath)
+        
+        # Read CSV and store in database
+        df = pd.read_csv(filepath)
+        
+        for index, row in df.iterrows():
+            # Insert data into table - students
+            student_id=int(row['student_id'])
+
+            # Handle students table
+            student = Students.query.filter_by(student_id=student_id).first()
+            if student:
+                # Update existing student record
+                student.forename = str(row['forename'])
+                student.surname = str(row['surname'])
+                student.gender = str(row['gender'])
+                student.date_of_birth = str(row['date_of_birth'])
+                student.yrgrp = str(row['yrgrp'])
+                student.sped = str(row['sped'])
+                student.nationality = str(row['nationality'])
+                student.status = str(row['status'])
+            else:
+                # New student record
+                student = Students(
+                    student_id=student_id,
+                    forename=str(row['forename']),
+                    surname=str(row['surname']),
+                    gender=str(row['gender']),
+                    date_of_birth=str(row['date_of_birth']),
+                    yrgrp=str(row['yrgrp']),
+                    sped=str(row['sped']),
+                    nationality=str(row['nationality']),
+                    status=str(row['status'])
+                )
+                db.session.add(student)
+            
+            # Handle NGRTA table
+            ngrta = NGRTA.query.filter_by(student_id=student_id).first()
+            if ngrta:
+                # Update existing NGRTB record
+                ngrta.ngrt_level = str(row['ngrt_level'])
+                ngrta.sas = int(row['sas'])
+                ngrta.stanine = int(row['stanine'])
+                ngrta.reading_age = str(row['reading_age'])
+                ngrta.profile_desc = str(row['profile_desc'])
+            else:
+                # New NGRTA record
+                ngrta = NGRTA(
+                    student_id=student_id,
+                    ngrt_level=str(row['ngrt_level']),
+                    sas=int(row['sas']),
+                    stanine=int(row['stanine']),
+                    reading_age=str(row['reading_age']),
+                    profile_desc=str(row['profile_desc'])
+                )
+                db.session.add(ngrta)
+        
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Some records were skipped due to duplicates.", "warning")  # Duplicate message
+
+        # Clean up temporary file
+        os.remove(filepath)
+        return redirect(url_for('home_blueprint.display_ngrta'))
+    
+    return redirect(request.url)
+
+# define a new route for templates/pages/display_ngrta.html
+@blueprint.route('/display_ngrta', methods=['GET'])
+def display_ngrta():
+    ngrta_data = NGRTA.query.all()  # Fetch all entries from NGRTA table
+    # student_data = Students.query.all()  # Fetch all entries from Students table  
+    student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
+    
+    # Check if either table is empty
+    ngrta_empty = not ngrta_data  # True if NGRTA is empty
+    students_empty = not student_data  # True if Students is empty
+    
+    # If both tables are empty
+    if ngrta_empty and students_empty:
+        return render_template(
+            'pages/display_ngrta.html',
+            segment='external data - NGRT (Form-A)',
+            parent='extBTest',
+            no_data=True,
+            ngrta_data=None,
+            student_data=None,
+            msg_ngrta='No NGRT-A data available.',
+            msg_students='No student data available.'
+        )
+    # If only NGRTA is empty
+    elif ngrta_empty:
+        return render_template(
+            'pages/display_ngrta.html',
+            segment='external data - NGRT (Form-A)',
+            parent='extBTest',
+            no_data=True,
+            msg_ngrta='No NGRT-A data available.',
+            student_data=student_data,
+            ngrta_data=None
+        )
+    # If only Students is empty
+    elif students_empty:
+        return render_template(
+            'pages/display_ngrta.html',
+            segment='external data - NGRT (Form-A)',
+            parent='extBTest',
+            no_data=True,
+            msg_students='No student data available.',
+            ngrta_data=ngrta_data,
+            student_data=None
+        )
+    # If both tables have data
+    else:
+        combined_data = db.session.query(Students, NGRTA).join(Students, NGRTA.student_id == Students.student_id).order_by(Students.yrgrp, Students.forename).all()
+        return render_template(
+            'pages/display_ngrta.html',
+            segment='external data - NGRT (Form-A)',
+            parent='extBTest',
+            no_data=False,
+            combined_data=combined_data
+        )
 
 
 @blueprint.route('/display_ngrtb', methods=['POST'])
@@ -462,16 +602,6 @@ def intlexam_m():
 @blueprint.route('/intlexam_f')
 def intlexam_f():
     return render_template('pages/intlexam_f.html', segment='internal assessment (final)', parent='intAssmnt')
-
-# define a new route for templates/pages/display_ngrta.html
-@blueprint.route('/display_ngrta')
-def display_ngrta():
-    return render_template('pages/display_ngrta.html', segment='external data - NGRT (Form-A)', parent='extBTest')
-
-# # define a new route for templates/pages/display_ngrtc.html
-# @blueprint.route('/display_ngrtc')
-# def display_ngrtc():
-#     return render_template('pages/display_ngrtc.html', segment='external data - NGRT (Form-C)', parent='extBTest')
 
 # Grant admin rights route for users
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])

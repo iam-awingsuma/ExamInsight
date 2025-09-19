@@ -109,6 +109,22 @@ class Students(db.Model, UserMixin):
     def __repr__(self):
         return str(self.student_id)
 
+# Define the data model (table in database) for NGRT-A
+class NGRTA(db.Model, UserMixin):
+
+    __tablename__ = 'ngrta'
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.student_id'), nullable=False) # Foreign Key to Students table
+    ngrt_level = db.Column(db.String(64), nullable=False)
+    sas = db.Column(db.Integer, nullable=True)
+    stanine = db.Column(db.Integer, nullable=True)
+    reading_age = db.Column(db.String(64), nullable=True)
+    profile_desc = db.Column(db.String(150), nullable=True)
+
+    def __repr__(self):
+        return str(self.student_id)
+    
 # Define the data model (table in database) for NGRT-B
 class NGRTB(db.Model, UserMixin):
 
