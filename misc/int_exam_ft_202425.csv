@@ -1,0 +1,156 @@
+﻿student_id,eng_prevPct,eng_prevGr,eng_currPct,eng_currGr,eng_progcat,maths_prevPct,maths_prevGr,maths_currpct,maths_currGr,maths_progcat,sci_prevPct,sci_prevGr,sci_currpct,sci_currGr,sci_progcat
+6497,71,B,75,B,Above Expected,67,C,72,B,Above Expected,70,B,76,B,Above Expected
+7190,78,B,81,A,Above Expected,75,B,82,A,Above Expected,76,B,80,A,Above Expected
+7977,55,D,67,C,Above Expected,55,D,74,B,Above Expected,55,D,66,C,Above Expected
+6445,63,C,66,C,Above Expected,64,C,66,C,Above Expected,68,C,66,C,Expected
+6531,57,D,58,D,Expected,62,C,64,C,Expected,62,C,66,C,Above Expected
+6498,66,C,75,B,Above Expected,70,B,68,C,Below Expected,66,C,68,C,Expected
+6510,76,B,79,B,Expected,82,A,92,A*,Above Expected,80,A,86,A,Above Expected
+6541,76,B,79,B,Expected,76,B,76,B,Expected,82,A,86,A,Above Expected
+6434,87,A,93,A*,Above Expected,87,A,88,A,Expected,86,A,92,A*,Above Expected
+6386,60,C,74,B,Above Expected,64,C,70,B,Above Expected,76,B,76,B,Expected
+7967,55,D,64,C,Above Expected,55,D,60,C,Above Expected,55,D,70,B,Above Expected
+7948,55,D,80,A,Above Expected,55,D,74,B,Above Expected,55,D,78,B,Above Expected
+6474,75,B,75,B,Expected,72,B,76,B,Above Expected,68,C,76,B,Above Expected
+6394,71,B,76,B,Above Expected,78,B,76,B,Expected,74,B,76,B,Above Expected
+8203,55,D,77,B,Above Expected,55,D,88,A,Above Expected,55,D,76,B,Above Expected
+6614,67,C,65,C,Expected,65,C,66,C,Expected,66,C,60,C,Below Expected
+6594,73,B,75,B,Above Expected,67,C,68,C,Expected,74,B,70,B,Expected
+6447,61,C,55,D,Below Expected,64,C,52,D,Below Expected,64,C,58,D,Below Expected
+7393,70,B,75,B,Above Expected,86,A,92,A*,Above Expected,82,A,80,A,Expected
+6638,63,C,68,C,Above Expected,67,C,66,C,Expected,66,C,68,C,Expected
+6442,93,A*,87,A,Below Expected,92,A*,90,A*,Above Expected,90,A*,90,A*,Above Expected
+5929,68,C,75,B,Above Expected,72,B,76,B,Above Expected,74,B,76,B,Above Expected
+6424,66,C,73,B,Above Expected,71,B,76,B,Above Expected,68,C,74,B,Above Expected
+7634,75,B,77,B,Expected,83,A,92,A*,Above Expected,76,B,80,A,Above Expected
+7982,55,D,79,B,Above Expected,55,D,88,A,Above Expected,55,D,82,A,Above Expected
+7505,68,C,71,B,Above Expected,69,C,76,B,Above Expected,68,C,72,B,Above Expected
+7204,89,A,85,A,Expected,85,A,88,A,Expected,90,A*,92,A*,Above Expected
+6560,82,A,85,A,Above Expected,85,A,94,A*,Above Expected,86,A,88,A,Expected
+6747,89,A,85,A,Expected,89,A,86,A,Expected,92,A*,86,A,Below Expected
+6823,77,B,77,B,Expected,76,B,84,A,Above Expected,74,B,86,A,Above Expected
+6494,63,C,65,C,Above Expected,67,C,62,C,Below Expected,62,C,68,C,Above Expected
+6368,64,C,72,B,Above Expected,66,C,68,C,Expected,68,C,72,B,Above Expected
+7629,65,C,69,C,Expected,68,C,68,C,Expected,62,C,66,C,Above Expected
+6689,81,A,79,B,Below Expected,84,A,86,A,Above Expected,80,A,86,A,Above Expected
+7933,55,D,75,B,Above Expected,55,D,78,B,Above Expected,55,D,70,B,Above Expected
+7217,68,C,70,B,Above Expected,67,C,66,C,Expected,68,C,70,B,Above Expected
+7917,55,D,60,C,Above Expected,55,D,66,C,Above Expected,55,D,68,C,Above Expected
+7922,55,D,75,B,Above Expected,55,D,84,A,Above Expected,55,D,80,A,Above Expected
+6431,75,B,75,B,Expected,85,A,88,A,Expected,78,B,84,A,Above Expected
+7970,55,D,75,B,Above Expected,55,D,78,B,Above Expected,55,D,82,A,Above Expected
+6643,81,A,85,A,Above Expected,85,A,88,A,Expected,84,A,86,A,Above Expected
+7914,55,D,65,C,Above Expected,55,D,64,C,Above Expected,55,D,62,C,Above Expected
+6384,75,B,59,D,Below Expected,77,B,64,C,Below Expected,74,B,68,C,Below Expected
+6475,81,A,85,A,Above Expected,76,B,96,A*,Above Expected,78,B,84,A,Above Expected
+6607,85,A,80,A,Below Expected,85,A,96,A*,Above Expected,92,A*,94,A*,Above Expected
+6517,67,C,57,D,Below Expected,67,C,60,C,Below Expected,66,C,64,C,Below Expected
+7878,55,D,80,A,Above Expected,55,D,94,A*,Above Expected,55,D,94,A*,Above Expected
+6687,55,D,75,B,Above Expected,55,D,72,B,Above Expected,55,D,70,B,Above Expected
+6373,75,B,75,B,Expected,78,B,76,B,Expected,76,B,82,A,Above Expected
+7937,55,D,76,B,Above Expected,55,D,78,B,Above Expected,55,D,82,A,Above Expected
+6722,77,B,75,B,Expected,76,B,76,B,Expected,78,B,76,B,Expected
+7667,64,C,74,B,Above Expected,63,C,66,C,Above Expected,64,C,74,B,Above Expected
+6677,75,B,33,E,Below Expected,76,B,36,E,Below Expected,76,B,54,D,Below Expected
+7723,55,D,65,C,Above Expected,55,D,64,C,Above Expected,55,D,66,C,Above Expected
+6370,79,B,86,A,Above Expected,84,A,86,A,Above Expected,78,B,88,A,Above Expected
+7133,63,C,61,C,Expected,65,C,66,C,Expected,66,C,64,C,Below Expected
+6420,76,B,75,B,Expected,79,B,76,B,Expected,76,B,78,B,Expected
+6673,91,A*,90,A*,Above Expected,92,A*,88,A,Below Expected,86,A,92,A*,Above Expected
+6724,87,A,87,A,Expected,94,A*,98,A*,Above Expected,86,A,92,A*,Above Expected
+6651,53,D,61,C,Above Expected,62,C,60,C,Expected,50,D,66,C,Above Expected
+7929,55,D,56,D,Expected,55,D,56,D,Expected,55,D,58,D,Expected
+6451,73,B,76,B,Above Expected,69,C,70,B,Above Expected,72,B,78,B,Above Expected
+6519,97,A*,93,A*,Above Expected,97,A*,96,A*,Above Expected,96,A*,96,A*,Above Expected
+7921,55,D,65,C,Above Expected,55,D,60,C,Above Expected,55,D,66,C,Above Expected
+6489,93,A*,92,A*,Above Expected,95,A*,92,A*,Above Expected,86,A,94,A*,Above Expected
+7413,75,B,73,B,Below Expected,85,A,86,A,Expected,80,A,76,B,Below Expected
+6706,81,A,89,A,Above Expected,92,A*,92,A*,Above Expected,86,A,94,A*,Above Expected
+6524,76,B,77,B,Expected,76,B,84,A,Above Expected,78,B,76,B,Expected
+7687,62,C,75,B,Above Expected,68,C,82,A,Above Expected,66,C,72,B,Above Expected
+6432,73,B,78,B,Above Expected,80,A,86,A,Above Expected,70,B,82,A,Above Expected
+7591,81,A,87,A,Above Expected,87,A,90,A*,Above Expected,88,A,86,A,Expected
+8002,55,D,78,B,Above Expected,55,D,86,A,Above Expected,55,D,80,A,Above Expected
+6914,85,A,82,A,Below Expected,88,A,86,A,Expected,80,A,80,A,Expected
+6551,71,B,77,B,Above Expected,72,B,78,B,Above Expected,72,B,86,A,Above Expected
+6937,60,C,68,C,Above Expected,66,C,66,C,Expected,62,C,72,B,Above Expected
+7699,63,C,65,C,Above Expected,72,B,68,C,Below Expected,60,C,66,C,Above Expected
+6515,71,B,75,B,Above Expected,73,B,82,A,Above Expected,60,C,78,B,Above Expected
+6466,78,B,77,B,Expected,78,B,68,C,Below Expected,76,B,76,B,Expected
+6851,73,B,77,B,Above Expected,76,B,90,A*,Above Expected,78,B,88,A,Above Expected
+7035,67,C,69,C,Expected,77,B,84,A,Above Expected,72,B,70,B,Expected
+7722,60,C,53,D,Below Expected,64,C,70,B,Above Expected,66,C,56,D,Below Expected
+6973,74,B,75,B,Above Expected,76,B,80,A,Above Expected,76,B,88,A,Above Expected
+8206,55,D,61,C,Above Expected,55,D,38,E,Below Expected,55,D,60,C,Above Expected
+6843,84,A,83,A,Expected,86,A,90,A*,Above Expected,86,A,86,A,Expected
+7182,64,C,66,C,Above Expected,68,C,68,C,Expected,68,C,62,C,Below Expected
+6788,77,B,81,A,Above Expected,78,B,80,A,Above Expected,76,B,86,A,Above Expected
+6981,65,C,69,C,Expected,74,B,80,A,Above Expected,74,B,78,B,Above Expected
+7004,75,B,83,A,Above Expected,78,B,80,A,Above Expected,76,B,86,A,Above Expected
+7069,85,A,87,A,Expected,88,A,94,A*,Above Expected,84,A,88,A,Above Expected
+6884,75,B,83,A,Above Expected,76,B,78,B,Expected,74,B,84,A,Above Expected
+8257,55,D,59,D,Expected,55,D,56,D,Expected,55,D,58,D,Expected
+7216,77,B,79,B,Expected,77,B,86,A,Above Expected,72,B,88,A,Above Expected
+6919,78,B,87,A,Above Expected,78,B,84,A,Above Expected,76,B,88,A,Above Expected
+6824,62,C,74,B,Above Expected,67,C,68,C,Expected,76,B,66,C,Below Expected
+7167,73,B,71,B,Expected,73,B,56,D,Below Expected,74,B,62,C,Below Expected
+6894,81,A,87,A,Above Expected,81,A,88,A,Above Expected,82,A,88,A,Above Expected
+6904,75,B,80,A,Above Expected,68,C,72,B,Above Expected,64,C,78,B,Above Expected
+7163,80,A,89,A,Above Expected,78,B,80,A,Above Expected,80,A,82,A,Expected
+6827,65,C,83,A,Above Expected,66,C,68,C,Expected,64,C,74,B,Above Expected
+6882,78,B,91,A*,Above Expected,87,A,86,A,Expected,84,A,92,A*,Above Expected
+6810,91,A*,96,A*,Above Expected,90,A*,96,A*,Above Expected,92,A*,94,A*,Above Expected
+7098,76,B,77,B,Expected,77,B,90,A*,Above Expected,86,A,80,A,Below Expected
+6998,67,C,63,C,Below Expected,66,C,66,C,Expected,64,C,66,C,Above Expected
+6999,74,B,82,A,Above Expected,78,B,88,A,Above Expected,78,B,84,A,Above Expected
+5957,55,D,63,C,Above Expected,55,D,68,C,Above Expected,55,D,62,C,Above Expected
+7125,71,B,60,C,Below Expected,71,B,60,C,Below Expected,70,B,60,C,Below Expected
+8027,55,D,57,D,Expected,55,D,64,C,Above Expected,55,D,62,C,Above Expected
+6418,90,A*,85,A,Below Expected,91,A*,84,A,Below Expected,90,A*,90,A*,Above Expected
+6453,85,A,90,A*,Above Expected,85,A,90,A*,Above Expected,88,A,90,A*,Above Expected
+8017,55,D,65,C,Above Expected,55,D,72,B,Above Expected,55,D,66,C,Above Expected
+6495,85,A,86,A,Expected,86,A,88,A,Expected,86,A,86,A,Expected
+6379,91,A*,90,A*,Above Expected,80,A,94,A*,Above Expected,86,A,90,A*,Above Expected
+7093,80,A,74,B,Below Expected,85,A,74,B,Below Expected,86,A,70,B,Below Expected
+6415,76,B,84,A,Above Expected,80,A,86,A,Above Expected,70,B,82,A,Above Expected
+6369,85,A,85,A,Expected,89,A,90,A*,Above Expected,86,A,92,A*,Above Expected
+6390,77,B,80,A,Above Expected,85,A,88,A,Expected,86,A,88,A,Expected
+6632,84,A,90,A*,Above Expected,88.5,A,90,A*,Above Expected,92,A*,90,A*,Above Expected
+6563,57,D,55,D,Expected,60.5,C,54,D,Below Expected,54,D,54,D,Expected
+6557,81,A,70,B,Below Expected,68.5,C,72,B,Above Expected,80,A,74,B,Below Expected
+6400,77,B,80,A,Above Expected,75,B,82,A,Above Expected,82,A,74,B,Below Expected
+7366,88,A,90,A*,Above Expected,87,A,90,A*,Above Expected,90,A*,90,A*,Above Expected
+6595,75,B,80,A,Above Expected,81,A,86,A,Above Expected,82,A,86,A,Above Expected
+6774,81,A,85,A,Above Expected,90,A*,90,A*,Above Expected,70,B,88,A,Above Expected
+6678,75,B,80,A,Above Expected,70,B,82,A,Above Expected,72,B,76,B,Above Expected
+6484,74,B,75,B,Above Expected,78.5,B,66,C,Below Expected,68,C,70,B,Above Expected
+6556,65,C,68,C,Expected,65.5,C,68,C,Expected,68,C,66,C,Expected
+6670,69,C,66,C,Expected,68,C,72,B,Above Expected,68,C,68,C,Expected
+6427,75,B,80,A,Above Expected,80.5,A,94,A*,Above Expected,76,B,84,A,Above Expected
+6376,85,A,93,A*,Above Expected,86,A,88,A,Expected,86,A,88,A,Expected
+6533,88,A,83,A,Below Expected,87,A,90,A*,Above Expected,86,A,88,A,Expected
+6799,92,A*,90,A*,Above Expected,90,A*,90,A*,Above Expected,92,A*,84,A,Below Expected
+6401,83,A,87,A,Above Expected,82,A,90,A*,Above Expected,78,B,88,A,Above Expected
+6380,72,B,75,B,Above Expected,73,B,74,B,Expected,66,C,78,B,Above Expected
+6408,88,A,89,A,Expected,95,A*,90,A*,Above Expected,88,A,90,A*,Above Expected
+7893,55,D,61,C,Above Expected,55,D,62,C,Above Expected,55,D,64,C,Above Expected
+7677,60,C,62,C,Expected,74,B,74,B,Expected,64,C,66,C,Above Expected
+6553,91,A*,92,A*,Above Expected,95,A*,92,A*,Above Expected,80,A,90,A*,Above Expected
+7728,64,C,69,C,Above Expected,63,C,64,C,Expected,62,C,74,B,Above Expected
+6542,72,B,78,B,Above Expected,72,B,82,A,Above Expected,74,B,78,B,Above Expected
+6478,63,C,61,C,Expected,64,C,68,C,Above Expected,66,C,66,C,Expected
+7592,72,B,69,C,Below Expected,67,C,68,C,Expected,72,B,66,C,Below Expected
+6580,83,A,81,A,Expected,88,A,88,A,Expected,78,B,78,B,Expected
+6577,74,B,95,A*,Above Expected,78,B,82,A,Above Expected,78,B,80,A,Above Expected
+6532,90,A*,90,A*,Above Expected,97,A*,90,A*,Above Expected,94,A*,92,A*,Above Expected
+6399,85,A,80,A,Below Expected,92,A*,90,A*,Above Expected,84,A,86,A,Above Expected
+7885,55,D,73,B,Above Expected,55,D,68,C,Above Expected,55,D,68,C,Above Expected
+6574,70,B,65,C,Below Expected,74,B,72,B,Expected,64,C,62,C,Expected
+7117,68,C,68,C,Expected,68,C,68,C,Expected,68,C,72,B,Above Expected
+6570,90,A*,89,A,Below Expected,92,A*,96,A*,Above Expected,86,A,92,A*,Above Expected
+6385,74,B,73,B,Expected,66,C,78,B,Above Expected,74,B,78,B,Above Expected
+6444,63,C,60,C,Expected,69,C,66,C,Expected,64,C,68,C,Above Expected
+6367,81,A,89,A,Above Expected,77,B,88,A,Above Expected,78,B,84,A,Above Expected
+6421,67,C,73,B,Above Expected,78,B,76,B,Expected,74,B,78,B,Above Expected
+6406,77,B,79,B,Expected,85,A,96,A*,Above Expected,84,A,86,A,Above Expected
+8101,55,D,67,C,Above Expected,55,D,68,C,Above Expected,55,D,66,C,Above Expected
