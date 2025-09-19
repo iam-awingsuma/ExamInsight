@@ -23,7 +23,7 @@ Set up the environment
 <code>set FLASK_APP=run.py</code><br/>
 <code>set FLASK_ENV=development</code>
 
-<h4>RUNNING THE APP</h4>h4>
+<h4>RUNNING THE APP</h4>
 Windows:
 <code>flask run</code>
 or
