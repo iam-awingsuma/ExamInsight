@@ -18,7 +18,7 @@ Having the VENV active, we can proceed and install the project dependencies:
 
 <h3>ENVIRONMENT</h3>
 
-Set up the environment
+<h4>SETUP THE ENVIRONMENT</h4>
 
 <code>set FLASK_APP=run.py</code><br/>
 <code>set FLASK_ENV=development</code>
