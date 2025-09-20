@@ -6,6 +6,45 @@
     <div class="col-12">
     <div class="card mb-4">
         <div class="card-header pb-0">
+            <p class="text-uppercase text-xs text-dark font-weight-bolder">Filters</p>
+            <form id="filterForm" class="row gy-2 gx-2 align-items-center mb-3" method="get" action="#">
+                <div class="col-12 col-md-4">
+                    <input type="search" class="form-control text-xs" name="q" placeholder="Search name or ID"
+                        value="Type here..." onfocus="this.value=''" onblur="if(this.value==''){this.value='Type here...'}">
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <select class="form-select text-xs" name="gender" id="gender">
+                    <option value="">All genders</option>
+                    {% for g in genders %}
+                        <option value="{{ g }}" {{ 'selected' if g==gender else '' }}>{{ g }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <select class="form-select text-xs" name="yrgrp id="yrgrp">
+                    <option value="">All year groups</option>
+                    {% for y in yrgrps %}
+                        <option class="text-uppercase" value="{{ y }}" {{ 'selected' if y==yrgrp else '' }}>{{ y }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <select class="form-select text-xs" name="regstat id="regstat">
+                    <option value="">All registration status</option>
+                    {% for r in regstat %}
+                        <option value="{{ r }}" {{ 'selected' if r==regstat else '' }}>{{ r }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </div>
+
+        <hr class="horizontal dark mt-0 mb-0">
+        
+        <div class="card-header pb-0">
             <h5>Student Information</h5>
         </div>
         {% if no_data and students is none %}

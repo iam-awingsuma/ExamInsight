@@ -1,13 +1,14 @@
 import os
 import pandas as pd
 from apps.home import blueprint
-from flask import render_template, request, redirect, url_for, request, flash, get_flashed_messages, session, Flask
+from flask import Flask, render_template, request, redirect, url_for, request, flash, get_flashed_messages, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
 from apps import db
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select, func
 
 from apps.authentication.models import NGRTA
 from apps.authentication.models import NGRTB
@@ -757,6 +758,12 @@ def student_management():
     # Check if students table is empty
     students_empty = not students  # True if Students is empty
 
+    # For filter dropdowns
+    genders = [g[0] for g in db.session.query(Students.gender).distinct().order_by(Students.gender).all()]
+    yrgrps   = [y[0] for y in db.session.query(Students.yrgrp).distinct().order_by(Students.yrgrp).all()]
+    regstat  = [r[0] for r in db.session.query(Students.status).distinct().order_by(Students.status).all()]
+    # return genders, yrgrps, regstat
+
     # If students table is empty
     if students_empty:
         return render_template(
@@ -773,7 +780,10 @@ def student_management():
             segment='student management',
             parent='studentMgt',
             no_data=False,
-            students=students
+            students=students,
+            genders=genders,
+            yrgrps=yrgrps,
+            regstat=regstat
         )
 
 # Grant admin rights route for users
