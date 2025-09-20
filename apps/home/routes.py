@@ -748,6 +748,34 @@ def display_intlexam():
         )
 
 
+# Student Management Routes
+@blueprint.route('/student_management', methods=['GET'])
+def student_management():
+    # Fetch all entries from Students table  
+    students = Students.query.order_by(Students.yrgrp, Students.forename).all()
+    
+    # Check if students table is empty
+    students_empty = not students  # True if Students is empty
+
+    # If students table is empty
+    if students_empty:
+        return render_template(
+            'pages/students-all.html',
+            segment='student management',
+            parent='studentMgt',
+            no_data=True,
+            students=None,
+            msg_students='No student data available.'
+        )
+    else:
+        return render_template(
+            'pages/students-all.html',
+            segment='student management',
+            parent='studentMgt',
+            no_data=False,
+            students=students
+        )
+
 # Grant admin rights route for users
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])
 @login_required
