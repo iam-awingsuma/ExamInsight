@@ -1,0 +1,90 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container-fluid py-2">
+<div class="row">
+    <div class="col-12">
+    <div class="card mb-4">
+        <div class="card-header pb-0">
+            <h5>Student Information</h5>
+        </div>
+        {% if no_data and students is none %}
+            <p class="d-block text-danger">
+                WARNING!!!<br />
+                &#10008; {{ msg_students }}<br />
+                Please contact your administrator to upload the required data.
+            </p>
+        {% else %}
+            <div class="card-body px-0 pt-0 pb-2">
+            <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                <thead>
+                    <tr>
+                        <!-- ID No., Forename, Surname, DOB, Reg. Status, SEN Details -->
+                        <th class="text-uppercase text-secondary text-dark text-xs font-weight-bolder ps-3">Personal Details</th>
+                        <th class="text-uppercase text-secondary text-dark text-xs font-weight-bolder ps-2">Gender</th>
+                        <th class="text-uppercase text-secondary text-dark text-xs font-weight-bolder ps-2">Year Group</th>
+                        <th class="text-uppercase text-secondary text-dark text-xs font-weight-bolder ps-2">Nationality</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td style="width: 1%;">
+                            <div class="d-flex px-2 py-1">
+                                <div class="d-flex flex-column justify-content-center">
+                                <h6 class="mb-0 text-xs">{{ student.student_id }}&nbsp;
+                                    <span class="text-xs text-primary mb-0">
+                                    {{student.forename}}&nbsp;{{student.surname}}
+                                    </span>
+                                </h6>
+                                <p class="text-xs text-secondary mb-0">
+                                    {{student.date_of_birth}},&nbsp;{{student.status}}
+                                </p>
+                                <p class="text-xs text-secondary mb-0">
+                                    {% if student.sped == 'No' or student.sped == 'None' %}
+                                        SEN Details: <span class="fst-italic fw-light">N/A</span>
+                                    {% else %}
+                                        SEN Details: <span class="badge bg-gradient-danger">{{student.sped}}</span>
+                                    {% endif %}
+                                </p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td style="width: 1%;">
+                            <div>
+                                <div class="d-flex flex-column justify-content-center">
+                                <p class="text-xs text-secondary mb-0">{{student.gender}}</p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td style="width: 1%;">
+                            <div>
+                                <div class="d-flex flex-column justify-content-center">
+                                <p class="text-xs text-secondary mb-0">Year <span class="text-uppercase">{{student.yrgrp}}</span></p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td style="width: 1%;">
+                            <div>
+                                <div class="d-flex flex-column justify-content-center">
+                                <p class="text-xs text-secondary mb-0">{{student.nationality}}</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+            </div>
+            </div>
+        {% endif %}
+    </div>
+    </div>
+</div>
+{% include "includes/footer.html" %}
+</div>
+{% endblock content %}
