@@ -460,9 +460,6 @@ def upload_ngrtc():
         # Read CSV and store in database
         df = pd.read_csv(filepath)
         
-        # Clear existing data (optional)
-        # db.session.query(NGRTC).delete()
-        
         for index, row in df.iterrows():
             # Insert data into table - students
             student_id=int(row['student_id'])
@@ -593,16 +590,6 @@ def display_ngrtc():
             combined_data=combined_data
         )
 
-# # define a new route for templates/pages/internalexam_m.html
-# @blueprint.route('/intlexam_m')
-# def intlexam_m():
-#     return render_template('pages/intlexam_m.html', segment='internal assessment (midterm)', parent='intAssmnt')
-
-# define a new route for templates/pages/internalexam.html
-# @blueprint.route('/intlexam')
-# def intlexam():
-#     return render_template('pages/intlexam.html', segment='internal assessment (final term)', parent='intAssmnt')
-
 @blueprint.route('/display_intlexam', methods=['POST'])
 def upload_intlexam():
     if 'file' not in request.files:
@@ -622,8 +609,35 @@ def upload_intlexam():
         df = pd.read_csv(filepath)
         
         for index, row in df.iterrows():
-            
+            # Insert data into table - students
             student_id=int(row['student_id'])
+
+            # Handle students table
+            student = Students.query.filter_by(student_id=student_id).first()
+            if student:
+                # Update existing student record
+                student.forename = str(row['forename'])
+                student.surname = str(row['surname'])
+                student.gender = str(row['gender'])
+                student.date_of_birth = str(row['date_of_birth'])
+                student.yrgrp = str(row['yrgrp'])
+                student.sped = str(row['sped'])
+                student.nationality = str(row['nationality'])
+                student.status = str(row['status'])
+            else:
+                # New student record
+                student = Students(
+                    student_id=student_id,
+                    forename=str(row['forename']),
+                    surname=str(row['surname']),
+                    gender=str(row['gender']),
+                    date_of_birth=str(row['date_of_birth']),
+                    yrgrp=str(row['yrgrp']),
+                    sped=str(row['sped']),
+                    nationality=str(row['nationality']),
+                    status=str(row['status'])
+                )
+                db.session.add(student)
 
             # Handle internal_exam table
             internalexam = InternalExam.query.filter_by(student_id=student_id).first()
