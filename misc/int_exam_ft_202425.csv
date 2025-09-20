@@ -2,7 +2,7 @@
 6497,Aala,Mohamed Nazafi,Female,03-02-18,2-a,No,Sri Lankan,Re-registered,71,B,75,B,Above Expected,67,C,72,B,Above Expected,70,B,76,B,Above Expected
 7190,Abdul Rehman Bin,Ammar,Male,20-10-17,2-a,No,Pakistani,Re-registered,78,B,81,A,Above Expected,75,B,82,A,Above Expected,76,B,80,A,Above Expected
 7977,Aneira Yash,Shahapurkar,Female,19-09-17,2-a,No,Indian,New Student,55,D,67,C,Above Expected,55,D,74,B,Above Expected,55,D,66,C,Above Expected
-6445,Bahram Rasool,Soomro,Male,06-07-17,2-a,Other Difficulties & Yes,Pakistani,Re-registered,63,C,66,C,Above Expected,64,C,66,C,Above Expected,68,C,66,C,Expected
+6445,Bahram Rasool,Soomro,Male,06-07-17,2-a,Other Difficulties,Pakistani,Re-registered,63,C,66,C,Above Expected,64,C,66,C,Above Expected,68,C,66,C,Expected
 6531,Eidi,Aisha,Female,16-06-18,2-a,No,Indian,Re-registered,57,D,58,D,Expected,62,C,64,C,Expected,62,C,66,C,Above Expected
 6498,Elisha Isabelle,Anuevo,Female,04-06-17,2-a,No,Filipino,Re-registered,66,C,75,B,Above Expected,70,B,68,C,Below Expected,66,C,68,C,Expected
 6510,Fredrich Rolan,Fortaliza,Male,30-12-17,2-a,No,Filipino,Re-registered,76,B,79,B,Expected,82,A,92,A*,Above Expected,80,A,86,A,Above Expected
@@ -44,7 +44,7 @@
 6384,Mohammad Rayyan,Sumair,Male,10-01-18,2-b,Other Difficulties,Pakistani,Re-registered,75,B,59,D,Below Expected,77,B,64,C,Below Expected,74,B,68,C,Below Expected
 6475,Mohammed Hamad,Mohamed Najmi,Male,16-03-18,2-b,No,Sri Lankan,Re-registered,81,A,85,A,Above Expected,76,B,96,A*,Above Expected,78,B,84,A,Above Expected
 6607,Momina,Faisal,Female,21-09-17,2-b,No,Pakistani,Re-registered,85,A,80,A,Below Expected,85,A,96,A*,Above Expected,92,A*,94,A*,Above Expected
-6517,Nabaha Shahab,Khan,Female,02-07-18,2-b,Yes & ADHD,Pakistani,Re-registered,67,C,57,D,Below Expected,67,C,60,C,Below Expected,66,C,64,C,Below Expected
+6517,Nabaha Shahab,Khan,Female,02-07-18,2-b,ADHD,Pakistani,Re-registered,67,C,57,D,Below Expected,67,C,60,C,Below Expected,66,C,64,C,Below Expected
 7878,Phone Shin,Than,Male,15-06-17,2-b,No,Burmese,New Student,55,D,80,A,Above Expected,55,D,94,A*,Above Expected,55,D,94,A*,Above Expected
 6687,Rayden Yonah,Perera,Male,25-06-17,2-b,No,Sri Lankan,New Student,55,D,75,B,Above Expected,55,D,72,B,Above Expected,55,D,70,B,Above Expected
 6373,Syeda Fatima,Gilani,Female,09-09-17,2-b,No,Pakistani,Re-registered,75,B,75,B,Expected,78,B,76,B,Expected,76,B,82,A,Above Expected
@@ -58,7 +58,7 @@
 6420,Bahisht,Shehroze,Female,17-10-17,2-c,No,Pakistani,Re-registered,76,B,75,B,Expected,79,B,76,B,Expected,76,B,78,B,Expected
 6673,Carmela Czalvey,Pasilaban,Female,11-07-17,2-c,No,Filipino,Re-registered,91,A*,90,A*,Above Expected,92,A*,88,A,Below Expected,86,A,92,A*,Above Expected
 6724,Djamel Tima,Djilo Djimmo,Male,07-07-18,2-c,No,Cameroonian,Re-registered,87,A,87,A,Expected,94,A*,98,A*,Above Expected,86,A,92,A*,Above Expected
-6651,Fatima,Abiha,Female,07-09-17,2-c,Specific learning difficulties & Yes,Pakistani,Re-registered,53,D,61,C,Above Expected,62,C,60,C,Expected,50,D,66,C,Above Expected
+6651,Fatima,Abiha,Female,07-09-17,2-c,Specific learning difficulties,Pakistani,Re-registered,53,D,61,C,Above Expected,62,C,60,C,Expected,50,D,66,C,Above Expected
 7929,Hamza,Hossam Magdy Mohamed Ibrahim Bazazou,Male,05-05-18,2-c,No,Egyptian,New Student,55,D,56,D,Expected,55,D,56,D,Expected,55,D,58,D,Expected
 6451,Hoorain,Rahat,Female,20-08-17,2-c,No,Pakistani,Re-registered,73,B,76,B,Above Expected,69,C,70,B,Above Expected,72,B,78,B,Above Expected
 6519,Idris,Khatkhatay,Male,27-07-17,2-c,No,Indian,Re-registered,97,A*,93,A*,Above Expected,97,A*,96,A*,Above Expected,96,A*,96,A*,Above Expected
@@ -80,7 +80,7 @@
 6851,Abdullah,Muayyad,Male,18-03-17,2-d,No,Pakistani,Re-registered,73,B,77,B,Above Expected,76,B,90,A*,Above Expected,78,B,88,A,Above Expected
 7035,Abik Jung,Gurung,Male,13-01-18,2-d,No,Nepalese,Re-registered,67,C,69,C,Expected,77,B,84,A,Above Expected,72,B,70,B,Expected
 7722,Aizah,Ahmad,Female,23-06-18,2-d,No,Pakistani,Re-registered,60,C,53,D,Below Expected,64,C,70,B,Above Expected,66,C,56,D,Below Expected
-6973,Ali John,Rizvi,Male,08-03-18,2-d,Other Difficulties & Yes,Pakistani,Re-registered,74,B,75,B,Above Expected,76,B,80,A,Above Expected,76,B,88,A,Above Expected
+6973,Ali John,Rizvi,Male,08-03-18,2-d,Other Difficulties,Pakistani,Re-registered,74,B,75,B,Above Expected,76,B,80,A,Above Expected,76,B,88,A,Above Expected
 8206,Ellie Sansa,Wilathgamuwage Dona,Female,13-08-18,2-d,No,Sri Lankan,New Student,55,D,61,C,Above Expected,55,D,38,E,Below Expected,55,D,60,C,Above Expected
 6843,Eren Nathaniel,Gamponia,Male,26-05-18,2-d,No,Filipino,Re-registered,84,A,83,A,Expected,86,A,90,A*,Above Expected,86,A,86,A,Expected
 7182,Eshaal,Ikhlaq,Female,02-11-16,2-d,No,Pakistani,Re-registered,64,C,66,C,Above Expected,68,C,68,C,Expected,68,C,62,C,Below Expected
@@ -114,9 +114,9 @@
 7093,Fatimah,Durrani,Female,17-04-17,2-e,No,Pakistani,Re-registered,80,A,74,B,Below Expected,85,A,74,B,Below Expected,86,A,70,B,Below Expected
 6415,Giana Bethanee,Cruz,Female,13-01-18,2-e,No,Filipino,Re-registered,76,B,84,A,Above Expected,80,A,86,A,Above Expected,70,B,82,A,Above Expected
 6369,Hamdan Shafi,Mansoor,Male,09-04-17,2-e,No,Pakistani,Re-registered,85,A,85,A,Expected,89,A,90,A*,Above Expected,86,A,92,A*,Above Expected
-6390,Haniya,Sharif,Female,10-11-17,2-e,Other Difficulties & Yes,Pakistani,Re-registered,77,B,80,A,Above Expected,85,A,88,A,Expected,86,A,88,A,Expected
+6390,Haniya,Sharif,Female,10-11-17,2-e,Other Difficulties,Pakistani,Re-registered,77,B,80,A,Above Expected,85,A,88,A,Expected,86,A,88,A,Expected
 6632,Jan Kali,Santos,Female,31-07-17,2-e,No,Filipino,Re-registered,84,A,90,A*,Above Expected,88.5,A,90,A*,Above Expected,92,A*,90,A*,Above Expected
-6563,Kenneth Nathanael,Balan,Male,04-01-18,2-e,Yes & ADHD,Sri Lankan,Re-registered,57,D,55,D,Expected,60.5,C,54,D,Below Expected,54,D,54,D,Expected
+6563,Kenneth Nathanael,Balan,Male,04-01-18,2-e,ADHD,Sri Lankan,Re-registered,57,D,55,D,Expected,60.5,C,54,D,Below Expected,54,D,54,D,Expected
 6557,Khadeeja Kiah,Sharief,Female,13-11-17,2-e,No,Indian,Re-registered,81,A,70,B,Below Expected,68.5,C,72,B,Above Expected,80,A,74,B,Below Expected
 6400,Liam Skyler,Fernando,Male,12-02-18,2-e,No,Sri Lankan,Re-registered,77,B,80,A,Above Expected,75,B,82,A,Above Expected,82,A,74,B,Below Expected
 7366,Margaux Eve Mirielle,Atizado,Female,12-12-17,2-e,No,Filipino,Re-registered,88,A,90,A*,Above Expected,87,A,90,A*,Above Expected,90,A*,90,A*,Above Expected

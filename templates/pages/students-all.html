@@ -43,7 +43,7 @@
                                 </p>
                                 <p class="text-xs text-secondary mb-0">
                                     {% if student.sped == 'No' or student.sped == 'None' %}
-                                        SEN Details: <span class="fst-italic fw-light">N/A</span>
+                                        <!-- show nothing -->
                                     {% else %}
                                         SEN Details: <span class="badge bg-gradient-danger">{{student.sped}}</span>
                                     {% endif %}

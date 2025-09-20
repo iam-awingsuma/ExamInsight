@@ -68,7 +68,7 @@
               <div class="d-flex px-2 py-1">
                 <div class="d-flex flex-column justify-content-center">
                   <h6 class="mb-0 text-xs">{{ student.student_id }}&nbsp;
-                    <span class="text-xs text-secondary mb-0">
+                    <span class="text-xs text-primary mb-0">
                       {{student.forename}}&nbsp;{{student.surname}}
                     </span>
                   </h6>
@@ -77,6 +77,13 @@
                   </p>
                   <p class="text-xs text-secondary mb-0">
                     {{student.status}},&nbsp;Year&nbsp;<span class="text-uppercase">{{student.yrgrp}}</span>
+                  </p>
+                  <p class="text-xs text-secondary mb-0">
+                    {% if student.sped == 'No' or student.sped == 'None' %}
+                        <!-- show nothing -->
+                    {% else %}
+                        SEN Details: <span class="badge bg-gradient-danger">{{student.sped}}</span>
+                    {% endif %}
                   </p>
                 </div>
               </div>
@@ -104,20 +111,20 @@
 
             <td style="width: 1%;">
               <div>
-                <div class="d-flex flex-column justify-content-center">
+                <div>
                   {% if entry.progress_category == 'Much higher' %}
-                    <h6 class="text-xs p-1 mb-0 bg-gradient-success text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                    <h6 class="badge bg-gradient-success text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
                   {% elif entry.progress_category == 'Higher' %}
-                    <h6 class="text-xs p-1 mb-0 bg-gradient-info text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                    <h6 class="badge bg-gradient-info text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
                   {% elif entry.progress_category == 'Expected' %}
-                    <h6 class="text-xs p-1 mb-0 bg-gradient-warning text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                    <h6 class="badge bg-gradient-warning text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
                   {% elif entry.progress_category == 'Lower' %}
-                    <h6 class="text-xs p-1 mb-0 bg-gradient-danger text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                    <h6 class="badge bg-gradient-danger text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
                   {% else %}
-                    <h6 class="text-xs p-1 mb-0 bg-gradient-secondary text-white text-uppercase text-center">{{entry.progress_category}}</h6>
+                    <h6 class="badge bg-gradient-secondary text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
                   {% endif %}
-                  <p class="text-xs text-secondary mb-0">{{entry.reader_profile}}<br />{{entry.profile_desc}}</p>
                 </div>
+                <p class="text-xs text-secondary mb-0">{{entry.reader_profile}}<br />{{entry.profile_desc}}</p>
               </div>
             </td>
 
