@@ -797,7 +797,6 @@ def student_management():
     q        = request.args.get("q", "", type=str).strip()
     gender   = request.args.get("gender", "", type=str).strip()
     yrgrp    = request.args.get("yrgrp", "", type=str).strip()
-    # nat      = request.args.get("nat", "", type=str).strip()      # nationality
     status   = request.args.get("status", "", type=str).strip()     # optional (regstat)
 
     # ---- Build the query incrementally ----

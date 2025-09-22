@@ -9,8 +9,8 @@
             <p class="text-uppercase text-xs text-dark font-weight-bolder">Filters</p>
             <form id="filterForm" class="row gy-2 gx-2 align-items-center mb-3" method="get" action="#">
                 <div class="col-12 col-md-4">
-                    <input type="search" class="form-control text-xs" name="q" placeholder="Search name or ID"
-                        value="Type here..." onfocus="this.value=''" onblur="if(this.value==''){this.value='Type here...'}">
+                    <input type="search" class="form-control text-xs" name="q" placeholder="Search name or ID" 
+                    onfocus="this.value=''" onblur="if(this.value==''){this.value=''}">
                 </div>
 
                 <div class="col-6 col-md-2">
@@ -23,7 +23,7 @@
                 </div>
 
                 <div class="col-6 col-md-2">
-                    <select class="form-select text-xs" name="yrgrp id="yrgrp">
+                    <select class="form-select text-xs" name="yrgrp" id="yrgrp">
                     <option value="">All year groups</option>
                     {% for y in yrgrps %}
                         <option class="text-uppercase" value="{{ y }}" {{ 'selected' if y==yrgrp else '' }}>{{ y }}</option>
@@ -32,7 +32,7 @@
                 </div>
 
                 <div class="col-6 col-md-2">
-                    <select class="form-select text-xs" name="regstat" id="regstat">
+                    <select class="form-select text-xs" name="status" id="status">
                     <option value="">All registration status</option>
                     {% for r in regstat %}
                         <option value="{{ r }}" {{ 'selected' if r==status else '' }}>{{ r }}</option>
