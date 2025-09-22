@@ -32,14 +32,29 @@
                 </div>
 
                 <div class="col-6 col-md-2">
-                    <select class="form-select text-xs" name="regstat id="regstat">
+                    <select class="form-select text-xs" name="regstat" id="regstat">
                     <option value="">All registration status</option>
                     {% for r in regstat %}
-                        <option value="{{ r }}" {{ 'selected' if r==regstat else '' }}>{{ r }}</option>
+                        <option value="{{ r }}" {{ 'selected' if r==status else '' }}>{{ r }}</option>
                     {% endfor %}
                     </select>
                 </div>
+
+                <div class="col-12 d-flex gap-2">
+                    <button class="btn btn-primary" type="submit">Apply</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('home_blueprint.student_management') }}">Clear</a>
+                </div>
             </form>
+
+            {% if active_filters %}
+            <div class="mb-3">
+                <span class="text-uppercase text-xs text-muted me-2">Active Filters:</span>
+                {% for label, value, url in active_filters %}
+                    <a class="badge rounded-pill text-bg-light text-decoration-none me-1" href="{{ url }}"> {{ label }}: {{ value }} &times;
+                    </a>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
 
         <hr class="horizontal dark mt-0 mb-0">
@@ -127,3 +142,10 @@
 {% include "includes/footer.html" %}
 </div>
 {% endblock content %}
+{% block extra_js %}
+<script>
+  document.querySelectorAll('#gender,#yrgrp,#status').forEach(el => {
+    el.addEventListener('change', () => document.getElementById('filterForm').submit());
+  });
+</script>
+{% endblock extra_js %}

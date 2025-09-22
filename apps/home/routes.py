@@ -16,6 +16,9 @@ from apps.authentication.models import NGRTC
 from apps.authentication.models import InternalExam
 from apps.authentication.models import Students
 
+from urllib.parse import urlencode
+
+
 from flask_login import (
     current_user,
     login_user,
@@ -749,42 +752,118 @@ def display_intlexam():
         )
 
 
-# Student Management Routes
-@blueprint.route('/student_management', methods=['GET'])
-def student_management():
-    # Fetch all entries from Students table  
-    students = Students.query.order_by(Students.yrgrp, Students.forename).all()
+# # Student Management Routes
+# @blueprint.route('/student_management', methods=['GET'])
+# def student_management():
+#     # Fetch all entries from Students table  
+#     students = Students.query.order_by(Students.yrgrp, Students.forename).all()
     
-    # Check if students table is empty
-    students_empty = not students  # True if Students is empty
+#     # Check if students table is empty
+#     students_empty = not students  # True if Students is empty
 
-    # For filter dropdowns
-    genders = [g[0] for g in db.session.query(Students.gender).distinct().order_by(Students.gender).all()]
-    yrgrps   = [y[0] for y in db.session.query(Students.yrgrp).distinct().order_by(Students.yrgrp).all()]
-    regstat  = [r[0] for r in db.session.query(Students.status).distinct().order_by(Students.status).all()]
-    # return genders, yrgrps, regstat
+#     # For filter dropdowns
+#     genders = [g[0] for g in db.session.query(Students.gender).distinct().order_by(Students.gender).all()]
+#     yrgrps   = [y[0] for y in db.session.query(Students.yrgrp).distinct().order_by(Students.yrgrp).all()]
+#     regstat  = [r[0] for r in db.session.query(Students.status).distinct().order_by(Students.status).all()]
 
-    # If students table is empty
-    if students_empty:
-        return render_template(
-            'pages/students-all.html',
-            segment='student management',
-            parent='studentMgt',
-            no_data=True,
-            students=None,
-            msg_students='No student data available.'
+
+
+#     # If students table is empty
+#     if students_empty:
+#         return render_template(
+#             'pages/students-all.html',
+#             segment='student management',
+#             parent='studentMgt',
+#             no_data=True,
+#             students=None,
+#             msg_students='No student data available.'
+#         )
+#     else:
+#         return render_template(
+#             'pages/students-all.html',
+#             segment='student management',
+#             parent='studentMgt',
+#             no_data=False,
+#             students=students,
+#             genders=genders,
+#             yrgrps=yrgrps,
+#             regstat=regstat
+#         )
+
+# Student Management Routes
+@blueprint.route("/student_management", methods=["GET"])
+def student_management():
+    # ---- Read query params (empty string = no filter) ----
+    q        = request.args.get("q", "", type=str).strip()
+    gender   = request.args.get("gender", "", type=str).strip()
+    yrgrp    = request.args.get("yrgrp", "", type=str).strip()
+    # nat      = request.args.get("nat", "", type=str).strip()      # nationality
+    status   = request.args.get("status", "", type=str).strip()     # optional (regstat)
+
+    # ---- Build the query incrementally ----
+    query = Students.query
+
+    if q:
+        like = f"%{q}%"
+        # adjust fields you want searchable
+        query = query.filter(
+            db.or_(
+                Students.forename.ilike(like),
+                Students.surname.ilike(like),
+                Students.student_id.cast(db.String).ilike(like),
+            )
         )
-    else:
-        return render_template(
-            'pages/students-all.html',
-            segment='student management',
-            parent='studentMgt',
-            no_data=False,
-            students=students,
-            genders=genders,
-            yrgrps=yrgrps,
-            regstat=regstat
-        )
+    if gender:
+        query = query.filter(Students.gender == gender)
+
+    if yrgrp:
+        query = query.filter(Students.yrgrp == yrgrp)
+
+    if status:
+        query = query.filter(Students.status == status)
+
+    # ---- Order & fetch ----
+    students = query.order_by(Students.yrgrp, Students.forename).all()
+
+    # ---- For dropdown options (distinct values) ----
+    genders = [g[0] for g in db.session.query(Students.gender).distinct().order_by(Students.gender)]
+    yrgrps  = [y[0] for y in db.session.query(Students.yrgrp).distinct().order_by(Students.yrgrp)]
+    regstat = [r[0] for r in db.session.query(Students.status).distinct().order_by(Students.status)]
+
+    # ---- Flags / active chips ----
+    table_is_empty   = Students.query.count() == 0           # database has no students at all
+    filtered_is_empty = (len(students) == 0 and not table_is_empty)
+
+    active_filters = []
+    base_args = request.args.to_dict()
+
+    def build_remove_url(key):
+        args = base_args.copy()
+        args.pop(key, None)
+        return url_for("home_blueprint.student_management") + "?" + urlencode(args)
+
+    if q:        active_filters.append(("Search", q, build_remove_url("q")))
+    if gender:   active_filters.append(("Gender", gender, build_remove_url("gender")))
+    if yrgrp:    active_filters.append(("Year", yrgrp, build_remove_url("yrgrp")))
+    if status:   active_filters.append(("Status", status, build_remove_url("status")))
+
+    return render_template(
+        "pages/students-all.html",
+        segment="student management",
+        parent="studentMgt",
+        no_data=table_is_empty,
+        students=students,
+        # dropdown data
+        genders=genders,
+        yrgrps=yrgrps,
+        regstat=regstat,
+        # current selections (so selects stay selected)
+        q=q, gender=gender, yrgrp=yrgrp, status=status,
+        # ui helpers
+        filtered_is_empty=filtered_is_empty,
+        active_filters=active_filters,
+    )
+
 
 # Grant admin rights route for users
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])
