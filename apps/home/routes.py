@@ -752,44 +752,6 @@ def display_intlexam():
         )
 
 
-# # Student Management Routes
-# @blueprint.route('/student_management', methods=['GET'])
-# def student_management():
-#     # Fetch all entries from Students table  
-#     students = Students.query.order_by(Students.yrgrp, Students.forename).all()
-    
-#     # Check if students table is empty
-#     students_empty = not students  # True if Students is empty
-
-#     # For filter dropdowns
-#     genders = [g[0] for g in db.session.query(Students.gender).distinct().order_by(Students.gender).all()]
-#     yrgrps   = [y[0] for y in db.session.query(Students.yrgrp).distinct().order_by(Students.yrgrp).all()]
-#     regstat  = [r[0] for r in db.session.query(Students.status).distinct().order_by(Students.status).all()]
-
-
-
-#     # If students table is empty
-#     if students_empty:
-#         return render_template(
-#             'pages/students-all.html',
-#             segment='student management',
-#             parent='studentMgt',
-#             no_data=True,
-#             students=None,
-#             msg_students='No student data available.'
-#         )
-#     else:
-#         return render_template(
-#             'pages/students-all.html',
-#             segment='student management',
-#             parent='studentMgt',
-#             no_data=False,
-#             students=students,
-#             genders=genders,
-#             yrgrps=yrgrps,
-#             regstat=regstat
-#         )
-
 # Student Management Routes
 @blueprint.route("/student_management", methods=["GET"])
 def student_management():
@@ -797,7 +759,8 @@ def student_management():
     q        = request.args.get("q", "", type=str).strip()
     gender   = request.args.get("gender", "", type=str).strip()
     yrgrp    = request.args.get("yrgrp", "", type=str).strip()
-    status   = request.args.get("status", "", type=str).strip()     # optional (regstat)
+    status   = request.args.get("status", "", type=str).strip()
+    sped     = request.args.get("sped", "", type=str).strip()
 
     # ---- Build the query incrementally ----
     query = Students.query
@@ -812,6 +775,7 @@ def student_management():
                 Students.student_id.cast(db.String).ilike(like),
             )
         )
+
     if gender:
         query = query.filter(Students.gender == gender)
 
@@ -820,6 +784,12 @@ def student_management():
 
     if status:
         query = query.filter(Students.status == status)
+    
+    if sped:
+        if sped == "Yes":
+            query = query.filter(Students.sped != "No")
+        elif sped == "No":
+            query = query.filter(Students.sped == "No")
 
     # ---- Order & fetch ----
     students = query.order_by(Students.yrgrp, Students.forename).all()
@@ -828,6 +798,7 @@ def student_management():
     genders = [g[0] for g in db.session.query(Students.gender).distinct().order_by(Students.gender)]
     yrgrps  = [y[0] for y in db.session.query(Students.yrgrp).distinct().order_by(Students.yrgrp)]
     regstat = [r[0] for r in db.session.query(Students.status).distinct().order_by(Students.status)]
+    speds = ["Yes", "No"] # SEN/SPED dropdown options are fixed to two choices
 
     # ---- Flags / active chips ----
     table_is_empty   = Students.query.count() == 0           # database has no students at all
@@ -845,6 +816,7 @@ def student_management():
     if gender:   active_filters.append(("Gender", gender, build_remove_url("gender")))
     if yrgrp:    active_filters.append(("Year", yrgrp, build_remove_url("yrgrp")))
     if status:   active_filters.append(("Status", status, build_remove_url("status")))
+    if sped:     active_filters.append(("SEN/SPED", sped, build_remove_url("sped")))
 
     return render_template(
         "pages/students-all.html",
@@ -856,8 +828,9 @@ def student_management():
         genders=genders,
         yrgrps=yrgrps,
         regstat=regstat,
+        speds=speds,
         # current selections (so selects stay selected)
-        q=q, gender=gender, yrgrp=yrgrp, status=status,
+        q=q, gender=gender, yrgrp=yrgrp, status=status, sped=sped,
         # ui helpers
         filtered_is_empty=filtered_is_empty,
         active_filters=active_filters,

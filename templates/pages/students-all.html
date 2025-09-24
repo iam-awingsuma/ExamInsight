@@ -15,28 +15,37 @@
 
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="gender" id="gender">
-                    <option value="">All genders</option>
-                    {% for g in genders %}
-                        <option value="{{ g }}" {{ 'selected' if g==gender else '' }}>{{ g }}</option>
-                    {% endfor %}
+                        <option value="">All genders</option>
+                        {% for g in genders %}
+                            <option value="{{ g }}" {{ 'selected' if g==gender else '' }}>{{ g }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="yrgrp" id="yrgrp">
-                    <option value="">All year groups</option>
-                    {% for y in yrgrps %}
-                        <option class="text-uppercase" value="{{ y }}" {{ 'selected' if y==yrgrp else '' }}>{{ y }}</option>
-                    {% endfor %}
+                        <option value="">All year groups</option>
+                        {% for y in yrgrps %}
+                            <option class="text-uppercase" value="{{ y }}" {{ 'selected' if y==yrgrp else '' }}>{{ y }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="status" id="status">
-                    <option value="">All registration status</option>
-                    {% for r in regstat %}
-                        <option value="{{ r }}" {{ 'selected' if r==status else '' }}>{{ r }}</option>
-                    {% endfor %}
+                        <option value="">All registration status</option>
+                        {% for r in regstat %}
+                            <option value="{{ r }}" {{ 'selected' if r==status else '' }}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <select class="form-select text-xs" name="sped" id="sped" onchange="this.form.submit()">
+                        <option value="">All SEN/SPED</option>
+                        {% for s in speds %}
+                            <option value="{{ s }}" {% if sped == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
