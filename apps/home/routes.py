@@ -18,6 +18,7 @@ from apps.authentication.models import Students
 
 from urllib.parse import urlencode
 
+from apps.home import make_list_context
 
 from flask_login import (
     current_user,
@@ -750,6 +751,39 @@ def display_intlexam():
             no_data=False,
             combined_data=combined_data
         )
+
+@blueprint.route("/display_ngrtb", methods=["GET"])
+def display_ngrtb():
+    config = {
+        "search": {
+            "param": "q",
+            "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
+        },
+        "filters": [
+            {"param": "gender", "column": Students.gender},
+            {"param": "yrgrp", "column": Students.yrgrp},
+            # maybe fewer filters for this view
+        ],
+        "order_by": [Students.yrgrp, Students.forename],
+        "dropdowns": {
+            "genders": lambda s: [g[0] for g in s.query(Students.gender).distinct().order_by(Students.gender)],
+            "yrgrps":  lambda s: [y[0] for y in s.query(Students.yrgrp).distinct().order_by(Students.yrgrp)],
+        },
+        "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year"},
+    }
+
+    ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.ngrtb_students")
+
+    return render_template(
+        "pages/ngrtb-students.html",
+        students=ctx["rows"],
+        genders=ctx["dropdowns"]["genders"],
+        yrgrps=ctx["dropdowns"]["yrgrps"],
+        **ctx["current"],
+        no_data=ctx["no_data"],
+        filtered_is_empty=ctx["filtered_is_empty"],
+        active_filters=ctx["active_filters"],
+    )
 
 
 # Student Management Routes
