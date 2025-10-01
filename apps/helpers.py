@@ -152,68 +152,6 @@ def token_required(f):
 
     return decorated
 
-def make_list_context(*, model, db, config, endpoint):
-    # --- args ---
-    args = request.args
-    q_param = config.get("search", {}).get("param", "q")
-
-    # --- base query ---
-    query = model.query
-
-    # --- search ---
-    qval = (args.get(q_param, "") or "").strip()
-    if qval and config.get("search"):
-        like = f"%{qval}%"
-        ors = [col.ilike(like) for col in config["search"]["columns"]]
-        query = query.filter(or_(*ors))
-
-    # --- filters ---
-    for f in config.get("filters", []):
-        val = (args.get(f["param"], "") or "").strip()
-        if not val:
-            continue
-        if "custom" in f and callable(f["custom"]):
-            query = f["custom"](query, val)
-        else:
-            query = query.filter(f["column"] == val)
-
-    # --- order + fetch ---
-    for col in config.get("order_by", []):
-        query = query.order_by(col)
-    rows = query.all()
-
-    # --- dropdowns ---
-    dropdowns = {}
-    for key, maker in config.get("dropdowns", {}).items():
-        dropdowns[key] = maker(db.session)
-
-    # --- flags ---
-    table_is_empty = model.query.count() == 0
-    filtered_is_empty = (len(rows) == 0 and not table_is_empty)
-
-    # --- active filters ---
-    base_args = args.to_dict()
-    active_filters = []
-    for key, label in config.get("labels", {}).items():
-        val = (args.get(key, "") or "").strip()
-        if val:
-            args_copy = base_args.copy()
-            args_copy.pop(key, None)
-            remove_url = url_for(endpoint) + "?" + urlencode(args_copy)
-            active_filters.append((label, val, remove_url))
-
-    # --- current selections ---
-    current = {k: (args.get(k, "") or "").strip() for k in config.get("labels", {}).keys()}
-
-    return {
-        "rows": rows,
-        "no_data": table_is_empty,
-        "filtered_is_empty": filtered_is_empty,
-        "active_filters": active_filters,
-        "dropdowns": dropdowns,
-        "current": current,
-    }
-
 def _apply_search(query, search_cfg, qval):
     if not qval or not search_cfg:
         return query
@@ -255,6 +193,7 @@ def _active_filters(args, labels, endpoint):
             items.append((label, val, _build_remove_url(endpoint, base_args, key)))
     return items
 
+# the code below has been transferred to _init_.py in home
 def make_list_context(*, model, db, config, endpoint):
     """
     config = {

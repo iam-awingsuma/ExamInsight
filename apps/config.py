@@ -65,6 +65,10 @@ class Config(object):
     CDN_DOMAIN = os.getenv('CDN_DOMAIN')
     CDN_HTTPS = os.getenv('CDN_HTTPS', True)
 
+    CURRENCY = os.getenv("CURRENCY", "AED")
+    PAYMENT_TYPE = os.getenv("PAYMENT_TYPE", "STANDARD")
+    STATE = os.getenv("STATE", "DRAFT")
+
 class ProductionConfig(Config):
     DEBUG = False
 
