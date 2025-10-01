@@ -519,7 +519,6 @@ def display_ngrtb():
         )
 
 
-
 @blueprint.route('/display_ngrtc', methods=['POST'])
 def upload_ngrtc():
     if 'file' not in request.files:
