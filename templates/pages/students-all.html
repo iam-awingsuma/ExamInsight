@@ -7,7 +7,7 @@
     <div class="card mb-4">
         <div class="card-header pb-0">
             <p class="text-uppercase text-xs text-dark font-weight-bolder">Filters</p>
-            <form id="filterForm" class="row gy-2 gx-2 align-items-center mb-3" method="get" action="#">
+            <form id="filterForm" class="row gy-2 gx-2 align-items-center mb-1" method="get" action="#">
                 <div class="col-12 col-md-4">
                     <input type="search" class="form-control text-xs" name="q" placeholder="Search name or ID" 
                     onfocus="this.value=''" onblur="if(this.value==''){this.value=''}">
@@ -15,7 +15,7 @@
 
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="gender" id="gender">
-                        <option value="">All genders</option>
+                        <option value="">All Genders</option>
                         {% for g in genders %}
                             <option value="{{ g }}" {{ 'selected' if g==gender else '' }}>{{ g }}</option>
                         {% endfor %}
@@ -24,7 +24,7 @@
 
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="yrgrp" id="yrgrp">
-                        <option value="">All year groups</option>
+                        <option value="">All Year Groups</option>
                         {% for y in yrgrps %}
                             <option class="text-uppercase" value="{{ y }}" {{ 'selected' if y==yrgrp else '' }}>{{ y }}</option>
                         {% endfor %}
@@ -33,7 +33,7 @@
 
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="status" id="status">
-                        <option value="">All registration status</option>
+                        <option value="">All Registration Status</option>
                         {% for r in regstat %}
                             <option value="{{ r }}" {{ 'selected' if r==status else '' }}>{{ r }}</option>
                         {% endfor %}
@@ -50,13 +50,14 @@
                 </div>
 
                 <div class="col-12 d-flex gap-2">
-                    <button class="btn btn-primary" type="submit">Apply</button>
-                    <a class="btn btn-outline-secondary" href="{{ url_for('home_blueprint.student_management') }}">Clear</a>
+                    <button class="btn btn-primary btn-sm" type="submit">Apply</button>
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home_blueprint.student_management') }}">Clear</a>
                 </div>
             </form>
-
+            
+            <!-- Filter chips -->
             {% if active_filters %}
-            <div class="mb-3">
+            <div class="d-flex align-items-center mb-3">
                 <span class="text-uppercase text-xs text-muted me-2">Active Filters:</span>
                 {% for label, value, url in active_filters %}
                     <a class="badge rounded-pill text-bg-light text-decoration-none me-1" href="{{ url }}"> {{ label }}: {{ value }} &times;
@@ -153,7 +154,7 @@
 {% endblock content %}
 {% block extra_js %}
 <script>
-  document.querySelectorAll('#gender,#yrgrp,#status').forEach(el => {
+  document.querySelectorAll('#gender,#yrgrp,#status,#sped').forEach(el => {
     el.addEventListener('change', () => document.getElementById('filterForm').submit());
   });
 </script>
