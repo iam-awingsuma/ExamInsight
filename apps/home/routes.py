@@ -647,6 +647,7 @@ def display_ngrtc():
         "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED","progress_category": "Progress",},
     }
 
+    # Build rows + chips + reusable predicates
     ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.display_ngrtc")
 
     # If both tables are empty
@@ -700,6 +701,7 @@ def display_ngrtc():
         combined_data = (
             db.session.query(Students, NGRTC)
             .join(Students, NGRTC.student_id == Students.student_id)
+            .filter(*preds) # ✅ same filters/search applied
             .order_by(Students.yrgrp, Students.forename)
             .all()
         )
