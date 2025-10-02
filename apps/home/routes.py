@@ -423,7 +423,7 @@ def display_ngrtb():
             "progress_categories": lambda s: [p[0] for p in s.query(NGRTB.progress_category).distinct().order_by(NGRTB.progress_category)],
         },
         # labels for the filter chips
-        "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED","progress_category": "Progress Category",},
+        "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED","progress_category": "Progress",},
     }
 
     ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.display_ngrtb")
@@ -432,11 +432,8 @@ def display_ngrtb():
     if ngrtb_empty and students_empty:
         return render_template(
             'pages/display_ngrtb.html',
-            segment='external data - NGRT (Form-B)',
-            parent='extBTest',
-            no_data=True,
-            ngrtb_data=None,
-            student_data=None,
+            segment='external data - NGRT (Form-B)', parent='extBTest',
+            no_data=True, ngrtb_data=None, student_data=None,
             msg_ngrtb='No NGRT-B data available.',
             msg_students='No student data available.',
             students=ctx["rows"],
@@ -444,6 +441,7 @@ def display_ngrtb():
             yrgrps=ctx["dropdowns"]["yrgrps"],
             statuses=ctx["dropdowns"]["statuses"],
             speds=ctx["dropdowns"]["speds"],
+            progress_categories=ctx["dropdowns"]["progress_categories"],
             **ctx["current"],
             # no_data=ctx["no_data"],
             filtered_is_empty=ctx["filtered_is_empty"],
@@ -464,6 +462,7 @@ def display_ngrtb():
             yrgrps=ctx["dropdowns"]["yrgrps"],
             statuses=ctx["dropdowns"]["statuses"],
             speds=ctx["dropdowns"]["speds"],
+            progress_categories=ctx["dropdowns"]["progress_categories"],
             **ctx["current"],
             # no_data=ctx["no_data"],
             filtered_is_empty=ctx["filtered_is_empty"],
@@ -484,6 +483,7 @@ def display_ngrtb():
             yrgrps=ctx["dropdowns"]["yrgrps"],
             statuses=ctx["dropdowns"]["statuses"],
             speds=ctx["dropdowns"]["speds"],
+            progress_categories=ctx["dropdowns"]["progress_categories"],
             **ctx["current"],
             # no_data=ctx["no_data"],
             filtered_is_empty=ctx["filtered_is_empty"],
@@ -614,14 +614,41 @@ def upload_ngrtc():
 # define a new route for templates/pages/display_ngrtc.html
 @blueprint.route('/display_ngrtc', methods=['GET'])
 def display_ngrtc():
-    ngrtc_data = NGRTC.query.all()  # Fetch all entries from NGRTC table
     # student_data = Students.query.all()  # Fetch all entries from Students table  
     student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
+    ngrtc_data = NGRTC.query.all()  # Fetch all entries from NGRTC table
     
     # Check if either table is empty
     ngrtc_empty = not ngrtc_data  # True if NGRTC is empty
     students_empty = not student_data  # True if Students is empty
     
+    # modularized search filters for NGRT-C students view
+    config = {
+        "search": {
+            "param": "q",
+            "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
+        },
+        "filters": [
+            {"param": "gender", "column": Students.gender},
+            {"param": "yrgrp", "column": Students.yrgrp},
+            {"param": "status", "column": Students.status},
+            {"param": "sped", "custom_pred": lambda v: (Students.sped != "No") if v == "Any SEN Support" else (Students.sped == "No")},
+            {"param": "progress_category", "column": NGRTC.progress_category},
+        ],
+        "order_by": [Students.yrgrp, Students.forename],
+        "dropdowns": {
+            "genders": lambda s: [g[0] for g in s.query(Students.gender).distinct().order_by(Students.gender)],
+            "yrgrps":  lambda s: [y[0] for y in s.query(Students.yrgrp).distinct().order_by(Students.yrgrp)],
+            "statuses":  lambda s: [t[0] for t in s.query(Students.status).distinct().order_by(Students.status)],
+            "speds":  lambda s: ["Any SEN Support", "No SEN/SPED Support"],
+            "progress_categories": lambda s: [p[0] for p in s.query(NGRTC.progress_category).distinct().order_by(NGRTC.progress_category)],
+        },
+        # labels for the filter chips
+        "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED","progress_category": "Progress",},
+    }
+
+    ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.display_ngrtc")
+
     # If both tables are empty
     if ngrtc_empty and students_empty:
         return render_template(
@@ -629,7 +656,13 @@ def display_ngrtc():
             segment='external data - NGRT (Form-C)', parent='extBTest',
             no_data=True, ngrtc_data=None, student_data=None,
             msg_ngrtc='No NGRT-C data available.',
-            msg_students='No student data available.'
+            msg_students='No student data available.',
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            progress_categories=ctx["dropdowns"]["progress_categories"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If only NGRTC is empty
     elif ngrtc_empty:
@@ -639,6 +672,12 @@ def display_ngrtc():
             no_data=True, ngrtc_data=None,
             msg_ngrtc='No NGRT-C data available.',
             student_data=student_data,
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            progress_categories=ctx["dropdowns"]["progress_categories"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If only Students is empty
     elif students_empty:
@@ -648,14 +687,32 @@ def display_ngrtc():
             no_data=True, student_data=None,
             msg_students='No student data available.',
             ngrtc_data=ngrtc_data,
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            progress_categories=ctx["dropdowns"]["progress_categories"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If both tables have data
     else:
-        combined_data = db.session.query(Students, NGRTC).join(Students, NGRTC.student_id == Students.student_id).order_by(Students.yrgrp, Students.forename).all()
+        preds = ctx["predicates"]
+        combined_data = (
+            db.session.query(Students, NGRTC)
+            .join(Students, NGRTC.student_id == Students.student_id)
+            .order_by(Students.yrgrp, Students.forename)
+            .all()
+        )
         return render_template(
             'pages/display_ngrtc.html',
             segment='external data - NGRT (Form-C)', parent='extBTest',
             no_data=False,
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            progress_categories=ctx["dropdowns"]["progress_categories"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
             combined_data=combined_data
         )
 
