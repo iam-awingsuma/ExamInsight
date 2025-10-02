@@ -241,13 +241,38 @@ def upload_ngrta():
 # define a new route for templates/pages/display_ngrta.html
 @blueprint.route('/display_ngrta', methods=['GET'])
 def display_ngrta():
-    ngrta_data = NGRTA.query.all()  # Fetch all entries from NGRTA table
     # student_data = Students.query.all()  # Fetch all entries from Students table  
     student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
+    ngrta_data = NGRTA.query.all()  # Fetch all entries from NGRTA table
     
     # Check if either table is empty
     ngrta_empty = not ngrta_data  # True if NGRTA is empty
     students_empty = not student_data  # True if Students is empty
+    
+    # modularized search filters for NGRT-A students view
+    config = {
+        "search": {
+            "param": "q",
+            "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
+        },
+        "filters": [
+            {"param": "gender", "column": Students.gender},
+            {"param": "yrgrp", "column": Students.yrgrp},
+            {"param": "status", "column": Students.status},
+            {"param": "sped", "custom_pred": lambda v: (Students.sped != "No") if v == "Any SEN Support" else (Students.sped == "No")},
+        ],
+        "order_by": [Students.yrgrp, Students.forename],
+        "dropdowns": {
+            "genders": lambda s: [g[0] for g in s.query(Students.gender).distinct().order_by(Students.gender)],
+            "yrgrps":  lambda s: [y[0] for y in s.query(Students.yrgrp).distinct().order_by(Students.yrgrp)],
+            "statuses":  lambda s: [t[0] for t in s.query(Students.status).distinct().order_by(Students.status)],
+            "speds":  lambda s: ["Any SEN Support", "No SEN/SPED Support"],
+        },
+        # labels for the filter chips
+        "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED",},
+    }
+
+    ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.display_ngrta")
     
     # If both tables are empty
     if ngrta_empty and students_empty:
@@ -255,11 +280,14 @@ def display_ngrta():
             'pages/display_ngrta.html',
             segment='external data - NGRT (Form-A)',
             parent='extBTest',
-            no_data=True,
-            ngrta_data=None,
-            student_data=None,
+            no_data=True, ngrta_data=None, student_data=None,
             msg_ngrta='No NGRT-A data available.',
-            msg_students='No student data available.'
+            msg_students='No student data available.',
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If only NGRTA is empty
     elif ngrta_empty:
@@ -267,10 +295,14 @@ def display_ngrta():
             'pages/display_ngrta.html',
             segment='external data - NGRT (Form-A)',
             parent='extBTest',
-            no_data=True,
+            no_data=True, ngrta_data=None,
             msg_ngrta='No NGRT-A data available.',
             student_data=student_data,
-            ngrta_data=None
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If only Students is empty
     elif students_empty:
@@ -278,20 +310,36 @@ def display_ngrta():
             'pages/display_ngrta.html',
             segment='external data - NGRT (Form-A)',
             parent='extBTest',
-            no_data=True,
+            no_data=True, student_data=None,
             msg_students='No student data available.',
             ngrta_data=ngrta_data,
-            student_data=None
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If both tables have data
     else:
-        combined_data = db.session.query(Students, NGRTA).join(Students, NGRTA.student_id == Students.student_id).order_by(Students.yrgrp, Students.forename).all()
+        preds = ctx["predicates"]
+        combined_data = (
+            db.session.query(Students, NGRTA)
+            .join(Students, NGRTA.student_id == Students.student_id)
+            .filter(*preds) # same filters/search applied
+            .order_by(Students.yrgrp, Students.forename)
+            .all()
+        )
         return render_template(
             'pages/display_ngrta.html',
             segment='external data - NGRT (Form-A)',
             parent='extBTest',
             no_data=False,
-            combined_data=combined_data
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
+            combined_data=combined_data,
         )
 
 
@@ -495,11 +543,10 @@ def display_ngrtb():
         combined_data = (
             db.session.query(Students, NGRTB)
             .join(Students, NGRTB.student_id == Students.student_id)
-            .filter(*preds) # ✅ same filters/search applied
+            .filter(*preds) # same filters/search applied
             .order_by(Students.yrgrp, Students.forename)
             .all()
         )
-        # combined_data = db.session.query(Students, NGRTB).join(Students, NGRTB.student_id == Students.student_id).order_by(Students.yrgrp, Students.forename).all()
         return render_template(
             'pages/display_ngrtb.html',
             segment='external data - NGRT (Form-B)',
@@ -701,7 +748,7 @@ def display_ngrtc():
         combined_data = (
             db.session.query(Students, NGRTC)
             .join(Students, NGRTC.student_id == Students.student_id)
-            .filter(*preds) # ✅ same filters/search applied
+            .filter(*preds) # same filters/search applied
             .order_by(Students.yrgrp, Students.forename)
             .all()
         )
