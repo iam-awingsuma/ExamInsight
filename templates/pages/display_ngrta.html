@@ -98,7 +98,6 @@
         </div>
 
         <div class="col-12 d-flex gap-2">
-            <button class="btn btn-primary btn-sm" type="submit">Apply</button>
             <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home_blueprint.display_ngrta') }}">Clear</a>
         </div>
       </form>
@@ -204,5 +203,18 @@
   document.querySelectorAll('#gender,#yrgrp,#status,#sped').forEach(el => {
     el.addEventListener('change', () => document.getElementById('filterForm').submit());
   });
+
+  (function () {
+    const form = document.getElementById('filterForm');
+    const q = document.getElementById('q');
+    let typingTimer;
+
+    q.addEventListener('input', function () {
+      clearTimeout(typingTimer);
+      q.focus();
+
+      typingTimer = setTimeout(() => form.submit(), 450);   
+    });
+  })();
 </script>
 {% endblock extra_js %}

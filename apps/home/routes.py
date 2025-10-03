@@ -869,25 +869,54 @@ def upload_intlexam():
 # define a new route for templates/pages/intlexam.html
 @blueprint.route('/display_intlexam', methods=['GET'])
 def display_intlexam():
-    intlexam_data = InternalExam.query.all()  # Fetch all entries from internal_exam table
     # Fetch all entries from Students table  
     student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
+    intlexam_data = InternalExam.query.all()  # Fetch all entries from internal_exam table
     
     # Check if either table is empty
     intlexam_empty = not intlexam_data  # True if internalexam is empty
     students_empty = not student_data  # True if Students is empty
     
+    # modularized search filters for internal exam students view
+    config = {
+        "search": {
+            "param": "q",
+            "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
+        },
+        "filters": [
+            {"param": "gender", "column": Students.gender},
+            {"param": "yrgrp", "column": Students.yrgrp},
+            {"param": "status", "column": Students.status},
+            {"param": "sped", "custom_pred": lambda v: (Students.sped != "No") if v == "Any SEN Support" else (Students.sped == "No")},
+        ],
+        "order_by": [Students.yrgrp, Students.forename],
+        "dropdowns": {
+            "genders": lambda s: [g[0] for g in s.query(Students.gender).distinct().order_by(Students.gender)],
+            "yrgrps":  lambda s: [y[0] for y in s.query(Students.yrgrp).distinct().order_by(Students.yrgrp)],
+            "statuses":  lambda s: [t[0] for t in s.query(Students.status).distinct().order_by(Students.status)],
+            "speds":  lambda s: ["Any SEN Support", "No SEN/SPED Support"],
+        },
+        # labels for the filter chips
+        "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED"},
+    }
+
+    # Build rows + chips + reusable predicates
+    ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.display_intlexam")
+
     # If both tables are empty
     if intlexam_empty and students_empty:
         return render_template(
             'pages/intlexam.html',
             segment='internal assessment (final term)',
             parent='intAssmnt',
-            no_data=True,
-            intlexam_data=None,
-            student_data=None,
+            no_data=True, intlexam_data=None, student_data=None,
             msg_intlexam='No Internal Exam data available.',
-            msg_students='No student data available.'
+            msg_students='No student data available.',
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If only internalexam is empty
     elif intlexam_empty:
@@ -895,10 +924,14 @@ def display_intlexam():
             'pages/intlexam.html',
             segment='internal assessment (final term)',
             parent='intAssmnt',
-            no_data=True,
-            msg_intlexam='No Internal Exam data available.',
+            no_data=True, intlexam_data=None,
             student_data=student_data,
-            intlexam_data=None
+            msg_intlexam='No Internal Exam data available.',
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If only Students is empty
     elif students_empty:
@@ -906,20 +939,36 @@ def display_intlexam():
             'pages/intlexam.html',
             segment='internal assessment (final term)',
             parent='intAssmnt',
-            no_data=True,
-            msg_students='No student data available.',
+            no_data=True, student_data=None,
             intlexam_data=intlexam_data,
-            student_data=None
+            msg_students='No student data available.',
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         )
     # If both tables have data
     else:
-        combined_data = db.session.query(Students, InternalExam).join(Students, InternalExam.student_id == Students.student_id).order_by(Students.yrgrp, Students.forename).all()
+        preds = ctx["predicates"]
+        combined_data = (
+            db.session.query(Students, InternalExam)
+            .join(Students, InternalExam.student_id == Students.student_id)
+            .filter(*preds) # same filters/search applied
+            .order_by(Students.yrgrp, Students.forename)
+            .all()
+        )
         return render_template(
             'pages/intlexam.html',
             segment='internal assessment (final term)',
             parent='intAssmnt',
             no_data=False,
-            combined_data=combined_data
+            students=ctx["rows"],
+            genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+            statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+            **ctx["current"],
+            filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
+            combined_data=combined_data,
         )
 
 

@@ -53,12 +53,12 @@
         <p class="text-uppercase text-xs text-dark font-weight-bolder">Search Filters</p>
         <form id="filterForm" class="row gy-2 gx-2 align-items-center mb-1" method="get" action="#" autocomplete="off">
           <!-- Search -->
-          <div class="col-12 col-md-4">
+          <div class="col-12 col-md-2">
             <input type="search" id="q" name="q" value="{{ q or '' }}" class="form-control text-xs" placeholder="Student Name or ID...">
           </div>
 
           <!-- Gender -->
-          <<div class="col-6 col-md-2">
+          <div class="col-6 col-md-2">
             <select class="form-select text-xs" name="gender" id="gender">
               <option value="">All Genders</option>
               {% for s in genders %}
@@ -108,7 +108,6 @@
           </div>
 
           <div class="col-12 d-flex gap-2">
-              <button class="btn btn-primary btn-sm" type="submit">Apply</button>
               <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home_blueprint.display_ngrtb') }}">Clear</a>
           </div>
         </form>
@@ -236,5 +235,18 @@
   document.querySelectorAll('#gender,#yrgrp,#status,#sped,#progress_category').forEach(el => {
     el.addEventListener('change', () => document.getElementById('filterForm').submit());
   });
+
+  (function () {
+    const form = document.getElementById('filterForm');
+    const q = document.getElementById('q');
+    let typingTimer;
+
+    q.addEventListener('input', function () {
+      clearTimeout(typingTimer);
+      q.focus();
+
+      typingTimer = setTimeout(() => form.submit(), 450);   
+    });
+  })();
 </script>
 {% endblock extra_js %}
