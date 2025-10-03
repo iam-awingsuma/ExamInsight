@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container-fluid py-2">
   {% if current_user.is_admin %}
-  <div class="container w-auto">
+  <div class="w-auto">
     <!-- Button to trigger collapse -->
     <button class="btn m-0 px-1 py-1"
             type="button"
@@ -53,12 +53,12 @@
       <p class="text-uppercase text-xs text-dark font-weight-bolder">Search Filters</p>
       <form id="filterForm" class="row gy-2 gx-2 align-items-center mb-1" method="get" action="#" autocomplete="off">
         <!-- Search -->
-        <div class="col-12 col-md-2">
+        <div class="col-12 col-md-4">
           <input type="search" id="q" name="q" value="{{ q or '' }}" class="form-control text-xs" placeholder="Student Name or ID...">
         </div>
 
         <!-- Gender -->
-        <div class="col-12 col-md-2">
+        <div class="col-6 col-md-2">
           <select class="form-select text-xs" name="gender" id="gender">
             <option value="">All Genders</option>
             {% for s in genders %}
@@ -68,7 +68,7 @@
         </div>
 
         <!-- Year group -->
-        <div class="col-12 col-md-2">
+        <div class="col-6 col-md-2">
           <select class="form-select text-xs" name="yrgrp" id="yrgrp">
             <option value="">All Year Groups</option>
             {% for s in yrgrps %}
@@ -78,7 +78,7 @@
         </div>
 
         <!-- Registration Status -->
-        <div class="col-12 col-md-2">
+        <div class="col-6 col-md-2">
           <select class="form-select text-xs" name="status" id="status">
             <option value="">All Registration Status</option>
             {% for s in statuses %}
@@ -88,7 +88,7 @@
         </div>
 
         <!-- SEN/SPED -->
-        <div class="col-12 col-md-2">
+        <div class="col-6 col-md-2">
           <select class="form-select text-xs" name="sped" id="sped">
             <option value="">All SEN/SPED</option>
             {% for s in speds %}
@@ -98,7 +98,7 @@
         </div>
 
         <!-- Progress Category -->
-        <div class="col-12 col-md-2">
+       <div class="col-6 col-md-2">
           <select class="form-select text-xs" name="progress_category" id="progress_category">
             <option value="">All Progress</option>
             {% for s in progress_categories %}
