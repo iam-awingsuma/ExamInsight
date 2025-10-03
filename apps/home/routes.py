@@ -342,7 +342,6 @@ def display_ngrta():
             combined_data=combined_data,
         )
 
-
 @blueprint.route('/display_ngrtb', methods=['POST'])
 def upload_ngrtb():
     if 'file' not in request.files:
@@ -564,7 +563,6 @@ def display_ngrtb():
             active_filters=ctx["active_filters"],
             combined_data=combined_data,
         )
-
 
 @blueprint.route('/display_ngrtc', methods=['POST'])
 def upload_ngrtc():
@@ -971,84 +969,60 @@ def display_intlexam():
             combined_data=combined_data,
         )
 
-
 # Student Management Routes
 @blueprint.route("/student_management", methods=["GET"])
 def student_management():
-    # ---- Read query params (empty string = no filter) ----
-    q        = request.args.get("q", "", type=str).strip()
-    gender   = request.args.get("gender", "", type=str).strip()
-    yrgrp    = request.args.get("yrgrp", "", type=str).strip()
-    status   = request.args.get("status", "", type=str).strip()
-    sped     = request.args.get("sped", "", type=str).strip()
+    # Fetch all entries from Students table
+    student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
 
-    # ---- Build the query incrementally ----
-    query = Students.query
+    students_empty = not student_data  # database has no students at all
 
-    if q:
-        like = f"%{q}%"
-        # adjust fields you want searchable
-        query = query.filter(
-            db.or_(
-                Students.forename.ilike(like),
-                Students.surname.ilike(like),
-                Students.student_id.cast(db.String).ilike(like),
-            )
-        )
+    # modularized search filters for students table
+    config = {
+        "search": {
+            "param": "q",
+            "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
+        },
+        "filters": [
+            {"param": "gender", "column": Students.gender},
+            {"param": "yrgrp", "column": Students.yrgrp},
+            {"param": "status", "column": Students.status},
+            {"param": "sped", "custom_pred": lambda v: (Students.sped != "No") if v == "Any SEN Support" else (Students.sped == "No")},
+        ],
+        "order_by": [Students.yrgrp, Students.forename],
+        "dropdowns": {
+            "genders": lambda s: [g[0] for g in s.query(Students.gender).distinct().order_by(Students.gender)],
+            "yrgrps":  lambda s: [y[0] for y in s.query(Students.yrgrp).distinct().order_by(Students.yrgrp)],
+            "statuses":  lambda s: [t[0] for t in s.query(Students.status).distinct().order_by(Students.status)],
+            "speds":  lambda s: ["Any SEN Support", "No SEN/SPED Support"],
+        },
+        # labels for the filter chips
+        "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED",},
+    }
 
-    if gender: query = query.filter(Students.gender == gender)
-    if yrgrp: query = query.filter(Students.yrgrp == yrgrp)
-    if status: query = query.filter(Students.status == status)
-    if sped:
-        if sped == "Any SEN Support":
-            query = query.filter(Students.sped != "No")
-        elif sped == "No SEN/SPED Support":
-            query = query.filter(Students.sped == "No")
+    # Build rows + chips + reusable predicates
+    ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.student_management")
 
-    # ---- Order & fetch ----
-    students = query.order_by(Students.yrgrp, Students.forename).all()
-
-    # ---- For dropdown options (distinct values) ----
-    genders = [g[0] for g in db.session.query(Students.gender).distinct().order_by(Students.gender)]
-    yrgrps  = [y[0] for y in db.session.query(Students.yrgrp).distinct().order_by(Students.yrgrp)]
-    regstat = [r[0] for r in db.session.query(Students.status).distinct().order_by(Students.status)]
-    # speds = ["Yes", "No"] # SEN/SPED dropdown options are fixed to two choices
-    speds = ["Any SEN Support", "No SEN/SPED Support"]
-
-    # ---- Flags / active chips ----
-    table_is_empty   = Students.query.count() == 0           # database has no students at all
-    filtered_is_empty = (len(students) == 0 and not table_is_empty)
-
-    active_filters = []
-    base_args = request.args.to_dict()
-
-    def build_remove_url(key):
-        args = base_args.copy()
-        args.pop(key, None)
-        return url_for("home_blueprint.student_management") + "?" + urlencode(args)
-
-    if q:        active_filters.append(("Search", q, build_remove_url("q")))
-    if gender:   active_filters.append(("Gender", gender, build_remove_url("gender")))
-    if yrgrp:    active_filters.append(("Year", yrgrp, build_remove_url("yrgrp")))
-    if status:   active_filters.append(("Status", status, build_remove_url("status")))
-    if sped:     active_filters.append(("SEN/SPED", sped, build_remove_url("sped")))
+    preds = ctx["predicates"]
+    combined_data = (
+        db.session.query(Students)
+        .filter(*preds) # same filters/search applied
+        .order_by(Students.yrgrp, Students.forename)
+        .all()
+    )
 
     return render_template(
         "pages/students-all.html",
         segment="student management",
         parent="studentMgt",
-        no_data=table_is_empty,
-        students=students,
+        no_data=students_empty,
         # dropdown data
-        genders=genders,
-        yrgrps=yrgrps,
-        regstat=regstat,
-        speds=speds,
-        # current selections (so selects stay selected)
-        q=q, gender=gender, yrgrp=yrgrp, status=status, sped=sped,
-        # ui helpers
-        filtered_is_empty=filtered_is_empty,
-        active_filters=active_filters,
+        students=ctx["rows"],
+        genders=ctx["dropdowns"]["genders"], yrgrps=ctx["dropdowns"]["yrgrps"],
+        statuses=ctx["dropdowns"]["statuses"], speds=ctx["dropdowns"]["speds"],
+        **ctx["current"],
+        filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
+        combined_data=combined_data,
     )
 
 

@@ -8,16 +8,17 @@
         <div class="card-header pb-0">
             <p class="text-uppercase text-xs text-dark font-weight-bolder">Search Filters</p>
             <form id="filterForm" class="row gy-2 gx-2 align-items-center mb-1" method="get" action="#">
+                <!-- Search -->
                 <div class="col-12 col-md-4">
-                    <input type="search" class="form-control text-xs" name="q" placeholder="Search name or ID" 
-                    onfocus="this.value=''" onblur="if(this.value==''){this.value=''}">
+                <input type="search" id="q" name="q" value="{{ q or '' }}" class="form-control text-xs" placeholder="Student Name or ID...">
                 </div>
 
+                <!-- Dropdown filters -->
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="gender" id="gender">
                         <option value="">All Genders</option>
-                        {% for g in genders %}
-                            <option value="{{ g }}" {{ 'selected' if g==gender else '' }}>{{ g }}</option>
+                        {% for s in genders %}
+                        <option value="{{ s }}" {% if gender == s %}selected{% endif %}>{{ s }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -25,8 +26,8 @@
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="yrgrp" id="yrgrp">
                         <option value="">All Year Groups</option>
-                        {% for y in yrgrps %}
-                            <option class="text-uppercase" value="{{ y }}" {{ 'selected' if y==yrgrp else '' }}>{{ y }}</option>
+                        {% for s in yrgrps %}
+                        <option class="text-uppercase" value="{{ s }}" {% if yrgrp == s %}selected{% endif %}>{{ s }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -34,17 +35,18 @@
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="status" id="status">
                         <option value="">All Registration Status</option>
-                        {% for r in regstat %}
-                            <option value="{{ r }}" {{ 'selected' if r==status else '' }}>{{ r }}</option>
+                        {% for s in statuses %}
+                        <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
+                <!-- SEN/SPED -->
                 <div class="col-6 col-md-2">
-                    <select class="form-select text-xs" name="sped" id="sped" onchange="this.form.submit()">
+                    <select class="form-select text-xs" name="sped" id="sped">
                         <option value="">All SEN/SPED</option>
                         {% for s in speds %}
-                            <option value="{{ s }}" {% if sped == s %}selected{% endif %}>{{ s }}</option>
+                        <option value="{{ s }}" {% if sped == s %}selected{% endif %}>{{ s }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -55,7 +57,7 @@
             </form>
             
             <!-- Filter chips -->
-            {% if active_filters %}
+            {% if active_filters and active_filters|length %}
             <div class="d-flex align-items-center mb-3">
                 <span class="text-uppercase text-xs text-muted me-2">Active Filters:</span>
                 {% for label, value, url in active_filters %}
