@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from apps.home import blueprint
-from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session
+from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
@@ -10,11 +10,7 @@ from apps import db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, func, String
 
-from apps.authentication.models import NGRTA
-from apps.authentication.models import NGRTB
-from apps.authentication.models import NGRTC
-from apps.authentication.models import InternalExam
-from apps.authentication.models import Students
+from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
 
 from apps.home import make_list_context, _build_predicates
 

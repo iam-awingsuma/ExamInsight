@@ -250,10 +250,13 @@
 
     q.addEventListener('input', function () {
       clearTimeout(typingTimer);
-      q.focus();
-
-      typingTimer = setTimeout(() => form.submit(), 450);   
+      typingTimer = setTimeout(() => form.submit(), 450);
     });
+
+    // on page load, move caret to the end of input
+    const len = q.value.length;
+    q.setSelectionRange(len, len);
+    q.focus();
   })();
 </script>
 {% endblock extra_js %}
