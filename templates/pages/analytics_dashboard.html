@@ -1,0 +1,272 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<main class="container py-4">
+  <div class="d-flex align-items-start justify-content-between mb-3">
+    <div>
+      <h5 class="h5 mb-1">📊 Analytics Dashboard - Internal Assessments</h5>
+      <div class="text-dark text-xs">View insights across assessments, track progress, and compare performance.</div>
+    </div>
+
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white border rounded-3 p-3 mb-4">
+    <div class="d-flex flex-wrap align-items-end gap-3">
+        <div class="col-12 col-md-2">
+            <label class="form-label mb-1 small text-secondary text-xs">Year Group</label>
+            <select id="year_group" class="form-select">
+            <option value="">All Year Groups</option>
+            {% for y in year_groups %}
+                <option value="{{ y }}">{{ y }}</option>
+            {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-7 ms-auto">
+            <label class="form-label mb-1 small text-secondary text-xs">Student</label>
+            <select id="student" class="form-select" disabled>
+            <option value="">All Students</option>
+            </select>
+        </div>
+        <div class="ms-auto d-flex gap-2">
+            <button id="btnApply" class="btn btn-md btn-primary mx-0 my-0">View Analytics</button>
+        </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card card-kpi p-3">
+        <div class="kpi-title">Total Students</div>
+        <div id="kpi_total" class="kpi-value">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-kpi p-3">
+        <div class="kpi-title">Average Attainment</div>
+        <div id="kpi_avg" class="kpi-value">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-kpi p-3">
+        <div class="kpi-title">Progress since Midterm</div>
+        <div id="kpi_delta" class="kpi-value">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-kpi p-3">
+        <div class="kpi-title">Above / Below Target</div>
+        <div class="kpi-value"><span id="kpi_above">—</span> / <span id="kpi_below">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 rounded-3 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title mb-0">Performance Over Time</h5>
+            <i data-lucide="line-chart"></i>
+          </div>
+          <canvas id="lineChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card border-0 rounded-3 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="card-title mb-0">Score Distribution (Bands)</h5>
+            <i data-lucide="bar-chart-3"></i>
+          </div>
+          <canvas id="barChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock content %}
+
+{% block extra_js %}
+<!-- Icons (Lucide) -->
+  <script defer src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+  // Icons
+  window.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+
+  const yearSel = document.getElementById('year_group');
+  const studentSel = document.getElementById('student');
+  const btnApply = document.getElementById('btnApply');
+
+  let lineChart, barChart, catChart;
+
+  async function loadAnalytics() {
+    const yr = yearSel.value;
+    const sid = studentSel.value;
+    const url = new URL(window.location.origin + "/api/analytics");
+    if (yr) url.searchParams.set("yrgrp", yr);
+    if (sid) url.searchParams.set("student_id", sid);
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // KPIs
+    document.getElementById('kpi_total').textContent = data.summary.total_students.toString();
+    document.getElementById('kpi_avg').textContent = `${data.summary.avg_attainment.toFixed(1)}%`;
+    const delta = data.summary.progress_delta;
+    document.getElementById('kpi_delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%';
+    document.getElementById('kpi_above').textContent = data.summary.above_target.toString();
+    document.getElementById('kpi_below').textContent = data.summary.below_target.toString();
+
+    // Line: Prev vs Current by Subject
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    if (lineChart) lineChart.destroy();
+    lineChart = new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: data.line.labels,
+        datasets: [
+          { label: 'English', data: data.line.english, tension: .3 },
+          { label: 'Maths',   data: data.line.maths,   tension: .3 },
+          { label: 'Science', data: data.line.science, tension: .3 }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom' } },
+        scales: { y: { beginAtZero: true, suggestedMax: 100 } }
+      }
+    });
+
+    // Bands (current %) with your colour scheme
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    if (barChart) barChart.destroy();
+    const bandColors = ['#e63946', '#ffcc99', '#ffd166', '#06d6a0', '#118ab2']; // red, peach, yellow, green, blue
+    barChart = new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: data.bands.labels,
+        datasets: [{
+          label: 'Counts',
+          data: data.bands.counts,
+          backgroundColor: bandColors
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, precision: 0 } }
+      }
+    });
+
+    // Progress Categories (from *_progcat)
+    const catElId = 'progCatChart';
+    let catCanvas = document.getElementById(catElId);
+    if (!catCanvas) {
+      // insert a third chart card if it doesn't exist yet
+      const row = document.querySelector('.row.g-4');
+      const col = document.createElement('div');
+      col.className = 'col-12';
+      col.innerHTML = `
+        <div class="card border-0 rounded-3 shadow-sm mt-4">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title mb-0">Progress Categories</h5>
+              <i data-lucide="pie-chart"></i>
+            </div>
+            <canvas id="${catElId}" height="220"></canvas>
+          </div>
+        </div>`;
+      row.appendChild(col);
+      lucide.createIcons();
+      catCanvas = document.getElementById(catElId);
+    }
+
+    if (catChart) catChart.destroy();
+    catChart = new Chart(catCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: data.progcats.labels,
+        datasets: [{
+          label: 'Count',
+          data: data.progcats.counts
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, precision: 0 } }
+      }
+    });
+  }
+
+  btnApply.addEventListener('click', loadAnalytics);
+  loadAnalytics();
+</script>
+
+<!-- Refactored: unified event handling and async logic -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const yearSel    = document.getElementById('year_group');
+  const studentSel = document.getElementById('student');
+
+  async function loadStudentsAndAnalyze() {
+    // Reset options & disable while loading
+    studentSel.replaceChildren(new Option('All Students', ''));
+    studentSel.disabled = true;
+
+    const yr = (yearSel?.value || '').trim();
+
+    // Build the correct URL for your blueprint endpoint
+    const stuUrl = new URL('{{ url_for("home_blueprint.api_students_by_year") }}', window.location.origin);
+    if (yr) stuUrl.searchParams.set('yrgrp', yr);
+
+    try {
+      const res = await fetch(stuUrl.toString(), { credentials: 'same-origin', headers: { 'Accept': 'application/json' }});
+      if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+      const data = await res.json();
+      const students = Array.isArray(data.students) ? data.students : [];
+
+      // Populate options (if none, you'll still have "All Students")
+      for (const s of students) {
+        studentSel.add(new Option(s.name, s.id));
+      }
+    } catch (err) {
+      console.error('Failed to load students:', err);
+      // Optional: show a friendly fallback option
+      studentSel.add(new Option('— could not load —', '' ));
+    } finally {
+      // 🔑 ALWAYS re-enable so the user can select "All Students"
+      studentSel.disabled = false;
+
+      // If you want to auto-run analytics after loading:
+      if (typeof runAnalytics === 'function') {
+        runAnalytics();
+      }
+    }
+  }
+
+  // Wire events
+  if (yearSel) {
+    yearSel.addEventListener('change', loadStudentsAndAnalyze);
+    // On first load: run once (with or without year selected)
+    loadStudentsAndAnalyze();
+  }
+  if (studentSel && typeof runAnalytics === 'function') {
+    studentSel.addEventListener('change', runAnalytics);
+  }
+});
+</script>
+
+
+
+{% endblock extra_js %}
+<!-- </body>
+</html> -->

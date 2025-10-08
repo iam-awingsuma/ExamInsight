@@ -174,16 +174,22 @@ class InternalExam(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, unique=True, nullable=False)
+
+    # English
     eng_prevPct = db.Column(db.Integer, nullable=True)
     eng_prevGr = db.Column(db.String(3), nullable=True)
     eng_currPct = db.Column(db.Integer, nullable=True)
     eng_currGr = db.Column(db.String(3), nullable=True)
     eng_progcat = db.Column(db.String(20), nullable=True)
+
+    # Maths
     maths_prevPct = db.Column(db.Integer, nullable=True)
     maths_prevGr = db.Column(db.String(3), nullable=True)
     maths_currPct = db.Column(db.Integer, nullable=True)
     maths_currGr = db.Column(db.String(3), nullable=True)
     maths_progcat = db.Column(db.String(20), nullable=True)
+
+    # Science
     sci_prevPct = db.Column(db.Integer, nullable=True)
     sci_prevGr = db.Column(db.String(3), nullable=True)
     sci_currPct = db.Column(db.Integer, nullable=True)

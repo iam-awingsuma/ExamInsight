@@ -8,7 +8,7 @@ from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
 from apps import db
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select, func, String
+from sqlalchemy import select, func, String, and_
 
 from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
 
@@ -28,6 +28,7 @@ from functools import wraps
 from apps.authentication.forms import CreateAccountForm
 from apps.authentication.models import Users
 from apps.authentication.routes import admin_required
+
 
 @blueprint.route('/')
 @blueprint.route('/index')
@@ -1092,15 +1093,189 @@ def replace_value(value, args):
   return value.replace(args, " ").title()
 
 def get_segment(request):
-
     try:
-
         segment = request.path.split('/')[-1]
-
         if segment == '':
             segment = 'index'
-
         return segment
-
     except:
         return None
+
+
+# Performance Analytics Routes
+@blueprint.route("/analytics", methods=["GET"])
+def analytics_internal():
+    # Year groups from Students (since InternalExam doesn’t store yrgrp)
+    year_groups = [yg for (yg,) in db.session.query(Students.yrgrp)
+                   .filter(Students.yrgrp.isnot(None))
+                   .distinct()
+                   .order_by(Students.yrgrp).all()]
+    return render_template(
+        "pages/analytics_dashboard.html",
+        segment="analytics",
+        parent="analytics",
+        year_groups=year_groups
+    )
+
+@blueprint.route("/api/students_by_year", methods=["GET"])
+def api_students_by_year():
+    yrgrp = request.args.get("yrgrp", "").strip()
+    if not yrgrp:
+        return jsonify({"students": []})
+
+    # Only students who have InternalExam rows (so analytics won’t be empty)
+    q = (
+        db.session.query(Students.student_id, Students.forename, Students.surname)
+        .join(InternalExam, InternalExam.student_id == Students.student_id)
+        .filter(Students.yrgrp == yrgrp)
+        # .group_by(Students.student_id, Students.forename, Students.surname)
+        .distinct()
+        .order_by(Students.forename, Students.surname)
+    )
+    data = [{"id": sid, "name": f"{fn} {sn}"} for (sid, fn, sn) in q.all()]
+    return jsonify({"students": data})
+
+# --- Main analytics payload (cards + charts) ---
+@blueprint.route("/api/analytics", methods=["GET"])
+def api_analytics():
+    yrgrp = request.args.get("yrgrp", "").strip()
+    sid   = request.args.get("student_id", "").strip()
+
+    # Filter InternalExam via Students for yrgrp when provided
+    base_q = db.session.query(InternalExam).join(Students, Students.id == InternalExam.student_id)
+    if yrgrp:
+        base_q = base_q.filter(Students.yrgrp == yrgrp)
+    if sid:
+        base_q = base_q.filter(InternalExam.student_id == int(sid))
+
+    rows = base_q.all()
+
+    # ---- If no data, return empty but valid payload ----
+    if not rows:
+        empty = {
+            "summary": {
+                "total_students": 0,
+                "avg_attainment": 0.0,
+                "progress_delta": 0.0,
+                "above_target": 0,
+                "below_target": 0
+            },
+            "line": {  # we’ll present prev vs current by subject
+                "labels": ["Previous", "Current"],
+                "english": [0, 0],
+                "maths": [0, 0],
+                "science": [0, 0],
+            },
+            "bands": {
+                "labels": ["<21%", "21–40%", "41–60%", "61–80%", ">80%"],
+                "counts": [0, 0, 0, 0, 0]
+            },
+            "progcats": { "labels": [], "counts": [] }
+        }
+        return jsonify(empty)
+
+    # ---- Summary metrics ----
+    # total distinct students
+    total_students = len({r.student_id for r in rows})
+
+    # aggregate current % across 3 subjects (skip Nones)
+    curr_values = []
+    prev_values = []
+    above = below = 0
+
+    # progress categories (combine all three subjects’ *_progcat)
+    progcat_counts = {}
+
+    # distribution bands use current % from all subjects
+    def band_of(p):
+        if p is None: return None
+        if p < 21:   return "<21%"
+        if p <= 40:  return "21–40%"
+        if p <= 60:  return "41–60%"
+        if p <= 80:  return "61–80%"
+        return ">80%"
+
+    band_order = ["<21%", "21–40%", "41–60%", "61–80%", ">80%"]
+    band_counts = {b: 0 for b in band_order}
+
+    # For the line chart: average per subject (prev/curr)
+    eng_prev, eng_curr, n_eng = 0.0, 0.0, 0
+    m_prev, m_curr, n_m = 0.0, 0.0, 0
+    s_prev, s_curr, n_s = 0.0, 0.0, 0
+
+    for r in rows:
+        # Collect per subject safely (might be None)
+        for prev, curr, progcat, subj in [
+            (r.eng_prevPct,   r.eng_currPct,   r.eng_progcat,   "eng"),
+            (r.maths_prevPct, r.maths_currPct, r.maths_progcat, "maths"),
+            (r.sci_prevPct,   r.sci_currPct,   r.sci_progcat,   "sci"),
+        ]:
+            # KPIs: curr/prev for global avg & delta
+            if curr is not None:
+                curr_values.append(curr)
+                b = band_of(curr)
+                if b: band_counts[b] += 1
+            if prev is not None:
+                prev_values.append(prev)
+
+            # Above/below target simple rule: curr vs prev
+            if curr is not None and prev is not None:
+                if curr > prev:   above += 1
+                elif curr < prev: below += 1
+                # equal = neither
+
+            # Progress cat tally
+            if progcat:
+                progcat_counts[progcat] = progcat_counts.get(progcat, 0) + 1
+
+            # Line chart subject averages
+            if subj == "eng":
+                if prev is not None: eng_prev += prev; n_eng += 1
+                if curr is not None: eng_curr += curr
+            elif subj == "maths":
+                if prev is not None: m_prev += prev; n_m += 1
+                if curr is not None: m_curr += curr
+            else:
+                if prev is not None: s_prev += prev; n_s += 1
+                if curr is not None: s_curr += curr
+
+    # Averages (avoid zero division)
+    def avg(lst): 
+        return round(sum(lst)/len(lst), 2) if lst else 0.0
+
+    avg_attainment = avg(curr_values)
+    avg_prev       = avg(prev_values)
+    progress_delta = round(avg_attainment - avg_prev, 2)
+
+    # Subject means for line chart (based on counts where prev existed)
+    eng_prev_mean = round(eng_prev / n_eng, 2) if n_eng else 0.0
+    eng_curr_mean = round(eng_curr / n_eng, 2) if n_eng else 0.0
+    m_prev_mean   = round(m_prev / n_m, 2)     if n_m   else 0.0
+    m_curr_mean   = round(m_curr / n_m, 2)     if n_m   else 0.0
+    s_prev_mean   = round(s_prev / n_s, 2)     if n_s   else 0.0
+    s_curr_mean   = round(s_curr / n_s, 2)     if n_s   else 0.0
+
+    payload = {
+        "summary": {
+            "total_students": int(total_students),
+            "avg_attainment": avg_attainment,
+            "progress_delta": progress_delta,
+            "above_target": int(above),
+            "below_target": int(below),
+        },
+        "line": {
+            "labels": ["Previous", "Current"],
+            "english": [eng_prev_mean, eng_curr_mean],
+            "maths":   [m_prev_mean,  m_curr_mean],
+            "science": [s_prev_mean,  s_curr_mean],
+        },
+        "bands": {
+            "labels": band_order,
+            "counts": [band_counts[b] for b in band_order]
+        },
+        "progcats": {
+            "labels": list(progcat_counts.keys()),
+            "counts": list(progcat_counts.values())
+        }
+    }
+    return jsonify(payload)
