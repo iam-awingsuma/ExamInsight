@@ -1110,11 +1110,24 @@ def analytics_internal():
                    .filter(Students.yrgrp.isnot(None))
                    .distinct()
                    .order_by(Students.yrgrp).all()]
+
+    # Total count of InternalExam intakes
+    count_intake = db.session.query(InternalExam).count()
+
+    # Render average of current % in English, Maths, Science
+    avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
+    avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
+    avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
+
     return render_template(
         "pages/analytics_dashboard.html",
         segment="analytics",
         parent="analytics",
-        year_groups=year_groups
+        year_groups=year_groups,
+        count_intake=count_intake,
+        avg_eng=avg_eng,
+        avg_maths=avg_maths,
+        avg_sci=avg_sci,
     )
 
 @blueprint.route("/api/students_by_year", methods=["GET"])

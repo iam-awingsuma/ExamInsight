@@ -37,28 +37,47 @@
   <!-- KPIs -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-      <div class="card card-kpi p-3">
-        <div class="kpi-title">Total Students</div>
-        <div id="kpi_total" class="kpi-value">—</div>
+        <div class="card card-kpi p-3 bg-dark text-white">
+            <span class="text-white font-weight-bolder text-end mb-n4">YEAR 2 COHORT</span>
+            <div class="icon icon-shape bg-white shadow text-center border-radius-2xl">
+                <i class="ni ni-badge text-dark text-gradient text-lg opacity-10" aria-hidden="true"></i>
+            </div>
+            <h5 class="text-white font-weight-bolder mb-0 mt-2">{{ count_intake }}</h5>
+            <div class="kpi-title text-xs font-weight-bolder text-uppercase">Intake Count</div>
+        </div>
+    </div>
+    
+    <div class="col-6 col-md-3">
+      <div class="card card-kpi p-3 bg-gradient-primary text-white">
+        <span class="text-white font-weight-bolder text-end mb-n4">ENGLISH</span>
+        <div class="icon icon-shape bg-white shadow text-center border-radius-2xl">
+            <i class="ni ni-chart-bar-32 text-dark text-gradient text-lg opacity-10" aria-hidden="true"></i>
+        </div>
+        <h5 class="text-white font-weight-bolder mb-0 mt-2">{{ avg_eng }}</h5>
+        <div class="kpi-title text-xs font-weight-bolder text-uppercase">Average Attainment</div>
       </div>
     </div>
+
     <div class="col-6 col-md-3">
-      <div class="card card-kpi p-3">
-        <div class="kpi-title">Average Attainment</div>
-        <div id="kpi_avg" class="kpi-value">—</div>
-      </div>
+        <div class="card card-kpi p-3 bg-gradient-danger text-white">
+            <span class="text-white font-weight-bolder text-end mb-n4">MATHEMATICS</span>
+            <div class="icon icon-shape bg-white shadow text-center border-radius-2xl">
+                <i class="ni ni-chart-bar-32 text-dark text-gradient text-lg opacity-10" aria-hidden="true"></i>
+            </div>
+            <h5 class="text-white font-weight-bolder mb-0 mt-2">{{ avg_maths }}</h5>
+            <div class="kpi-title text-xs font-weight-bolder text-uppercase">Average Attainment</div>
+        </div>
     </div>
+    
     <div class="col-6 col-md-3">
-      <div class="card card-kpi p-3">
-        <div class="kpi-title">Progress since Midterm</div>
-        <div id="kpi_delta" class="kpi-value">—</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card card-kpi p-3">
-        <div class="kpi-title">Above / Below Target</div>
-        <div class="kpi-value"><span id="kpi_above">—</span> / <span id="kpi_below">—</span></div>
-      </div>
+        <div class="card card-kpi p-3 bg-gradient-success text-white">
+            <span class="text-white font-weight-bolder text-end mb-n4">SCIENCE</span>
+            <div class="icon icon-shape bg-white shadow text-center border-radius-2xl">
+                <i class="ni ni-chart-bar-32 text-dark text-gradient text-lg opacity-10" aria-hidden="true"></i>
+            </div>
+            <h5 class="text-white font-weight-bolder mb-0 mt-2">{{ avg_sci }}</h5>
+            <div class="kpi-title text-xs font-weight-bolder text-uppercase">Average Attainment</div>
+        </div>
     </div>
   </div>
 
@@ -71,10 +90,12 @@
             <h5 class="card-title mb-0">Performance Over Time</h5>
             <i data-lucide="line-chart"></i>
           </div>
+          <!-- Line chart canvas -->
           <canvas id="lineChart" height="220"></canvas>
         </div>
       </div>
     </div>
+
     <div class="col-12 col-lg-6">
       <div class="card border-0 rounded-3 shadow-sm">
         <div class="card-body">
@@ -82,6 +103,7 @@
             <h5 class="card-title mb-0">Score Distribution (Bands)</h5>
             <i data-lucide="bar-chart-3"></i>
           </div>
+          <!-- Bar chart canvas -->
           <canvas id="barChart" height="220"></canvas>
         </div>
       </div>
@@ -117,12 +139,12 @@
     const data = await res.json();
 
     // KPIs
-    document.getElementById('kpi_total').textContent = data.summary.total_students.toString();
-    document.getElementById('kpi_avg').textContent = `${data.summary.avg_attainment.toFixed(1)}%`;
-    const delta = data.summary.progress_delta;
-    document.getElementById('kpi_delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%';
-    document.getElementById('kpi_above').textContent = data.summary.above_target.toString();
-    document.getElementById('kpi_below').textContent = data.summary.below_target.toString();
+    // document.getElementById('kpi_total').textContent = data.summary.total_students.toString();
+    // document.getElementById('kpi_avg').textContent = `${data.summary.avg_attainment.toFixed(1)}%`;
+    // const delta = data.summary.progress_delta;
+    // document.getElementById('kpi_delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%';
+    // document.getElementById('kpi_above').textContent = data.summary.above_target.toString();
+    // document.getElementById('kpi_below').textContent = data.summary.below_target.toString();
 
     // Line: Prev vs Current by Subject
     const lineCtx = document.getElementById('lineChart').getContext('2d');
