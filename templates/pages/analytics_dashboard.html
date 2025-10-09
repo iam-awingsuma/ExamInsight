@@ -10,30 +10,6 @@
 
   </div>
 
-  <!-- Filters -->
-  <div class="bg-white border rounded-3 p-3 mb-4">
-    <div class="d-flex flex-wrap align-items-end gap-3">
-        <div class="col-12 col-md-2">
-            <label class="form-label mb-1 small text-secondary text-xs">Year Group</label>
-            <select id="year_group" class="form-select">
-            <option value="">All Year Groups</option>
-            {% for y in year_groups %}
-                <option value="{{ y }}">{{ y }}</option>
-            {% endfor %}
-            </select>
-        </div>
-        <div class="col-12 col-md-7 ms-auto">
-            <label class="form-label mb-1 small text-secondary text-xs">Student</label>
-            <select id="student" class="form-select" disabled>
-            <option value="">All Students</option>
-            </select>
-        </div>
-        <div class="ms-auto d-flex gap-2">
-            <button id="btnApply" class="btn btn-md btn-primary mx-0 my-0">View Analytics</button>
-        </div>
-    </div>
-  </div>
-
   <!-- KPIs -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
@@ -77,6 +53,30 @@
             </div>
             <h5 class="text-white font-weight-bolder mb-0 mt-2">{{ avg_sci }}</h5>
             <div class="kpi-title text-xs font-weight-bolder text-uppercase">Average Attainment</div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white border rounded-3 p-3 mb-4">
+    <div class="d-flex flex-wrap align-items-end gap-3">
+        <div class="col-12 col-md-2">
+            <label class="form-label mb-1 small text-secondary text-xs">Year Group</label>
+            <select id="year_group" class="form-select">
+            <option value="">All Year Groups</option>
+            {% for y in year_groups %}
+                <option value="{{ y }}">{{ y }}</option>
+            {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-7 ms-auto">
+            <label class="form-label mb-1 small text-secondary text-xs">Student</label>
+            <select id="student" class="form-select" disabled>
+            <option value="">All Students</option>
+            </select>
+        </div>
+        <div class="ms-auto d-flex gap-2">
+            <button id="btnApply" class="btn btn-md btn-primary mx-0 my-0">View Analytics</button>
         </div>
     </div>
   </div>
