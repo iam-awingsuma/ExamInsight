@@ -1114,10 +1114,15 @@ def analytics_internal():
     # Total count of InternalExam intakes
     count_intake = db.session.query(InternalExam).count()
 
-    # Render average of current % in English, Maths, Science
+    # Render Cohort averages of current % in English, Maths, Science
     avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
     avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
     avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
+
+    # Render Cohort Year-to-Year progress for English, Maths, Science
+
+
+    # 
 
     return render_template(
         "pages/analytics_internal.html",
