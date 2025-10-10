@@ -1114,15 +1114,25 @@ def analytics_internal():
     # Total count of InternalExam intakes
     count_intake = db.session.query(InternalExam).count()
 
-    # Render Cohort averages of current % in English, Maths, Science
-    avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
-    avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
-    avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
+    # Render Cohort averages of current year for English, Maths, Science
+    curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    curr_avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
 
-    # Render Cohort Year-to-Year progress for English, Maths, Science
-
-
-    # 
+    # Previous year averages
+    prev_avg_eng = round(db.session.query(func.avg(InternalExam.eng_prevPct)).scalar() or 0, 1)
+    prev_avg_maths = round(db.session.query(func.avg(InternalExam.maths_prevPct)).scalar() or 0, 1)
+    prev_avg_sci = round(db.session.query(func.avg(InternalExam.sci_prevPct)).scalar() or 0, 1)
+    
+    # Round for display
+    data = {
+        "eng_prev": round(float(prev_avg_eng), 1),
+        "maths_prev": round(float(prev_avg_maths), 1),
+        "sci_prev": round(float(prev_avg_sci), 1),
+        "eng_curr": round(float(curr_avg_eng), 1),
+        "maths_curr": round(float(curr_avg_maths), 1),
+        "sci_curr": round(float(curr_avg_sci), 1),
+    }
 
     return render_template(
         "pages/analytics_internal.html",
@@ -1130,10 +1140,12 @@ def analytics_internal():
         parent="analytics",
         year_groups=year_groups,
         count_intake=count_intake,
-        avg_eng=avg_eng,
-        avg_maths=avg_maths,
-        avg_sci=avg_sci,
+        avg_eng=curr_avg_eng,
+        avg_maths=curr_avg_maths,
+        avg_sci=curr_avg_sci,
+        data=data,
     )
+
 
 @blueprint.route("/api/students_by_year", methods=["GET"])
 def api_students_by_year():
