@@ -350,27 +350,33 @@ document.addEventListener('DOMContentLoaded', () => {
 <script id="chart-data" type="application/json">{{ data | default({}) | tojson | safe }}</script>
 
 <script>
-    const d = JSON.parse(document.getElementById('chart-data').textContent);
+  const d = JSON.parse(document.getElementById('chart-data').textContent);
 
-    // If d is empty ({}), provide sane fallbacks so Plotly won’t crash
-    const subjects = ["English","Maths","Science"];
-    const prev = [d.eng_prev ?? 0, d.maths_prev ?? 0, d.sci_prev ?? 0];
-    const curr = [d.eng_curr ?? 0, d.maths_curr ?? 0, d.sci_curr ?? 0];
+  // If d is empty ({}), provide sane fallbacks so Plotly won’t crash
+  const subjects = ["English","Maths","Science"];
+  const prev = [d.eng_prev ?? 0, d.maths_prev ?? 0, d.sci_prev ?? 0];
+  const curr = [d.eng_curr ?? 0, d.maths_curr ?? 0, d.sci_curr ?? 0];
 
-    Plotly.newPlot("chart", [
-      { x: subjects, y: prev, type:"bar", name:"Previous Year",
-        text: prev.map(v=>v.toFixed(1)), textposition:"outside" },
-      { x: subjects, y: curr, type:"bar", name:"Current Year",
-        text: curr.map(v=>v.toFixed(1)), textposition:"outside" }
-    ], {
-      barmode:"group",
-      bargap:0.35, // space between groups
-      bargroupgap: 0.08, // space between bars in group
-      yaxis:{ title:"Average Marks", range:[0,100] },
-      margin:{ t:20, r:20, b:60, l:60 },
-      legend:{ orientation:"h" }
-    }, { displayModeBar:false });
-  </script>
+  // Colour current year bars: green if improved or equal, red if dropped
+  // const currColors = curr.map((v,i) => v >= prev[i] ? "#2ecc71" : "#e74c3c");
+  const currColors = curr.map((v,i) => v >= prev[i] ? "#06D001" : "#B6FFFA");
+
+  Plotly.newPlot("chart", [
+    { x: subjects, y: prev, type:"bar", name:"Previous Year",
+      text: prev.map(v=>v.toFixed(1)), textposition:"outside" },
+    { x: subjects, y: curr, type:"bar", name:"Current Year",
+      // apply conditional colours
+      marker:{ color: currColors, line:{ color:"#00000022", width:1 } },
+      text: curr.map(v=>v.toFixed(1)), textposition:"outside" }
+  ], {
+    barmode:"group",
+    bargap:0.35, // space between groups
+    bargroupgap: 0.08, // space between bars in group
+    yaxis:{ title:"Average Marks", range:[0,100] },
+    margin:{ t:20, r:20, b:60, l:60 },
+    legend:{ orientation:"h" }
+  }, { displayModeBar:false });
+</script>
 {% endblock extra_js %}
 <!-- </body>
 </html> -->
