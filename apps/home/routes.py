@@ -8,7 +8,7 @@ from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
 from apps import db
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select, func, String, and_
+from sqlalchemy import select, case, func, String, and_
 
 from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
 
@@ -1134,6 +1134,33 @@ def analytics_internal():
         "sci_curr": round(float(curr_avg_sci), 1),
     }
 
+    # current year thresholds:
+    # ≥60 for at/above curr std and ≥ 70 for above curr std
+    def ge60_ge70_for(col):
+        # count non-null values in this column + how many meet each cut
+        n, ge60, ge70 = db.session.query(
+            func.count(col),  # counts non-null values only
+            func.sum(case((col >= 60, 1), else_=0)),
+            func.sum(case((col >= 70, 1), else_=0))
+        ).one()
+
+        n = int(n or 0)
+        ge60 = int(ge60 or 0)
+        ge70 = int(ge70 or 0)
+        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0
+        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0
+        return pct60, pct70
+
+    eng60, eng70 = ge60_ge70_for(InternalExam.eng_currPct)
+    math60, math70 = ge60_ge70_for(InternalExam.maths_currPct)
+    sci60, sci70 = ge60_ge70_for(InternalExam.sci_currPct)
+
+    threshold_data = [
+        {"subject": "English", "ge60": eng60, "ge70": eng70},
+        {"subject": "Maths",   "ge60": math60, "ge70": math70},
+        {"subject": "Science", "ge60": sci60,  "ge70": sci70},
+    ]
+
     return render_template(
         "pages/analytics_internal.html",
         segment="analytics",
@@ -1144,6 +1171,7 @@ def analytics_internal():
         avg_maths=curr_avg_maths,
         avg_sci=curr_avg_sci,
         data=data,
+        threshold_data=threshold_data,
     )
 
 

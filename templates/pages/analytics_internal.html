@@ -47,6 +47,8 @@
     </div>
 
     <!-- Collapsible contents -->
+
+    <!-- accordion 1 -->
     <div id="c1" class="accordion-collapse collapse show" data-bs-parent="#oneAtATime">
       <div class="accordion-body border rounded-3 p-3 mb-3 bg-white">
         <!-- KPI cards-->
@@ -97,25 +99,38 @@
         </div>
         <!-- end of KPI cards-->
 
-        <!-- Clustered bar chart for E/M/S Avg Attainment - previous year vs. current year -->
+        <!-- Avg Attainment (E/M/S) - previous year vs. current year -->
         <div class="d-flex align-items-start gap-2 mt-4 mb-n2">
           <i data-lucide="bar-chart-3" class="text-primary"></i>
           <h5 class="text-body font-weight-bolder"><span class="text-uppercase">Performance over Time</span> :: <span class="fs-6">Previous vs. Current Year (English, Maths, Science)</span></h5>
         </div>
 
-        <!-- Clustered Bar Chart - Avg Attainment Year-to-Year Comparison -->
+        <!-- Clustered Bar Graph - Avg Attainment Year-to-Year Comparison -->
         <div class="wrap mt-0">
-          <div id="chart" style="height:460px;"></div>
+          <div id="chart" class="w-100" style="height:460px;"></div>
+        </div>
+
+        <!-- Student Attainment for Current Year (E/M/S) -->
+        <div class="d-flex align-items-start gap-2 mt-4 mb-n2">
+          <i data-lucide="bar-chart-3" class="text-primary"></i>
+          <h5 class="text-body font-weight-bolder"><span class="text-uppercase">Student Attainment</span> :: <span class="fs-6">Current Year (English, Maths, Science)</span></h5>
+        </div>
+
+        <!-- Clustered Bar Graph - Student Attainment for Current Year (E/M/S) -->
+        <div class="wrap mt-0">
+          <div id="chart_threshold" class="w-100" style="height:460px;"></div>
         </div>
       </div>
     </div>
 
+    <!-- accordion 2 -->
     <div id="c2" class="accordion-collapse collapse" data-bs-parent="#oneAtATime">
       <div class="accordion-body border rounded-3 p-3 mb-3 bg-white">
         <span class="text-xs">Content or charts for class insights here.</span>
       </div>
     </div>
 
+    <!-- accordion 3 -->
     <div id="c3" class="accordion-collapse collapse" data-bs-parent="#oneAtATime">
 
         <!-- Filters -->
@@ -346,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- Performance over Time - Previous vs. Current Year (E,M,S) -->
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
-<!-- Safe embed: if data is missing, we serialize {} instead of Undefined -->
+<!-- Safe embed: if data is missing, serialize {} instead of Undefined -->
 <script id="chart-data" type="application/json">{{ data | default({}) | tojson | safe }}</script>
 
 <script>
@@ -358,11 +373,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const curr = [d.eng_curr ?? 0, d.maths_curr ?? 0, d.sci_curr ?? 0];
 
   // Colour current year bars: green if improved or equal, red if dropped
-  const currColors = curr.map((v,i) => v >= prev[i] ? "#9BEC00" : "#FF0B55");
+  const currColors = curr.map((v,i) => v >= prev[i] ? "#9BEC00" : "#FF0060");
 
   Plotly.newPlot("chart", [
     { x: subjects, y: prev, type:"bar", name:"Previous Year",
-      marker:{ color:"#4379F2" },
+      marker:{ color:"#00CAFF" },
       text: prev.map(v=>v.toFixed(1)), textposition:"outside" },
     { x: subjects, y: curr, type:"bar", name:"Current Year",
       // apply conditional colours
@@ -376,6 +391,60 @@ document.addEventListener('DOMContentLoaded', () => {
     margin:{ t:20, r:20, b:60, l:60 },
     legend:{ orientation:"h" }
   }, { displayModeBar:false });
+</script>
+
+<!-- Safe embed: if data is missing, serialize {} instead of Undefined -->
+<script id="threshold-data" type="application/json">{{ threshold_data | default([]) | tojson | safe }}</script>
+
+<script>
+  // ------- ≥60 and ≥70 clustered bar -------
+  (function () {
+    const td = JSON.parse(document.getElementById('threshold-data').textContent);
+
+    // ensure order English, Maths, Science
+    const subjects = ["English","Maths","Science"];
+    const idx = Object.fromEntries(subjects.map((s,i)=>[s,i]));
+    const ge60 = [0,0,0], ge70 = [0,0,0];
+
+    td.forEach(r => {
+      const i = idx[r.subject];
+      if (i !== undefined) {
+        ge60[i] = r.ge60 ?? 0;
+        ge70[i] = r.ge70 ?? 0;
+      }
+    });
+
+    const trace60 = {
+      x: subjects,
+      y: ge60,
+      type: "bar",
+      name: "% of Students Attaining at above Curriculum Standard (60 & above)",
+      marker: { color: "#FF6600" },
+      text: ge60.map(v => v.toFixed(1) + "%"),
+      textposition: "outside",
+      hovertemplate: "%{x}<br>≥60: %{y:.1f}%<extra></extra>"
+    };
+
+    const trace70 = {
+      x: subjects,
+      y: ge70,
+      type: "bar",
+      name: "% of Students Attaining at least level above Curriculum Standard (70 & above)",
+      marker: { color: "#FFEB55" },
+      text: ge70.map(v => v.toFixed(1) + "%"),
+      textposition: "outside",
+      hovertemplate: "%{x}<br>≥70: %{y:.1f}%<extra></extra>"
+    };
+
+    Plotly.newPlot("chart_threshold", [trace60, trace70], {
+      barmode: "group",
+      bargap: 0.35,
+      bargroupgap: 0.08,
+      yaxis: { title: "Percent of Students", range: [0, 100] },
+      margin: { t: 20, r: 20, b: 60, l: 60 },
+      legend: { orientation: "h" }
+    }, { displayModeBar: false });
+  })();
 </script>
 {% endblock extra_js %}
 <!-- </body>
