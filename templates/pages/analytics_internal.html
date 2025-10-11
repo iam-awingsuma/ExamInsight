@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Colour current year bars: green if improved or equal, red if dropped
   // const currColors = curr.map((v,i) => v >= prev[i] ? "#2ecc71" : "#e74c3c");
-  const currColors = curr.map((v,i) => v >= prev[i] ? "#06D001" : "#B6FFFA");
+  const currColors = curr.map((v,i) => v >= prev[i] ? "#9BEC00" : "#31E1F7");
 
   Plotly.newPlot("chart", [
     { x: subjects, y: prev, type:"bar", name:"Previous Year",
