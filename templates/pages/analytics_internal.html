@@ -1,6 +1,12 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
+<style>
+  .chart-card { min-width: 0; }                 /* prevent overflow in flex/grid */
+  .chart-title i { margin-top: 2px; }           /* align icon with text */
+  .chart-body { flex: 1 1 auto; min-height: 0;} /* let chart fill remaining height */
+</style>
+
 <main class="container py-4">
   <div class="d-flex align-items-start justify-content-between mb-3">
     <div>
@@ -100,26 +106,69 @@
         <!-- end of KPI cards-->
 
         <!-- Avg Attainment (E/M/S) - previous year vs. current year -->
-        <div class="d-flex align-items-start gap-2 mt-4 mb-n2">
-          <i data-lucide="bar-chart-3" class="text-primary"></i>
-          <h5 class="text-body font-weight-bolder"><span class="text-uppercase">Performance over Time</span> :: <span class="fs-6">Previous vs. Current Year (English, Maths, Science)</span></h5>
+        <div class="container-fluid px-0 mb-3">
+          <div class="row g-0">
+            <div class="col-12 px-0 h-100 d-flex flex-column">
+              <div class="card h-100 chart-card">
+                <div class="card-body d-flex flex-column">
+                  <div class="chart-title d-flex align-items-start gap-2">
+                    <i data-lucide="bar-chart-3" class="text-primary"></i>
+                    <h5 class="text-body font-weight-bolder">
+                      <span class="text-uppercase text-primary">Performance over Time</span><br/>
+                      <span class="text-muted text-xs">Previous vs. Current Academic Year (English, Maths, Science)</span>
+                    </h5>
+                  </div>
+
+                  <!-- Clustered Bar Graph - Avg Attainment Year-to-Year Comparison -->
+                  <div class="chart-body mt-1">
+                    <div id="chart_perf_over_time" class="w-100" style="height:360px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Clustered Bar Graph - Avg Attainment Year-to-Year Comparison -->
-        <div class="wrap mt-0">
-          <div id="chart" class="w-100" style="height:460px;"></div>
+        <div class="container-fluid px-0">
+          <div class="row g-3 align-items-stretch">
+            <!-- Attainment chart -->
+            <div class="col-12 col-xl-6">
+              <div class="card h-100 chart-card">
+                <div class="card-body d-flex flex-column">
+                  <div class="chart-title d-flex align-items-start gap-2">
+                    <i data-lucide="bar-chart-3" class="text-primary"></i>
+                    <h5 class="text-body mb-0">
+                      <span class="text-uppercase text-primary font-weight-bolder">Student Attainment</span><br/>
+                      <span class="text-muted text-xs">Current Academic Year (English, Maths, Science)</span>
+                    </h5>
+                  </div>
+                  <div class="chart-body mt-1">
+                    <div id="chart_cohort_attainment" class="w-100" style="height:360px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress chart -->
+            <div class="col-12 col-xl-6">
+              <div class="card h-100 chart-card">
+                <div class="card-body d-flex flex-column">
+                  <div class="chart-title d-flex align-items-start gap-2">
+                    <i data-lucide="bar-chart-3" class="text-primary"></i>
+                    <h5 class="text-body mb-0">
+                      <span class="text-uppercase text-primary font-weight-bolder">Student Progress</span><br/>
+                      <span class="text-muted text-xs">Current Academic Year (English, Maths, Science)</span>
+                    </h5>
+                  </div>
+                  <div class="chart-body mt-1">
+                    <div id="chart_cohort_progress" class="w-100" style="height:360px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Student Attainment for Current Year (E/M/S) -->
-        <div class="d-flex align-items-start gap-2 mt-4 mb-n2">
-          <i data-lucide="bar-chart-3" class="text-primary"></i>
-          <h5 class="text-body font-weight-bolder"><span class="text-uppercase">Student Attainment</span> :: <span class="fs-6">Current Year (English, Maths, Science)</span></h5>
-        </div>
-
-        <!-- Clustered Bar Graph - Student Attainment for Current Year (E/M/S) -->
-        <div class="wrap mt-0">
-          <div id="chart_threshold" class="w-100" style="height:460px;"></div>
-        </div>
       </div>
     </div>
 
@@ -358,14 +407,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- Performance over Time - Previous vs. Current Year (E,M,S) -->
+
+<!-- Accordion 1 Charts -->
+
+<!-- Performance over Time - Previous vs. Current Year (E,M,S) :: Chart 1 -->
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
 <!-- Safe embed: if data is missing, serialize {} instead of Undefined -->
-<script id="chart-data" type="application/json">{{ data | default({}) | tojson | safe }}</script>
+<script id="chart-perf-over-time" type="application/json">{{ data | default({}) | tojson | safe }}</script>
 
 <script>
-  const d = JSON.parse(document.getElementById('chart-data').textContent);
+  const d = JSON.parse(document.getElementById('chart-perf-over-time').textContent);
 
   // If d is empty ({}), provide sane fallbacks so Plotly won’t crash
   const subjects = ["English","Maths","Science"];
@@ -375,31 +427,33 @@ document.addEventListener('DOMContentLoaded', () => {
   // Colour current year bars: green if improved or equal, red if dropped
   const currColors = curr.map((v,i) => v >= prev[i] ? "#9BEC00" : "#FF0060");
 
-  Plotly.newPlot("chart", [
-    { x: subjects, y: prev, type:"bar", name:"Previous Year",
+  Plotly.newPlot("chart_perf_over_time", [
+    { x: subjects, y: prev, type:"bar", name:"Previous Academic Year",
       marker:{ color:"#00CAFF" },
       text: prev.map(v=>v.toFixed(1)), textposition:"outside" },
-    { x: subjects, y: curr, type:"bar", name:"Current Year",
+    { x: subjects, y: curr, type:"bar", name:"Current Academic Year",
       // apply conditional colours
       marker:{ color: currColors, line:{ color:"#00000022", width:1 } },
       text: curr.map(v=>v.toFixed(1)), textposition:"outside" }
   ], {
+    autosize:true,
     barmode:"group",
-    bargap:0.35, // space between groups
-    bargroupgap: 0.08, // space between bars in group
+    bargap:0.3, // space between groups
+    bargroupgap: 0.1, // space between bars in group
     yaxis:{ title:"Average Marks", range:[0,110] },
     margin:{ t:20, r:20, b:60, l:60 },
     legend:{ orientation:"h" }
-  }, { displayModeBar:false });
+  }, { displayModeBar:false, responsive:true });
 </script>
 
+<!-- Chart 2: Attainment -->
 <!-- Safe embed: if data is missing, serialize {} instead of Undefined -->
-<script id="threshold-data" type="application/json">{{ threshold_data | default([]) | tojson | safe }}</script>
+<script id="chart-cohort-attainment" type="application/json">{{ threshold_data | default([]) | tojson | safe }}</script>
 
 <script>
   // ------- ≥60 and ≥70 clustered bar -------
   (function () {
-    const td = JSON.parse(document.getElementById('threshold-data').textContent);
+    const td = JSON.parse(document.getElementById('chart-cohort-attainment').textContent);
 
     // ensure order English, Maths, Science
     const subjects = ["English","Maths","Science"];
@@ -414,38 +468,94 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    const trace60 = {
-      x: subjects,
-      y: ge60,
-      type: "bar",
-      name: "% of Students Attaining at above Curriculum Standard (60 & above)",
-      marker: { color: "#FF6600" },
-      text: ge60.map(v => v.toFixed(1) + "%"),
-      textposition: "outside",
-      hovertemplate: "%{x}<br>≥60: %{y:.1f}%<extra></extra>"
-    };
-
     const trace70 = {
-      x: subjects,
-      y: ge70,
-      type: "bar",
-      name: "% of Students Attaining at least level above Curriculum Standard (70 & above)",
-      marker: { color: "#FFEB55" },
+      x: subjects, y: ge70, type: "bar",
+      name: "% of Students Attaining above Curriculum Standard",
+      marker: { color: "#0073e5" },
       text: ge70.map(v => v.toFixed(1) + "%"),
       textposition: "outside",
       hovertemplate: "%{x}<br>≥70: %{y:.1f}%<extra></extra>"
     };
 
-    Plotly.newPlot("chart_threshold", [trace60, trace70], {
-      barmode: "group",
-      bargap: 0.35,
-      bargroupgap: 0.08,
+    const trace60 = {
+      x: subjects, y: ge60, type: "bar",
+      name: "% of Students Attaining at & above Curriculum Standard",
+      marker: { color: "#7ddc1f" },
+      text: ge60.map(v => v.toFixed(1) + "%"),
+      textposition: "outside",
+      hovertemplate: "%{x}<br>≥60: %{y:.1f}%<extra></extra>"
+    };
+
+    Plotly.newPlot("chart_cohort_attainment", [trace70, trace60], {
+      autosize: true,
+      barmode: "stack",
+      barnorm: "percent",
+      bargap: 0.3,
+      bargroupgap: 0.1,
       yaxis: { title: "Percent of Students", range: [0, 110] },
       margin: { t: 20, r: 20, b: 60, l: 60 },
       legend: { orientation: "h" }
-    }, { displayModeBar: false });
+    }, { displayModeBar: false, responsive:true });
+  })();
+</script>
+
+<!-- Chart 3: Progress -->
+<script id="chart-cohort-progress" type="application/json">
+  {{ progress_simple_data | default([]) | tojson | safe }}
+</script>
+
+<script>
+  (function(){
+    const ps = JSON.parse(document.getElementById('chart-cohort-progress').textContent);
+
+    const subjects = ["English","Maths","Science"];
+    const pos = Object.fromEntries(subjects.map((s,i)=>[s,i]));
+
+    const sumExpectedAbove = [0,0,0]; // label 1: Expected + Above Expected
+    const aboveOnly        = [0,0,0]; // label 2: Above Expected only
+
+    ps.forEach(r => {
+      const i = pos[r.subject];
+      if (i !== undefined) {
+        sumExpectedAbove[i] = r.sum_expected_above ?? 0;
+        aboveOnly[i]        = r.above_only ?? 0;
+      }
+    });
+
+    const above_prog = {
+      x: subjects, y: aboveOnly, type:"bar",
+      name: "% of Students that made Better Progress",
+      marker:{ color:"#0073e5" },
+      text: aboveOnly.map(v=>v.toFixed(1)+"%"),
+      textposition:"outside",
+      hovertemplate: "%{x}<br>Above Only: %{y:.1f}%<extra></extra>"
+    };
+
+    const at_above_prog = {
+      x: subjects, y: sumExpectedAbove, type:"bar",
+      name: "% of Students that made Expected or Better Progress",
+      marker:{ color:"#7ddc1f" },
+      text: sumExpectedAbove.map(v=>v.toFixed(1)+"%"),
+      textposition:"outside",
+      hovertemplate: "%{x}<br>Expected or Above: %{y:.1f}%<extra></extra>"
+    };
+
+    Plotly.newPlot("chart_cohort_progress", [above_prog, at_above_prog], {
+      autosize:true,
+      barmode:"stack",
+      barnorm: "percent",
+      bargap:0.3,
+      bargroupgap:0.1,
+      yaxis:{ title:"Percent of Students", range:[0,110] },
+      margin:{ t:20, r:20, b:60, l:60 },
+      legend:{ orientation:"h" }
+    }, { displayModeBar:false, responsive:true });
+
+    const el = document.getElementById("chart_cohort_progress");
+    window.addEventListener("resize", () => Plotly.Plots.resize(el));
+    new ResizeObserver(() => Plotly.Plots.resize(el)).observe(el);
+    document.addEventListener("shown.bs.tab", () => Plotly.Plots.resize(el));
+    document.addEventListener("shown.bs.collapse", () => Plotly.Plots.resize(el));
   })();
 </script>
 {% endblock extra_js %}
-<!-- </body>
-</html> -->

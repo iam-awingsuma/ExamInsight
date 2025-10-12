@@ -1106,27 +1106,27 @@ def get_segment(request):
 @blueprint.route("/analytics", methods=["GET"])
 def analytics_internal():
     # Year groups from Students (since InternalExam doesn’t store yrgrp)
-    year_groups = [yg for (yg,) in db.session.query(Students.yrgrp)
-                   .filter(Students.yrgrp.isnot(None))
-                   .distinct()
-                   .order_by(Students.yrgrp).all()]
+    year_groups = [yg for (yg,) in db.session.query(Students.yrgrp) # selects distinct year groups from Students
+                   .filter(Students.yrgrp.isnot(None)) # does not include Null values
+                   .distinct() # only distinct values
+                   .order_by(Students.yrgrp).all()] # order by year group ascending and fetch all rows
 
     # Total count of InternalExam intakes
     count_intake = db.session.query(InternalExam).count()
 
-    # Render Cohort averages of current year for English, Maths, Science
+    # Render Cohort averages of current year for English, Maths, Science (chart 1)
     curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
     curr_avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
     curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
 
-    # Previous year averages
+    # averages for English, Maths, Science but for previous-year results
     prev_avg_eng = round(db.session.query(func.avg(InternalExam.eng_prevPct)).scalar() or 0, 1)
     prev_avg_maths = round(db.session.query(func.avg(InternalExam.maths_prevPct)).scalar() or 0, 1)
     prev_avg_sci = round(db.session.query(func.avg(InternalExam.sci_prevPct)).scalar() or 0, 1)
     
-    # Round for display
+    # Round for display, but keep as float and 1 decimal place for English, Maths, Science
     data = {
-        "eng_prev": round(float(prev_avg_eng), 1),
+        "eng_prev": round(float(prev_avg_eng), 1), 
         "maths_prev": round(float(prev_avg_maths), 1),
         "sci_prev": round(float(prev_avg_sci), 1),
         "eng_curr": round(float(curr_avg_eng), 1),
@@ -1134,31 +1134,78 @@ def analytics_internal():
         "sci_curr": round(float(curr_avg_sci), 1),
     }
 
-    # current year thresholds:
+    # current-year thresholds (chart 2)
     # ≥60 for at/above curr std and ≥ 70 for above curr std
-    def ge60_ge70_for(col):
+    def ge60_ge70_for(col): 
         # count non-null values in this column + how many meet each cut
         n, ge60, ge70 = db.session.query(
             func.count(col),  # counts non-null values only
-            func.sum(case((col >= 60, 1), else_=0)),
-            func.sum(case((col >= 70, 1), else_=0))
+            func.sum(case((col >= 60, 1), else_=0)), # counts how many are >= 60
+            func.sum(case((col >= 70, 1), else_=0)) # counts how many are >= 70
         ).one()
 
-        n = int(n or 0)
-        ge60 = int(ge60 or 0)
-        ge70 = int(ge70 or 0)
-        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0
-        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0
+        n = int(n or 0) # ensure n is int and not None
+        ge60 = int(ge60 or 0) # ensure ge60 is int and not None
+        ge70 = int(ge70 or 0) # ensure ge70 is int and not None
+        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0 # avoid division by zero; percentage for 60+
+        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0 # avoid division by zero; percentage for 70+
         return pct60, pct70
 
-    eng60, eng70 = ge60_ge70_for(InternalExam.eng_currPct)
-    math60, math70 = ge60_ge70_for(InternalExam.maths_currPct)
-    sci60, sci70 = ge60_ge70_for(InternalExam.sci_currPct)
+    eng60, eng70 = ge60_ge70_for(InternalExam.eng_currPct) # compute English for current-year 60/70+
+    math60, math70 = ge60_ge70_for(InternalExam.maths_currPct) # compute Maths for current-year 60/70+
+    sci60, sci70 = ge60_ge70_for(InternalExam.sci_currPct) # compute Science for current-year 60/70+
 
-    threshold_data = [
-        {"subject": "English", "ge60": eng60, "ge70": eng70},
-        {"subject": "Maths",   "ge60": math60, "ge70": math70},
-        {"subject": "Science", "ge60": sci60,  "ge70": sci70},
+    threshold_data = [ # payload for the thresholds chart (60+ and 70+)
+        {"subject": "English", "ge60": eng60, "ge70": eng70}, # 60+ and 70+ for English
+        {"subject": "Maths",   "ge60": math60, "ge70": math70}, # 60+ and 70+ for Maths
+        {"subject": "Science", "ge60": sci60,  "ge70": sci70}, # 60+ and 70+ for Science
+    ]
+
+    # Simple progress categorisation (chart 3)
+    # For each subject, compute:
+    # - %('expected') + %('above expected')
+    # - %('above expected')
+    def simple_progress(col):
+        """
+        Return 2 percentages for a progcat column:
+        - p_sum = %('expected') + %('above expected')
+        - p_above = %('above expected')
+        """
+        norm = func.lower(func.trim(col))  # normalise for safe matching
+
+        # total non-null rows for this subject's progcat
+        total = db.session.query(func.count(col)).scalar() or 0
+
+        # count of 'expected'
+        exp_cnt = db.session.query(
+            func.sum(case((norm == "expected", 1), else_=0))
+        ).scalar() or 0
+
+        # count of 'above expected'
+        above_cnt = db.session.query(
+            func.sum(case((norm == "above expected", 1), else_=0))
+        ).scalar() or 0
+
+        # percentages (protect from divide-by-zero)
+        p_expected = round((exp_cnt / total * 100.0), 1) if total else 0.0
+        p_above    = round((above_cnt / total * 100.0), 1) if total else 0.0
+
+        # requested variables
+        p_sum      = round(p_expected + p_above, 1)  # Expected + Above Expected
+        p_above_only = p_above # Above Expected only (explicit name)
+
+        return p_sum, p_above_only
+
+    # Compute per subject
+    eng_sum, eng_above_only = simple_progress(InternalExam.eng_progcat)
+    maths_sum, maths_above_only = simple_progress(InternalExam.maths_progcat)
+    sci_sum, sci_above_only = simple_progress(InternalExam.sci_progcat)
+
+    # Payload for the simple progress chart
+    progress_simple_data = [
+        {"subject": "English", "sum_expected_above": eng_sum,   "above_only": eng_above_only},
+        {"subject": "Maths",   "sum_expected_above": maths_sum, "above_only": maths_above_only},
+        {"subject": "Science", "sum_expected_above": sci_sum,   "above_only": sci_above_only},
     ]
 
     return render_template(
@@ -1172,9 +1219,11 @@ def analytics_internal():
         avg_sci=curr_avg_sci,
         data=data,
         threshold_data=threshold_data,
+        progress_simple_data=progress_simple_data,
+        # progress_data_and=progress_data_and,
     )
 
-
+# --- Student dropdown for analytics page ---
 @blueprint.route("/api/students_by_year", methods=["GET"])
 def api_students_by_year():
     yrgrp = request.args.get("yrgrp", "").strip()
