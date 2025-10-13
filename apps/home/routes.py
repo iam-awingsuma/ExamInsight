@@ -8,7 +8,7 @@ from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
 from apps import db
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select, case, func, String, and_
+from sqlalchemy import select, case, func, String, and_, or_
 
 from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
 
@@ -1134,7 +1134,7 @@ def analytics_internal():
         "sci_curr": round(float(curr_avg_sci), 1),
     }
 
-    # current-year thresholds (chart 2)
+    #*** Cohort Attainment Chart
     # ≥60 for at/above curr std and ≥ 70 for above curr std
     def ge60_ge70_for(col): 
         # count non-null values in this column + how many meet each cut
@@ -1161,7 +1161,7 @@ def analytics_internal():
         {"subject": "Science", "ge60": sci60,  "ge70": sci70}, # 60+ and 70+ for Science
     ]
 
-    # Simple progress categorisation (chart 3)
+    #*** Cohort Progress Chart
     # For each subject, compute:
     # - %('expected') + %('above expected')
     # - %('above expected')
@@ -1208,6 +1208,62 @@ def analytics_internal():
         {"subject": "Science", "sum_expected_above": sci_sum,   "above_only": sci_above_only},
     ]
 
+    #*** Student Attainment Chart: Gender-specific 
+    def _pct(n, d):
+        return round((n / d) * 100.0, 1) if d else 0.0
+    
+    # Normalise gender to lowercase for M/Male or F/Female
+    male_pred = or_(
+        func.lower(func.trim(Students.gender)) == "m",
+        func.lower(func.trim(Students.gender)) == "male",
+    )
+    female_pred = or_(
+        func.lower(func.trim(Students.gender)) == "f",
+        func.lower(func.trim(Students.gender)) == "female",
+    )
+
+    def _gender_threshold_for(col, threshold, gender_pred):
+        """
+        % of distinct students of a given gender with non-null 'col'
+        who are >= threshold for that subject.
+        """
+        # denominator: distinct students of gender with a non-null current mark for this subject
+        denom = db.session.query(
+            func.count(func.distinct(InternalExam.student_id))
+        ).join(Students, InternalExam.student_id == Students.student_id)\
+        .filter(gender_pred, col.isnot(None)).scalar() or 0
+
+        # numerator: distinct students of gender with mark >= threshold
+        numer = db.session.query(
+            func.count(func.distinct(case((col >= threshold, InternalExam.student_id))))
+        ).join(Students, InternalExam.student_id == Students.student_id)\
+        .filter(gender_pred).scalar() or 0
+
+        return _pct(int(numer), int(denom))
+
+    def _build_gender_payload(threshold):
+        """Return a list of dicts [{subject, male, female}] for the given threshold."""
+        return [
+            {
+                "subject": "English",
+                "male":   _gender_threshold_for(InternalExam.eng_currPct,   threshold, male_pred),
+                "female": _gender_threshold_for(InternalExam.eng_currPct,   threshold, female_pred),
+            },
+            {
+                "subject": "Maths",
+                "male":   _gender_threshold_for(InternalExam.maths_currPct, threshold, male_pred),
+                "female": _gender_threshold_for(InternalExam.maths_currPct, threshold, female_pred),
+            },
+            {
+                "subject": "Science",
+                "male":   _gender_threshold_for(InternalExam.sci_currPct,   threshold, male_pred),
+                "female": _gender_threshold_for(InternalExam.sci_currPct,   threshold, female_pred),
+            },
+        ]
+    
+    gender_ge60_data = _build_gender_payload(60)
+    gender_ge70_data = _build_gender_payload(70)
+
     return render_template(
         "pages/analytics_internal.html",
         segment="analytics",
@@ -1220,10 +1276,11 @@ def analytics_internal():
         data=data,
         threshold_data=threshold_data,
         progress_simple_data=progress_simple_data,
-        # progress_data_and=progress_data_and,
+        gender_ge60_data=gender_ge60_data,
+        gender_ge70_data=gender_ge70_data,
     )
 
-# --- Student dropdown for analytics page ---
+# --- Student dropdown for analytics page :: Student Insights page ---
 @blueprint.route("/api/students_by_year", methods=["GET"])
 def api_students_by_year():
     yrgrp = request.args.get("yrgrp", "").strip()
@@ -1242,7 +1299,7 @@ def api_students_by_year():
     data = [{"id": sid, "name": f"{fn} {sn}"} for (sid, fn, sn) in q.all()]
     return jsonify({"students": data})
 
-# --- Main analytics payload (cards + charts) ---
+# --- Main analytics payload (cards + charts) :: Student Insights (Internal Assessment Analytics)---
 @blueprint.route("/api/analytics", methods=["GET"])
 def api_analytics():
     yrgrp = request.args.get("yrgrp", "").strip()
