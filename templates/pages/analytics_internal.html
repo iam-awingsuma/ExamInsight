@@ -112,7 +112,7 @@
               <div class="card h-100 chart-card">
                 <div class="card-body d-flex flex-column">
                   <div class="chart-title d-flex align-items-start gap-2">
-                    <i data-lucide="bar-chart-3" class="text-primary"></i>
+                    <i data-lucide="line-chart" class="text-primary"></i>
                     <h5 class="text-body font-weight-bolder lh-1">
                       <span class="text-uppercase text-primary">Performance over Time</span><br/>
                       <span class="text-muted text-xs">Previous vs. Current Academic Year (English, Maths, Science)</span>
@@ -169,7 +169,7 @@
           </div>
         </div>
 
-        <div class="container-fluid px-0">
+        <div class="container-fluid px-0 mb-3">
           <div class="row g-3 align-items-stretch">
             <!-- Gender-specific Attainment chart ≥60 -->
             <div class="col-12 col-xl-6">
@@ -178,10 +178,9 @@
                   <div class="chart-title d-flex align-items-start gap-2">
                     <i data-lucide="bar-chart-3" class="text-primary"></i>
                     <h5 class="text-body mb-0 lh-1">
-                      <span class="text-uppercase text-primary font-weight-bolder">Gender-Specific</span><br/>
+                      <span class="text-uppercase text-primary font-weight-bolder">Gender-Specific Attainment</span><br/>
                       <span class="p-1 bg-gradient-info text-white text-xs text-uppercase font-weight-bolder">％ of Students at/above Curriculum Standard (≥60)</span><br/>
-                      <span class="text-danger text-xs text-uppercase font-weight-bolder">Cohort Attainment | </span>
-                      <span class="text-muted text-xs">Current AY (English, Maths, Science)</span>
+                      <span class="text-muted text-xs">Current Academic Year (English, Maths, Science)</span>
                     </h5>
                   </div>
                   <div class="chart-body mt-1">
@@ -198,10 +197,9 @@
                   <div class="chart-title d-flex align-items-start gap-2">
                     <i data-lucide="bar-chart-3" class="text-primary"></i>
                     <h5 class="text-body mb-0 lh-1">
-                      <span class="text-uppercase text-primary font-weight-bolder">Gender-Specific</span><br/>
+                      <span class="text-uppercase text-primary font-weight-bolder">Gender-Specific Attainment</span><br/>
                       <span class="p-1 bg-gradient-success text-white text-xs text-uppercase font-weight-bolder">％ of Students above Curriculum Standard (≥70)</span><br/>
-                      <span class="text-danger text-xs text-uppercase font-weight-bolder">Cohort Attainment | </span>
-                      <span class="text-muted text-xs">Current AY (English, Maths, Science)</span>
+                      <span class="text-muted text-xs">Current Academic Year (English, Maths, Science)</span>
                     </h5>
                   </div>
                   <div class="chart-body mt-1">
@@ -222,14 +220,13 @@
                   <div class="chart-title d-flex align-items-start gap-2">
                     <i data-lucide="bar-chart-3" class="text-primary"></i>
                     <h5 class="text-body mb-0 lh-1">
-                      <span class="text-uppercase text-primary font-weight-bolder">Gender-Specific</span><br/>
+                      <span class="text-uppercase text-primary font-weight-bolder">Gender-Specific Progress</span><br/>
                       <span class="p-1 bg-gradient-info text-white text-xs text-uppercase font-weight-bolder">％ of Students that made Expected/Better Progress</span><br/>
-                      <span class="text-danger text-xs text-uppercase font-weight-bolder">Cohort Progress | </span>
-                      <span class="text-muted text-xs">Current AY (English, Maths, Science)</span>
+                      <span class="text-muted text-xs">Current Academic Year (English, Maths, Science)</span>
                     </h5>
                   </div>
                   <div class="chart-body mt-1">
-                    <div id="chart_gender_ge60" class="w-100" style="height:360px;"></div>
+                    <div id="chart_gender_exp_above" class="w-100" style="height:360px;"></div>
                   </div>
                 </div>
               </div>
@@ -242,14 +239,13 @@
                   <div class="chart-title d-flex align-items-start gap-2">
                     <i data-lucide="bar-chart-3" class="text-primary"></i>
                     <h5 class="text-body mb-0 lh-1">
-                      <span class="text-uppercase text-primary font-weight-bolder">Gender-Specific</span><br/>
+                      <span class="text-uppercase text-primary font-weight-bolder">Gender-Specific Progress</span><br/>
                       <span class="p-1 bg-gradient-success text-white text-xs text-uppercase font-weight-bolder">％ of Students that made Better Progress</span><br/>
-                      <span class="text-danger text-xs text-uppercase font-weight-bolder">Cohort Progress | </span>
-                      <span class="text-muted text-xs">Current AY (English, Maths, Science)</span>
+                      <span class="text-muted text-xs">Current Academic Year (English, Maths, Science)</span>
                     </h5>
                   </div>
                   <div class="chart-body mt-1">
-                    <div id="chart_gender_ge70" class="w-100" style="height:360px;"></div>
+                    <div id="chart_gender_above_data" class="w-100" style="height:360px;"></div>
                   </div>
                 </div>
               </div>
@@ -338,25 +334,31 @@
   <script id="chart-cohort-progress" type="application/json">{{ progress_simple_data | default([]) | tojson | safe }}</script>
   <script id="gender-ge60-data" type="application/json">{{ gender_ge60_data | default([]) | tojson | safe }}</script>
   <script id="gender-ge70-data" type="application/json">{{ gender_ge70_data | default([]) | tojson | safe }}</script>
+  <script id="gender-prog-exp-above" type="application/json">{{ gender_prog_exp_above | default([]) | tojson | safe }}</script>
+  <script id="gender-prog-above-data" type="application/json">{{ gender_prog_above_data | default([]) | tojson | safe }}</script>
 
   <!-- Your chart globals -->
   <script src="{{ url_for('static', filename='js/charts/perf_over_time.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_attainment.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_progress.js') }}?v=3"></script>
-  <script src="{{ url_for('static', filename='js/charts/gender_attainment.js') }}?v=1"></script>
+  <script src="{{ url_for('static', filename='js/charts/gender_att_prog.js') }}?v=1"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // Render both charts
       if (window.renderGenderThresholdBars) {
-        window.renderGenderThresholdBars('gender-ge60-data', 'chart_gender_ge60', '≥ 60');
-        window.renderGenderThresholdBars('gender-ge70-data', 'chart_gender_ge70', '≥ 70');
+        // Cohort Attainment: Gender-specific
+        window.renderGenderThresholdBars('gender-ge60-data', 'chart_gender_ge60');
+        window.renderGenderThresholdBars('gender-ge70-data', 'chart_gender_ge70');
+        // Cohort Progress: Gender-specific
+        window.renderGenderThresholdBars('gender-prog-exp-above',   'chart_gender_exp_above');
+        window.renderGenderThresholdBars('gender-prog-above-data',   'chart_gender_above_data');
       }
     });
 
     // if chart is in collapsed accordion/tab:
     document.addEventListener('shown.bs.collapse', () => {
-      ['chart_gender_ge60','chart_gender_ge70'].forEach(id => {
+      ['chart_gender_ge60','chart_gender_ge70','chart_gender_exp_above','chart_gender_above_data'].forEach(id => {
         const el = document.getElementById(id); if (el) Plotly.Plots.resize(el);
       });
     });

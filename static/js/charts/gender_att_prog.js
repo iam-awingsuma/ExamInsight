@@ -25,13 +25,13 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
   // Build traces (clustered side-by-side)
   const traces = [
     { x: subjects, y: male,   type:"bar", name:`Male ${labelSuffix}`,
-      marker:{ color:"#4e79a7" },
+      marker:{ color:"#F8DE22" },
       text: male.map(v => `${(Number.isFinite(v)?v:0).toFixed(1)}%`),
       textposition:"outside",
       offsetgroup:"male", legendgroup:"male"
     },
     { x: subjects, y: female, type:"bar", name:`Female ${labelSuffix}`,
-      marker:{ color:"#f28e2b" },
+      marker:{ color:"#FF6500" },
       text: female.map(v => `${(Number.isFinite(v)?v:0).toFixed(1)}%`),
       textposition:"outside",
       offsetgroup:"female", legendgroup:"female"
@@ -41,10 +41,10 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
   // Layout
   Plotly.newPlot(elId, traces, {
     autosize:true,
-    barmode:"stack",
-    barnorm:"percent",
-    // bargap:0.25,
-    // bargroupgap:0.12,
+    barmode:"group",
+    // barnorm:"percent",
+    bargap:0.25,
+    bargroupgap:0.15,
     yaxis:{ title:"Percent of Gender Total", range:[0,110], ticksuffix:"%" },
     margin:{ t:20, r:20, b:60, l:60 },
     legend:{ orientation:"h" }

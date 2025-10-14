@@ -1134,7 +1134,7 @@ def analytics_internal():
         "sci_curr": round(float(curr_avg_sci), 1),
     }
 
-    #*** Cohort Attainment Chart
+    #*** Cohort ATTAINMENT Chart
     # ≥60 for at/above curr std and ≥ 70 for above curr std
     def ge60_ge70_for(col): 
         # count non-null values in this column + how many meet each cut
@@ -1161,7 +1161,7 @@ def analytics_internal():
         {"subject": "Science", "ge60": sci60,  "ge70": sci70}, # 60+ and 70+ for Science
     ]
 
-    #*** Cohort Progress Chart
+    #*** Cohort PROGRESS Chart
     # For each subject, compute:
     # - %('expected') + %('above expected')
     # - %('above expected')
@@ -1208,7 +1208,7 @@ def analytics_internal():
         {"subject": "Science", "sum_expected_above": sci_sum,   "above_only": sci_above_only},
     ]
 
-    #*** Student Attainment Chart: Gender-specific 
+    #*** Student ATTAINMENT Chart: Gender-specific 
     def _pct(n, d):
         return round((n / d) * 100.0, 1) if d else 0.0
     
@@ -1264,6 +1264,70 @@ def analytics_internal():
     gender_ge60_data = _build_gender_payload(60)
     gender_ge70_data = _build_gender_payload(70)
 
+    #*** Student PROGRESS Chart: Gender-specific
+    def _gender_progress_for(prog_col, gender_pred):
+        """
+        Returns two percentages for a subject's progress column for a given gender:
+        - p_sum:   % Expected OR Above Expected
+        - p_above: % Above Expected only
+        Denominator = distinct students of that gender with a NON-NULL value in this prog_col.
+        """
+        norm = func.lower(func.trim(prog_col))
+
+        # Denominator: distinct students of that gender with a recorded progress value
+        denom = db.session.query(
+            func.count(func.distinct(InternalExam.student_id))
+        ).join(Students, InternalExam.student_id == Students.student_id)\
+        .filter(gender_pred, prog_col.isnot(None)).scalar() or 0
+
+        # Numerators (distinct students per category)
+        exp_cnt = db.session.query(
+            func.count(func.distinct(case((norm == "expected", InternalExam.student_id))))
+        ).join(Students, InternalExam.student_id == Students.student_id)\
+        .filter(gender_pred).scalar() or 0
+
+        above_cnt = db.session.query(
+            func.count(func.distinct(case((norm == "above expected", InternalExam.student_id))))
+        ).join(Students, InternalExam.student_id == Students.student_id)\
+        .filter(gender_pred).scalar() or 0
+
+        p_expected = _pct(int(exp_cnt), int(denom))
+        p_above    = _pct(int(above_cnt), int(denom))
+        p_sum      = round(p_expected + p_above, 1)
+
+        return p_sum, p_above
+
+    def _build_gender_progress_payload():
+        """
+        Returns two lists (for two charts):
+        - sum_data   : [{subject, male, female}] using Expected OR Above Expected
+        - above_data : [{subject, male, female}] using Above Expected only
+        """
+        # English
+        m_sum_e, m_abv_e = _gender_progress_for(InternalExam.eng_progcat,   male_pred)
+        f_sum_e, f_abv_e = _gender_progress_for(InternalExam.eng_progcat,   female_pred)
+        # Maths
+        m_sum_m, m_abv_m = _gender_progress_for(InternalExam.maths_progcat, male_pred)
+        f_sum_m, f_abv_m = _gender_progress_for(InternalExam.maths_progcat, female_pred)
+        # Science
+        m_sum_s, m_abv_s = _gender_progress_for(InternalExam.sci_progcat,   male_pred)
+        f_sum_s, f_abv_s = _gender_progress_for(InternalExam.sci_progcat,   female_pred)
+
+        sum_data = [
+            {"subject": "English", "male": m_sum_e, "female": f_sum_e},
+            {"subject": "Maths",   "male": m_sum_m, "female": f_sum_m},
+            {"subject": "Science", "male": m_sum_s, "female": f_sum_s},
+        ]
+        above_data = [
+            {"subject": "English", "male": m_abv_e, "female": f_abv_e},
+            {"subject": "Maths",   "male": m_abv_m, "female": f_abv_m},
+            {"subject": "Science", "male": m_abv_s, "female": f_abv_s},
+        ]
+        
+        return sum_data, above_data
+    
+    gender_prog_exp_above, gender_prog_above_data = _build_gender_progress_payload()
+
     return render_template(
         "pages/analytics_internal.html",
         segment="analytics",
@@ -1278,6 +1342,8 @@ def analytics_internal():
         progress_simple_data=progress_simple_data,
         gender_ge60_data=gender_ge60_data,
         gender_ge70_data=gender_ge70_data,
+        gender_prog_exp_above=gender_prog_exp_above,
+        gender_prog_above_data=gender_prog_above_data,
     )
 
 # --- Student dropdown for analytics page :: Student Insights page ---
