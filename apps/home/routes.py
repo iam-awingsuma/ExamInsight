@@ -39,6 +39,25 @@ def index():
     return render_template('pages/index.html', segment='dashboard')
 
 
+#************************
+#*** Data Management ***#
+#************************
+# Define the upload folder & allowed extensions
+UPLOAD_FOLDER = 'static/assets/images/avatars'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Ensure the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+# Helper function to check file type
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+#*******************************
+#*** User Management Routes ***#
+#*******************************
 @blueprint.route('/all-users')
 def allusers():
     users = Users.query.all()  # Fetch all users from the database
@@ -92,18 +111,9 @@ def addusers():
         return render_template('pages/users-add.html', segment='add users', parent='userMgt', form=create_account_form)
 
 
-# Define the upload folder & allowed extensions
-UPLOAD_FOLDER = 'static/assets/images/avatars'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-# Ensure the upload folder exists
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
-
-# Helper function to check file type
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
+#*******************************
+#*** Profile Mgt/Page Route ***#
+#*******************************
 @blueprint.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -153,6 +163,9 @@ if not os.path.exists(CSV_UPLOAD):
     os.makedirs(CSV_UPLOAD)
 
 
+#************************************
+#*** External Assessments Routes ***#
+#************************************
 @blueprint.route('/display_ngrta', methods=['POST'])
 def upload_ngrta():
     if 'file' not in request.files:
@@ -760,6 +773,10 @@ def display_ngrtc():
             combined_data=combined_data
         )
 
+
+#***********************************
+#*** Internal Assessment Routes ***#
+#***********************************
 @blueprint.route('/display_intlexam', methods=['POST'])
 def upload_intlexam():
     if 'file' not in request.files:
@@ -966,7 +983,10 @@ def display_intlexam():
             combined_data=combined_data,
         )
 
-# Student Management Routes
+
+#**********************************
+#*** Student Management Routes ***#
+#**********************************
 @blueprint.route("/student_management", methods=["GET"])
 def student_management():
     # Fetch all entries from Students table
@@ -1022,7 +1042,9 @@ def student_management():
         combined_data=combined_data,
     )
 
-
+#*******************************
+#*** User Management Routes ***#
+#*******************************
 # Grant admin rights route for users
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])
 @login_required
@@ -1101,8 +1123,9 @@ def get_segment(request):
     except:
         return None
 
-
-# Performance Analytics Routes
+#*******************************************************
+#*** Performance Analytics Routes - Cohort Insights ***#
+#*******************************************************
 @blueprint.route("/analytics", methods=["GET"])
 def analytics_internal():
     # Year groups from Students (since InternalExam doesn’t store yrgrp)
@@ -1346,6 +1369,10 @@ def analytics_internal():
         gender_prog_above_data=gender_prog_above_data,
     )
 
+
+#********************************************************
+#*** Performance Analytics Routes - Student Insights ***#
+#********************************************************
 # --- Student dropdown for analytics page :: Student Insights page ---
 @blueprint.route("/api/students_by_year", methods=["GET"])
 def api_students_by_year():
