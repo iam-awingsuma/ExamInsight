@@ -42,7 +42,6 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
   Plotly.newPlot(elId, traces, {
     autosize:true,
     barmode:"group",
-    // barnorm:"percent",
     bargap:0.25,
     bargroupgap:0.15,
     yaxis:{ title:"Percent of Gender Total", range:[0,110], ticksuffix:"%" },
