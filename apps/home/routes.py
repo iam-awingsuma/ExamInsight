@@ -1399,7 +1399,7 @@ def api_analytics():
     sid   = request.args.get("student_id", "").strip()
 
     # Filter InternalExam via Students for yrgrp when provided
-    base_q = db.session.query(InternalExam).join(Students, Students.id == InternalExam.student_id)
+    base_q = db.session.query(InternalExam).join(Students, Students.student_id == InternalExam.student_id)
     if yrgrp:
         base_q = base_q.filter(Students.yrgrp == yrgrp)
     if sid:
