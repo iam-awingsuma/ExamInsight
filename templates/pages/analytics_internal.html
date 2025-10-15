@@ -264,26 +264,26 @@
 
         <!-- Filters -->
         <div class="bg-white border-0 rounded-3 shadow-sm p-3 mb-4">
-          <div class="d-flex flex-wrap align-items-end gap-3">
-              <div class="col-12 col-md-2">
+          <div class="row align-items-center justify-content-between mx-auto">
+              <div class="col-12 col-md-3 col-sm-12">
                   <label class="form-label mb-1 small text-secondary text-xs">Year Group</label>
-                  <select id="yrgrp" class="form-select">
+                  <select id="yrgrp" class="form-select w-100">
                     <option value="">All Year Groups</option>
                       {% for y in year_groups %}
                           <option value="{{ y }}">{{ y }}</option>
                       {% endfor %}
                   </select>
               </div>
-              <div class="col-12 col-md-7 ms-auto">
+              <div class="col-12 col-md-9 col-sm-12">
                   <label class="form-label mb-1 small text-secondary text-xs">Student</label>
-                  <select id="student" class="form-select">
+                  <select id="student" class="form-select w-100">
                     <option value="">All Students</option>
                   </select>
               </div>
-              <div class="ms-auto d-flex gap-2">
+              <!-- <div class="ms-auto d-flex gap-2"> -->
                   <!-- <button id="btnApply" class="btn btn-md btn-primary mx-0 my-0">View Analytics</button> -->
-                  <button id="btnViewAnalytics" class="btn btn-md btn-primary mx-0 my-0">View Analytics</button>
-              </div>
+                  <!-- <button id="btnViewAnalytics" class="btn btn-md btn-primary mx-0 my-0">View Analytics</button> -->
+              <!-- </div> -->
           </div>
         </div>
 
@@ -339,9 +339,9 @@
           <div class="col-12 col-lg-6">
             <div class="card border-0 rounded-3 shadow-sm">
               <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <h5 class="card-title mb-0">Performance Over Time</h5>
+                <div class="d-flex justify-content-start align-items-center gap-2 mb-2 text-primary">
                   <i data-lucide="line-chart"></i>
+                  <h5 class="card-title mb-0 text-uppercase font-weight-bolder">Performance Over Time</h5>
                 </div>
                 <!-- Line chart canvas -->
                  <div id="chart_line" style="height:360px;"></div>
@@ -352,9 +352,9 @@
           <div class="col-12 col-lg-6">
             <div class="card border-0 rounded-3 shadow-sm">
               <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <h5 class="card-title mb-0">Score Distribution (Bands)</h5>
-                  <i data-lucide="bar-chart-3"></i>
+                <div class="d-flex justify-content-start align-items-center gap-2 mb-2 text-primary">
+                  <i data-lucide="bar-chart-3" class="text-primary"></i>
+                  <h5 class="card-title mb-0 text-uppercase font-weight-bolder">Grade Distribution (Bands)</h5>
                 </div>
                 <!-- Bar chart canvas -->
                 <div id="chart_bands" style="height:360px;"></div>
@@ -365,9 +365,9 @@
           <div class="col-12">
             <div class="card border-0 rounded-3 shadow-sm">
               <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <h5 class="card-title mb-0">Progress Category</h5>
-                  <i data-lucide="bar-chart-3"></i>
+                <div class="d-flex justify-content-start align-items-center gap-2 mb-2 text-primary">
+                  <i data-lucide="bar-chart-3" class="text-primary"></i>
+                  <h5 class="card-title mb-0 text-primary text-uppercase font-weight-bolder">Progress Category</h5>
                 </div>
                 <!-- Bar chart canvas -->
                 <div id="chart_progcats" style="height:360px;"></div>
@@ -409,8 +409,8 @@
         window.renderGenderThresholdBars('gender-ge60-data', 'chart_gender_ge60');
         window.renderGenderThresholdBars('gender-ge70-data', 'chart_gender_ge70');
         // Cohort Progress: Gender-specific
-        window.renderGenderThresholdBars('gender-prog-exp-above',   'chart_gender_exp_above');
-        window.renderGenderThresholdBars('gender-prog-above-data',   'chart_gender_above_data');
+        window.renderGenderThresholdBars('gender-prog-exp-above', 'chart_gender_exp_above');
+        window.renderGenderThresholdBars('gender-prog-above-data', 'chart_gender_above_data');
       }
     });
 

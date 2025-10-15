@@ -1385,16 +1385,17 @@ def api_students_by_year():
         db.session.query(Students.student_id, Students.forename, Students.surname)
         .join(InternalExam, InternalExam.student_id == Students.student_id)
         .filter(Students.yrgrp == yrgrp)
-        # .group_by(Students.student_id, Students.forename, Students.surname)
         .distinct()
         .order_by(Students.forename, Students.surname)
     )
     data = [{"id": sid, "name": f"{fn} {sn}"} for (sid, fn, sn) in q.all()]
     return jsonify({"students": data})
 
-# --- Main analytics payload (cards + charts) :: Student Insights (Internal Assessment Analytics)---
+# --- Main analytics payload (cards + charts) :: Student Insights (Internal Assessment Analytics) ---
 @blueprint.route("/api/analytics", methods=["GET"])
 def api_analytics():
+    # Get 'yrgrp' and 'student_id' from the request's query parameters
+    # (default to empty string) and remove extra spaces
     yrgrp = request.args.get("yrgrp", "").strip()
     sid   = request.args.get("student_id", "").strip()
 
@@ -1417,14 +1418,20 @@ def api_analytics():
                 "above_target": 0,
                 "below_target": 0
             },
-            "line": {  # we’ll present prev vs current by subject
+            "line": {  # prev vs current by subject with line chart
                 "labels": ["Previous", "Current"],
                 "english": [0, 0],
                 "maths": [0, 0],
                 "science": [0, 0],
             },
             "bands": {
-                "labels": ["<21%", "21–40%", "41–60%", "61–80%", ">80%"],
+                "labels": [
+                    "E/D",  # <60
+                    "C",    # 60-69
+                    "B",    # 70-79
+                    "A",    # 80-89
+                    "A*"    # ≥90
+                ],
                 "counts": [0, 0, 0, 0, 0]
             },
             "progcats": { "labels": [], "counts": [] }
@@ -1444,16 +1451,31 @@ def api_analytics():
     progcat_counts = {}
 
     # distribution bands use current % from all subjects
+    #* Boundary Behaviour for Distribution Bands:
+    #* <60 Beginning/Developing
+    #* 60-69 Secure
+    #* 70-79 Secure+
+    #* 80-89 Exceeding
+    #* ≥90 Advanced
+
+    # --- Distribution Bands ---
     def band_of(p):
         if p is None: return None
-        if p < 21:   return "<21%"
-        if p <= 40:  return "21–40%"
-        if p <= 60:  return "41–60%"
-        if p <= 80:  return "61–80%"
-        return ">80%"
+        if p < 60:   return "E/D"
+        if p <= 69:  return "C"
+        if p <= 79:  return "B"
+        if p <= 89:  return "A"
+        return "A*" # ≥90
 
-    band_order = ["<21%", "21–40%", "41–60%", "61–80%", ">80%"]
+    # band_order = ["<60", "60-69", "70-79", "80-89", "≥90"]
+    band_order = ["E/D", "C", "B", "A", "A*"]
     band_counts = {b: 0 for b in band_order}
+
+    band_counts_by_subj = {
+        "eng": {b: 0 for b in band_order},
+        "maths":   {b: 0 for b in band_order},
+        "sci": {b: 0 for b in band_order},
+    }
 
     # For the line chart: average per subject (prev/curr)
     eng_prev, eng_curr, n_eng = 0.0, 0.0, 0
@@ -1471,7 +1493,9 @@ def api_analytics():
             if curr is not None:
                 curr_values.append(curr)
                 b = band_of(curr)
-                if b: band_counts[b] += 1
+                if b: 
+                    band_counts[b] += 1
+                    band_counts_by_subj[subj][b] += 1
             if prev is not None:
                 prev_values.append(prev)
 
@@ -1481,7 +1505,7 @@ def api_analytics():
                 elif curr < prev: below += 1
                 # equal = neither
 
-            # Progress cat tally
+            # Progress category tally
             if progcat:
                 progcat_counts[progcat] = progcat_counts.get(progcat, 0) + 1
 
@@ -1528,11 +1552,15 @@ def api_analytics():
         },
         "bands": {
             "labels": band_order,
-            "counts": [band_counts[b] for b in band_order]
+            "counts": [band_counts[b] for b in band_order],
+            "english": [band_counts_by_subj["eng"][b] for b in band_order],
+            "maths":   [band_counts_by_subj["maths"][b]   for b in band_order],
+            "science": [band_counts_by_subj["sci"][b] for b in band_order],
         },
         "progcats": {
             "labels": list(progcat_counts.keys()),
             "counts": list(progcat_counts.values())
         }
     }
+
     return jsonify(payload)

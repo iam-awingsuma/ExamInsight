@@ -1,7 +1,7 @@
 (function () {
   const elYrgrp   = document.getElementById('yrgrp');
   const elStudent = document.getElementById('student');
-  const btnViewAnalytics = document.getElementById('btnViewAnalytics');
+  // const btnViewAnalytics = document.getElementById('btnViewAnalytics');
 
   // Helpers
   function setStudentDisabled(disabled) { elStudent.disabled = disabled; }
@@ -68,9 +68,9 @@
     const math= line.maths   || [0,0];
     const sci = line.science || [0,0];
     const traces = [
-      { x: labels, y: eng,  type: 'scatter', mode: 'lines+markers', name: 'English' },
-      { x: labels, y: math, type: 'scatter', mode: 'lines+markers', name: 'Maths' },
-      { x: labels, y: sci,  type: 'scatter', mode: 'lines+markers', name: 'Science' },
+      { x: labels, y: eng,  type: 'scatter', mode: 'lines+markers', name: 'English', marker:{ color:"#0073e5" }},
+      { x: labels, y: math, type: 'scatter', mode: 'lines+markers', name: 'Maths', marker:{ color:"#FF6500" }},
+      { x: labels, y: sci,  type: 'scatter', mode: 'lines+markers', name: 'Science', marker:{ color:"#7ddc1f" }},
     ];
     const layout = {
       margin: { t: 10, r: 10, b: 40, l: 50 },
@@ -80,18 +80,27 @@
     Plotly.newPlot('chart_line', traces, layout, {displayModeBar:false, responsive:true});
   }
 
-  function renderBands(bands) {
-    const labels = bands.labels || ["<21%","21–40%","41–60%","61–80%"," >80%"];
-    const counts = bands.counts || [0,0,0,0,0];
-    const trace = { x: labels, y: counts, type: 'bar', name: 'Students' };
-    const layout = {
-      margin: { t: 10, r: 10, b: 40, l: 50 },
-      yaxis: { title: 'Count', rangemode: 'tozero' },
-      xaxis: { title: 'Current % band' },
-      barmode: 'stack'
-    };
-    Plotly.newPlot('chart_bands', [trace], layout, {displayModeBar:false, responsive:true});
+  function renderBands(bands = {}) {
+    const labels = bands.labels || ['E/D','C','B','A','A*'];
+    const hasStacks = Array.isArray(bands.english) && Array.isArray(bands.maths) && Array.isArray(bands.science);
+    const toNums = arr => (arr || []).map(v => (typeof v==='number'?v:Number(v)||0));
+
+    const traces = hasStacks
+      ? [
+        { x: labels, y: toNums(bands.science), type:'bar', name:'Science', marker:{ color:"#7ddc1f" }},
+        { x: labels, y: toNums(bands.maths),   type:'bar', name:'Maths', marker:{ color:"#FF6500" }},
+        { x: labels, y: toNums(bands.english), type:'bar', name:'English', marker:{ color:"#0073e5" }},
+        ]
+      : [{ x: labels, y: toNums(bands.counts), type:'bar', name:'All subjects' }];
+
+    Plotly.newPlot('chart_bands', traces, {
+      margin:{t:10,r:10,b:40,l:50},
+      yaxis:{title:'Count', rangemode:'tozero'},
+      barmode: hasStacks ? 'stack' : 'group',
+      legend:{orientation:'h'}
+    }, {displayModeBar:false, responsive:true});
   }
+
 
   function renderProgCats(progcats) {
     const labels = progcats.labels || [];
@@ -112,7 +121,7 @@
   });
 
   elStudent.addEventListener('change', fetchAnalytics);
-  btnViewAnalytics.addEventListener('click', fetchAnalytics);
+  // btnViewAnalytics.addEventListener('click', fetchAnalytics);
 
   (async () => {
     if (elYrgrp.value) {
