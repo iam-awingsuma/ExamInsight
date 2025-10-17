@@ -1410,6 +1410,7 @@ def api_analytics():
 
     # ---- If no data, return empty but valid payload ----
     if not rows:
+        prog_order = ["Below Expected", "Expected", "Above Expected"]
         empty = {
             "summary": {
                 "total_students": 0,
@@ -1434,7 +1435,14 @@ def api_analytics():
                 ],
                 "counts": [0, 0, 0, 0, 0]
             },
-            "progcats": { "labels": [], "counts": [] }
+            # 
+            "progcats": {
+                "labels": prog_order,
+                "counts": [0, 0, 0],
+                "english": [0, 0, 0],
+                "maths":   [0, 0, 0],
+                "science": [0, 0, 0],
+            }
         }
         return jsonify(empty)
 
@@ -1443,12 +1451,36 @@ def api_analytics():
     total_students = len({r.student_id for r in rows})
 
     # aggregate current % across 3 subjects (skip Nones)
-    curr_values = []
-    prev_values = []
+    curr_values, prev_values = [], []
     above = below = 0
 
-    # progress categories (combine all three subjects’ *_progcat)
-    progcat_counts = {}
+    # ---------- progress categories per subject ----------
+    # Normalize to 3 buckets and keep a locked order for the x-axis
+    prog_order = ["Below Expected", "Expected", "Above Expected"]
+
+    def norm_progcat(s: str) -> str:
+        """Map any spelling to one of the 3 buckets."""
+        if not s:
+            return ""
+        t = s.strip().lower()
+        # common variants
+        if t.startswith("below"):
+            return "Below Expected"
+        if t.startswith("expected") or t == "at expected":
+            return "Expected"
+        if t.startswith("above") or "better" in t:
+            return "Above Expected"
+        # fallback: title-case, but only keep if in our order
+        u = s.strip().title()
+        return u if u in prog_order else ""
+
+    # Totals (all subjects pooled) and per-subject dicts
+    prog_counts_total = {k: 0 for k in prog_order}
+    prog_counts_by_subj = {
+        "english": {k: 0 for k in prog_order},
+        "maths":   {k: 0 for k in prog_order},
+        "science": {k: 0 for k in prog_order},
+    }
 
     # distribution bands use current % from all subjects
     #* Boundary Behaviour for Distribution Bands:
@@ -1470,10 +1502,9 @@ def api_analytics():
     # band_order = ["<60", "60-69", "70-79", "80-89", "≥90"]
     band_order = ["E/D", "C", "B", "A", "A*"]
     band_counts = {b: 0 for b in band_order}
-
     band_counts_by_subj = {
         "eng": {b: 0 for b in band_order},
-        "maths":   {b: 0 for b in band_order},
+        "maths": {b: 0 for b in band_order},
         "sci": {b: 0 for b in band_order},
     }
 
@@ -1484,10 +1515,10 @@ def api_analytics():
 
     for r in rows:
         # Collect per subject safely (might be None)
-        for prev, curr, progcat, subj in [
-            (r.eng_prevPct,   r.eng_currPct,   r.eng_progcat,   "eng"),
-            (r.maths_prevPct, r.maths_currPct, r.maths_progcat, "maths"),
-            (r.sci_prevPct,   r.sci_currPct,   r.sci_progcat,   "sci"),
+        for prev, curr, progcat, subj_key, subj_out in [
+            (r.eng_prevPct,   r.eng_currPct,   r.eng_progcat,   "eng",   "english"),
+            (r.maths_prevPct, r.maths_currPct, r.maths_progcat, "maths", "maths"),
+            (r.sci_prevPct,   r.sci_currPct,   r.sci_progcat,   "sci",   "science"),
         ]:
             # KPIs: curr/prev for global avg & delta
             if curr is not None:
@@ -1495,25 +1526,28 @@ def api_analytics():
                 b = band_of(curr)
                 if b: 
                     band_counts[b] += 1
-                    band_counts_by_subj[subj][b] += 1
+                    band_counts_by_subj[subj_key][b] += 1
             if prev is not None:
                 prev_values.append(prev)
 
             # Above/below target simple rule: curr vs prev
             if curr is not None and prev is not None:
-                if curr > prev:   above += 1
+                if curr > prev: above += 1
                 elif curr < prev: below += 1
                 # equal = neither
 
-            # Progress category tally
-            if progcat:
-                progcat_counts[progcat] = progcat_counts.get(progcat, 0) + 1
+            # ---------- Progress category tally ----------
+            bucket = norm_progcat(progcat)
+            if bucket:
+                prog_counts_total[bucket] += 1
+                prog_counts_by_subj[subj_out][bucket] += 1
 
             # Line chart subject averages
-            if subj == "eng":
+            if subj_key == "eng":
                 if prev is not None: eng_prev += prev; n_eng += 1
                 if curr is not None: eng_curr += curr
-            elif subj == "maths":
+            # elif subj == "maths":
+            elif subj_key == "maths":
                 if prev is not None: m_prev += prev; n_m += 1
                 if curr is not None: m_curr += curr
             else:
@@ -1557,9 +1591,13 @@ def api_analytics():
             "maths":   [band_counts_by_subj["maths"][b]   for b in band_order],
             "science": [band_counts_by_subj["sci"][b] for b in band_order],
         },
+        # ---------- subject arrays for progress categories ----------
         "progcats": {
-            "labels": list(progcat_counts.keys()),
-            "counts": list(progcat_counts.values())
+            "labels":  prog_order,
+            "counts":  [prog_counts_total[k] for k in prog_order],  # pooled
+            "english": [prog_counts_by_subj["english"][k] for k in prog_order],
+            "maths":   [prog_counts_by_subj["maths"][k] for k in prog_order],
+            "science": [prog_counts_by_subj["science"][k] for k in prog_order],
         }
     }
 

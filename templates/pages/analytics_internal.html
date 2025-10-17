@@ -1,11 +1,11 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
-<style>
+<!-- <style>
   .chart-card { min-width: 0; }                 /* prevent overflow in flex/grid */
   .chart-title i { margin-top: 2px; }           /* align icon with text */
   .chart-body { flex: 1 1 auto; min-height: 0;} /* let chart fill remaining height */
-</style>
+</style> -->
 
 <main class="container py-4">
   <div class="d-flex align-items-start justify-content-between mb-3">
@@ -425,6 +425,4 @@
 
   <!-- Page controller LAST -->
   <script src="{{ url_for('static', filename='js/internal_exam.page.js') }}?v=3"></script>
-
-  
 {% endblock %}

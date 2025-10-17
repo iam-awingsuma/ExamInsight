@@ -102,16 +102,44 @@
   }
 
 
-  function renderProgCats(progcats) {
-    const labels = progcats.labels || [];
-    const counts = progcats.counts || [];
-    const trace = { x: labels, y: counts, type: 'bar' };
-    const layout = {
-      margin: { t: 10, r: 10, b: 80, l: 50 },
-      yaxis: { title: 'Count', rangemode: 'tozero' },
-      xaxis: { title: 'Progress category', tickangle: -20 }
-    };
-    Plotly.newPlot('chart_progcats', [trace], layout, {displayModeBar:false, responsive:true});
+  // function renderProgCats(progcats) {
+  //   const labels = progcats.labels || [];
+  //   const counts = progcats.counts || [];
+  //   const trace = { x: labels, y: counts, type: 'bar' };
+  //   const layout = {
+  //     margin: { t: 10, r: 10, b: 80, l: 50 },
+  //     yaxis: { title: 'Count', rangemode: 'tozero' },
+  //     xaxis: { title: 'Progress category' },
+  //     barmode: "group",
+
+  //   };
+  //   Plotly.newPlot('chart_progcats', [trace], layout, {displayModeBar:false, responsive:true});
+  // }
+
+  function renderProgCats(progcats = {}) {
+    // x-axis categories (order locked)
+    const labels = progcats.labels || ['Below Expected', 'Expected', 'Above Expected'];
+    const hasStacks = Array.isArray(progcats.english) && Array.isArray(progcats.maths) && Array.isArray(progcats.science);
+    // helper
+    const toNums = arr => (arr || []).map(v => (typeof v === 'number' ? v : Number(v) || 0));
+
+    const tracess = hasStacks
+      ? [
+        { x: labels, y: toNums(progcats.science), type:'bar', name:'Science', marker:{ color:"#7ddc1f" }},
+        { x: labels, y: toNums(progcats.maths),   type:'bar', name:'Maths', marker:{ color:"#FF6500" }},
+        { x: labels, y: toNums(progcats.english), type:'bar', name:'English', marker:{ color:"#0073e5" }},
+        ]
+      : [{ x: labels, y: toNums(progcats.counts), type:'bar', name:'All subjects' }];
+
+    // Plotly.newPlot('chart_progcats', tracess layout, { displayModeBar: false, responsive: true });
+    Plotly.newPlot('chart_progcats', tracess, {
+      margin:{t:10,r:10,b:40,l:50},
+      xaxis: { title: 'Progress Category', categoryorder: 'array', categoryarray: labels},
+      yaxis:{title:'Count', rangemode:'tozero'},
+      // barmode: hasStacks ? 'stack' : 'group',
+      legend:{orientation:'h'},
+      barmode: 'stack',
+    }, {displayModeBar:false, responsive:true});
   }
 
   // Event bindings
@@ -133,11 +161,12 @@
   })();
 
   // Responsive charts
-  ['chart_line','chart_bands','chart_progcats'].forEach(id => {
+  ['chart_line','chart_bands','chart_progcats', 'progressChart'].forEach(id => {
     const el = document.getElementById(id);
     window.addEventListener('resize', () => Plotly.Plots.resize(el));
     new ResizeObserver(() => Plotly.Plots.resize(el)).observe(el);
     document.addEventListener('shown.bs.tab', () => Plotly.Plots.resize(el));
     document.addEventListener('shown.bs.collapse', () => Plotly.Plots.resize(el));
   });
+
 })();
