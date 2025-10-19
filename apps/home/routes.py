@@ -1138,23 +1138,23 @@ def analytics_internal():
     count_intake = db.session.query(InternalExam).count()
 
     # Render Cohort averages of current year for English, Maths, Science (chart 1)
-    curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
-    curr_avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
-    curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
+    curr_avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
+    curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
 
     # averages for English, Maths, Science but for previous-year results
-    prev_avg_eng = round(db.session.query(func.avg(InternalExam.eng_prevPct)).scalar() or 0, 1)
-    prev_avg_maths = round(db.session.query(func.avg(InternalExam.maths_prevPct)).scalar() or 0, 1)
-    prev_avg_sci = round(db.session.query(func.avg(InternalExam.sci_prevPct)).scalar() or 0, 1)
+    prev_avg_eng = round(db.session.query(func.avg(InternalExam.eng_prevPct)).scalar() or 0, 2)
+    prev_avg_maths = round(db.session.query(func.avg(InternalExam.maths_prevPct)).scalar() or 0, 2)
+    prev_avg_sci = round(db.session.query(func.avg(InternalExam.sci_prevPct)).scalar() or 0, 2)
     
     # Round for display, but keep as float and 1 decimal place for English, Maths, Science
     data = {
-        "eng_prev": round(float(prev_avg_eng), 1), 
-        "maths_prev": round(float(prev_avg_maths), 1),
-        "sci_prev": round(float(prev_avg_sci), 1),
-        "eng_curr": round(float(curr_avg_eng), 1),
-        "maths_curr": round(float(curr_avg_maths), 1),
-        "sci_curr": round(float(curr_avg_sci), 1),
+        "eng_prev": round(float(prev_avg_eng), 2), 
+        "maths_prev": round(float(prev_avg_maths), 2),
+        "sci_prev": round(float(prev_avg_sci), 2),
+        "eng_curr": round(float(curr_avg_eng), 2),
+        "maths_curr": round(float(curr_avg_maths), 2),
+        "sci_curr": round(float(curr_avg_sci), 2),
     }
 
     #*** Cohort ATTAINMENT Chart
@@ -1170,8 +1170,8 @@ def analytics_internal():
         n = int(n or 0) # ensure n is int and not None
         ge60 = int(ge60 or 0) # ensure ge60 is int and not None
         ge70 = int(ge70 or 0) # ensure ge70 is int and not None
-        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0 # avoid division by zero; percentage for 60+
-        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0 # avoid division by zero; percentage for 70+
+        pct60 = round((ge60 / n * 100.0), 2) if n else 0.0 # avoid division by zero; percentage for 60+
+        pct70 = round((ge70 / n * 100.0), 2) if n else 0.0 # avoid division by zero; percentage for 70+
         return pct60, pct70
 
     eng60, eng70 = ge60_ge70_for(InternalExam.eng_currPct) # compute English for current-year 60/70+
@@ -1210,11 +1210,11 @@ def analytics_internal():
         ).scalar() or 0
 
         # percentages (protect from divide-by-zero)
-        p_expected = round((exp_cnt / total * 100.0), 1) if total else 0.0
-        p_above    = round((above_cnt / total * 100.0), 1) if total else 0.0
+        p_expected = round((exp_cnt / total * 100.0), 2) if total else 0.0
+        p_above    = round((above_cnt / total * 100.0), 2) if total else 0.0
 
         # requested variables
-        p_sum      = round(p_expected + p_above, 1)  # Expected + Above Expected
+        p_sum      = round(p_expected + p_above, 2)  # Expected + Above Expected
         p_above_only = p_above # Above Expected only (explicit name)
 
         return p_sum, p_above_only
@@ -1233,7 +1233,7 @@ def analytics_internal():
 
     #*** Student ATTAINMENT Chart: Gender-specific 
     def _pct(n, d):
-        return round((n / d) * 100.0, 1) if d else 0.0
+        return round((n / d) * 100.0, 2) if d else 0.0
     
     # Normalise gender to lowercase for M/Male or F/Female
     male_pred = or_(
@@ -1316,7 +1316,7 @@ def analytics_internal():
 
         p_expected = _pct(int(exp_cnt), int(denom))
         p_above    = _pct(int(above_cnt), int(denom))
-        p_sum      = round(p_expected + p_above, 1)
+        p_sum      = round(p_expected + p_above, 2)
 
         return p_sum, p_above
 
@@ -1412,13 +1412,13 @@ def api_analytics():
     if not rows:
         prog_order = ["Below Expected", "Expected", "Above Expected"]
         empty = {
-            "summary": {
-                "total_students": 0,
-                "avg_attainment": 0.0,
-                "progress_delta": 0.0,
-                "above_target": 0,
-                "below_target": 0
-            },
+            # "summary": {
+                # "total_students": 0,
+                # "avg_attainment": 0.0,
+                # "progress_delta": 0.0,
+                # "above_target": 0,
+                # "below_target": 0
+            # },
             "line": {  # prev vs current by subject with line chart
                 "labels": ["Previous", "Current"],
                 "english": [0, 0],
@@ -1434,21 +1434,29 @@ def api_analytics():
                     "A*"    # ≥90
                 ],
                 "counts": [0, 0, 0, 0, 0]
-            },
-            # 
+            }, 
             "progcats": {
                 "labels": prog_order,
                 "counts": [0, 0, 0],
                 "english": [0, 0, 0],
                 "maths":   [0, 0, 0],
                 "science": [0, 0, 0],
+            },
+            "kpis_subjects": {
+                "mode": "cohort",
+                "title": "Cohort Average (Current %)",
+                "english": 0.0, "maths": 0.0, "science": 0.0
+            },
+            "kpi_total": {
+                "title": "All Year Groups (Total Cohort)",
+                "count": 0
             }
         }
         return jsonify(empty)
 
     # ---- Summary metrics ----
     # total distinct students
-    total_students = len({r.student_id for r in rows})
+    # total_students = len({r.student_id for r in rows})
 
     # aggregate current % across 3 subjects (skip Nones)
     curr_values, prev_values = [], []
@@ -1515,12 +1523,12 @@ def api_analytics():
 
     for r in rows:
         # Collect per subject safely (might be None)
-        for prev, curr, progcat, subj_key, subj_out in [
+         for prev, curr, progcat, subj_key, subj_out in [
             (r.eng_prevPct,   r.eng_currPct,   r.eng_progcat,   "eng",   "english"),
             (r.maths_prevPct, r.maths_currPct, r.maths_progcat, "maths", "maths"),
             (r.sci_prevPct,   r.sci_currPct,   r.sci_progcat,   "sci",   "science"),
         ]:
-            # KPIs: curr/prev for global avg & delta
+            # KPIs: curr/prev values
             if curr is not None:
                 curr_values.append(curr)
                 b = band_of(curr)
@@ -1531,9 +1539,9 @@ def api_analytics():
                 prev_values.append(prev)
 
             # Above/below target simple rule: curr vs prev
-            if curr is not None and prev is not None:
-                if curr > prev: above += 1
-                elif curr < prev: below += 1
+            # if curr is not None and prev is not None:
+            #     if curr > prev: above += 1
+            #     elif curr < prev: below += 1
                 # equal = neither
 
             # ---------- Progress category tally ----------
@@ -1555,12 +1563,12 @@ def api_analytics():
                 if curr is not None: s_curr += curr
 
     # Averages (avoid zero division)
-    def avg(lst): 
-        return round(sum(lst)/len(lst), 2) if lst else 0.0
+    # def avg(lst): 
+    #     return round(sum(lst)/len(lst), 2) if lst else 0.0
 
-    avg_attainment = avg(curr_values)
-    avg_prev       = avg(prev_values)
-    progress_delta = round(avg_attainment - avg_prev, 2)
+    # avg_attainment = avg(curr_values)
+    # avg_prev       = avg(prev_values)
+    # progress_delta = round(avg_attainment - avg_prev, 2)
 
     # Subject means for line chart (based on counts where prev existed)
     eng_prev_mean = round(eng_prev / n_eng, 2) if n_eng else 0.0
@@ -1570,14 +1578,44 @@ def api_analytics():
     s_prev_mean   = round(s_prev / n_s, 2)     if n_s   else 0.0
     s_curr_mean   = round(s_curr / n_s, 2)     if n_s   else 0.0
 
+    # --- Per-subject CURRENT% lists for KPIs (ignore None) ---
+    eng_curr_list = [r.eng_currPct for r in rows if r.eng_currPct is not None]
+    m_curr_list   = [r.maths_currPct for r in rows if r.maths_currPct is not None]
+    s_curr_list   = [r.sci_currPct for r in rows if r.sci_currPct is not None]
+
+    def avg_num(lst):
+        return round(sum(lst) / len(lst), 2) if lst else 0.0
+
+    eng_avg = avg_num(eng_curr_list)
+    m_avg   = avg_num(m_curr_list)
+    s_avg   = avg_num(s_curr_list)
+
+    # --- Adaptive total-students KPI ---
+    if sid:
+        student = db.session.query(Students.forename, Students.surname).filter(Students.student_id == sid).first()
+        if student:
+            full_name = f"{student.forename} {student.surname}"
+            full_name = (full_name[:20] + "…") if len(full_name) > 20 else full_name
+        else:
+            full_name = "Unknown Student"
+
+        total_label = full_name
+        total_value = 1
+    elif yrgrp:
+        total_label = f"Year {yrgrp} Students"
+        total_value = len({r.student_id for r in rows})
+    else:
+        total_label = "Total Students"
+        total_value = len({r.student_id for r in rows})
+
     payload = {
-        "summary": {
-            "total_students": int(total_students),
-            "avg_attainment": avg_attainment,
-            "progress_delta": progress_delta,
-            "above_target": int(above),
-            "below_target": int(below),
-        },
+        # "summary": {
+            # "total_students": int(total_students),
+            # "avg_attainment": avg_attainment,
+            # "progress_delta": progress_delta,
+            # "above_target": int(above),
+            # "below_target": int(below),
+        # },
         "line": {
             "labels": ["Previous", "Current"],
             "english": [eng_prev_mean, eng_curr_mean],
@@ -1598,6 +1636,15 @@ def api_analytics():
             "english": [prog_counts_by_subj["english"][k] for k in prog_order],
             "maths":   [prog_counts_by_subj["maths"][k] for k in prog_order],
             "science": [prog_counts_by_subj["science"][k] for k in prog_order],
+        },
+        "kpi_subjects": {
+            "english": eng_avg,
+            "maths":   m_avg,
+            "science": s_avg,
+        },
+        "kpi_total": {
+            "title": total_label,
+            "count": int(total_value),
         }
     }
 

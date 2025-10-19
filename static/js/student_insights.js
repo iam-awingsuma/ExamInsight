@@ -40,26 +40,45 @@
     try {
       const res = await fetch(`/api/analytics?${qs.toString()}`);
       const payload = await res.json();
-      renderKPIs(payload.summary || {});
+      renderKPIs(payload.kpi_subjects || {});
+      renderTotalKPI(payload.kpi_total || {});
       renderLine(payload.line || {});
       renderBands(payload.bands || {});
       renderProgCats(payload.progcats || {});
     } catch (e) {
       console.error('Failed to load analytics:', e);
       renderKPIs({});
+      renderTotalKPI({});
       renderLine({});
       renderBands({});
       renderProgCats({});
     }
   }
 
-  // Renderers
-  function renderKPIs(s) {
-    document.getElementById('kpi_total').textContent = s.total_students ?? '0';
-    document.getElementById('kpi_avg').textContent   = (s.avg_attainment ?? 0).toFixed(2);
-    document.getElementById('kpi_delta').textContent = (s.progress_delta ?? 0).toFixed(2);
-    document.getElementById('kpi_above').textContent = s.above_target ?? 0;
-    document.getElementById('kpi_below').textContent = s.below_target ?? 0;
+  // Renderers: display three adaptive KPI cards
+  // per subject KPI (adapt to scope)
+  function renderKPIs(k = {}) {
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = (typeof val === 'number' ? val.toFixed(2) : '—');
+    };
+    const setText = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = txt || '';
+    };
+
+    // Values
+    set('kpi_eng',   k.english);
+    set('kpi_maths', k.maths);
+    set('kpi_sci',   k.science);
+  }
+
+  function renderTotalKPI(t = {}) {
+    const titleEl = document.getElementById('kpi_total_title');
+    const countEl = document.getElementById('kpi_total_value');
+
+    if (titleEl) titleEl.textContent = t.title || 'Total Students';
+    if (countEl) countEl.textContent = t.count ?? '—';
   }
 
   function renderLine(line) {
@@ -100,21 +119,6 @@
       legend:{orientation:'h'}
     }, {displayModeBar:false, responsive:true});
   }
-
-
-  // function renderProgCats(progcats) {
-  //   const labels = progcats.labels || [];
-  //   const counts = progcats.counts || [];
-  //   const trace = { x: labels, y: counts, type: 'bar' };
-  //   const layout = {
-  //     margin: { t: 10, r: 10, b: 80, l: 50 },
-  //     yaxis: { title: 'Count', rangemode: 'tozero' },
-  //     xaxis: { title: 'Progress category' },
-  //     barmode: "group",
-
-  //   };
-  //   Plotly.newPlot('chart_progcats', [trace], layout, {displayModeBar:false, responsive:true});
-  // }
 
   function renderProgCats(progcats = {}) {
     // x-axis categories (order locked)
