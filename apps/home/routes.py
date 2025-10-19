@@ -1460,7 +1460,7 @@ def api_analytics():
 
     # aggregate current % across 3 subjects (skip Nones)
     curr_values, prev_values = [], []
-    above = below = 0
+    # above = below = 0
 
     # ---------- progress categories per subject ----------
     # Normalize to 3 buckets and keep a locked order for the x-axis
