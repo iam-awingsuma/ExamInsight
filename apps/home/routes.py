@@ -1133,7 +1133,8 @@ def analytics_internal():
                    .filter(Students.yrgrp.isnot(None)) # does not include Null values
                    .distinct() # only distinct values
                    .order_by(Students.yrgrp).all()] # order by year group ascending and fetch all rows
-
+    
+    #* KPIs: Y2 Cohort, Average Attainment for E/M/S
     # Total count of InternalExam intakes
     count_intake = db.session.query(InternalExam).count()
 
@@ -1147,7 +1148,7 @@ def analytics_internal():
     prev_avg_maths = round(db.session.query(func.avg(InternalExam.maths_prevPct)).scalar() or 0, 2)
     prev_avg_sci = round(db.session.query(func.avg(InternalExam.sci_prevPct)).scalar() or 0, 2)
     
-    # Round for display, but keep as float and 1 decimal place for English, Maths, Science
+    # Round for display, but keep as float and 2 decimal place for English, Maths, Science
     data = {
         "eng_prev": round(float(prev_avg_eng), 2), 
         "maths_prev": round(float(prev_avg_maths), 2),
@@ -1170,18 +1171,51 @@ def analytics_internal():
         n = int(n or 0) # ensure n is int and not None
         ge60 = int(ge60 or 0) # ensure ge60 is int and not None
         ge70 = int(ge70 or 0) # ensure ge70 is int and not None
-        pct60 = round((ge60 / n * 100.0), 2) if n else 0.0 # avoid division by zero; percentage for 60+
-        pct70 = round((ge70 / n * 100.0), 2) if n else 0.0 # avoid division by zero; percentage for 70+
-        return pct60, pct70
+        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0 # avoid division by zero; percentage for 60+
+        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0 # avoid division by zero; percentage for 70+
+        # return pct60, pct70
+        return n, ge60, ge70, pct60, pct70
 
-    eng60, eng70 = ge60_ge70_for(InternalExam.eng_currPct) # compute English for current-year 60/70+
-    math60, math70 = ge60_ge70_for(InternalExam.maths_currPct) # compute Maths for current-year 60/70+
-    sci60, sci70 = ge60_ge70_for(InternalExam.sci_currPct) # compute Science for current-year 60/70+
+    # eng60, eng70 = ge60_ge70_for(InternalExam.eng_currPct) # compute English for current-year 60/70+
+    # math60, math70 = ge60_ge70_for(InternalExam.maths_currPct) # compute Maths for current-year 60/70+
+    # sci60, sci70 = ge60_ge70_for(InternalExam.sci_currPct) # compute Science for current-year 60/70+
 
-    threshold_data = [ # payload for the thresholds chart (60+ and 70+)
-        {"subject": "English", "ge60": eng60, "ge70": eng70}, # 60+ and 70+ for English
-        {"subject": "Maths",   "ge60": math60, "ge70": math70}, # 60+ and 70+ for Maths
-        {"subject": "Science", "ge60": sci60,  "ge70": sci70}, # 60+ and 70+ for Science
+    eng_n, eng60, eng70, eng_pct60, eng_pct70 = ge60_ge70_for(InternalExam.eng_currPct) # compute English for current-year 60/70+
+    math_n, math60, math70, math_pct60, math_pct70 = ge60_ge70_for(InternalExam.maths_currPct) # compute Maths for current-year 60/70+
+    sci_n, sci60, sci70, sci_pct60, sci_pct70 = ge60_ge70_for(InternalExam.sci_currPct) # compute Science for current-year 60/70+
+
+    # per-subject stats
+    # eng_n, eng_ge60, eng_ge70, eng_pct60, eng_pct70 = ge60_ge70_for(InternalExam.eng_currPct)
+    # math_n, math_ge60, math_ge70, math_pct60, math_pct70 = ge60_ge70_for(InternalExam.maths_currPct)
+    # sci_n, sci_ge60, sci_ge70, sci_pct60, sci_pct70 = ge60_ge70_for(InternalExam.sci_currPct)
+
+    # table rows
+    attainment_table = [
+        {
+            "subject": "English",
+            "n": eng_n,
+            "ge60_count": eng60, "ge60_pct": eng_pct60,
+            "ge70_count": eng70, "ge70_pct": eng_pct70,
+        },
+        {
+            "subject": "Maths",
+            "n": math_n,
+            "ge60_count": math60, "ge60_pct": math_pct60,
+            "ge70_count": math70, "ge70_pct": math_pct70,
+        },
+        {
+            "subject": "Science",
+            "n": sci_n,
+            "ge60_count": sci60, "ge60_pct": sci_pct60,
+            "ge70_count": sci70, "ge70_pct": sci_pct70,
+        },
+    ]
+
+     # payload for the thresholds chart (60+ and 70+)
+    threshold_data = [
+        {"subject": "English", "ge60_count": eng60, "ge70_count": eng70, "ge60": eng_pct60, "ge70": eng_pct70}, # 60+ and 70+ for English
+        {"subject": "Maths", "ge60_count": math60, "ge70_count": math70, "ge60": math_pct60, "ge70": math_pct70}, # 60+ and 70+ for Maths
+        {"subject": "Science", "ge60_count": sci60, "ge70_count": sci70, "ge60": sci_pct60,  "ge70": sci_pct70}, # 60+ and 70+ for Science
     ]
 
     #*** Cohort PROGRESS Chart
@@ -1367,6 +1401,8 @@ def analytics_internal():
         gender_ge70_data=gender_ge70_data,
         gender_prog_exp_above=gender_prog_exp_above,
         gender_prog_above_data=gender_prog_above_data,
+        attainment_table=attainment_table,
+        # total_row=total_row,
     )
 
 
