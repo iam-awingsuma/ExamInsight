@@ -143,6 +143,31 @@
                 <div class="chart-body mt-1">
                   <div id="chart_cohort_attainment" class="w-100" style="height:360px;"></div>
                 </div>
+                <!-- Cohort Attainment Table -->
+                <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
+                  <table class="table table-sm table-tight align-middle w-100 mb-0">
+                    <tbody class="small">
+                      <tr class="text-center">
+                        <th scope="row">Subject</th>
+                        <td class="table-light">#</th>
+                        <td class="table-success">≥60</th>
+                        <td class="table-success">%</th>
+                        <td class="table-info">≥70</th>
+                        <td class="table-info">%</th>
+                      </tr>
+                      {% for row in attainment_table %}
+                      <tr class="text-center">
+                        <th scope="row">{{ row.subject }}</th>
+                        <td class="table-light">{{ row.n }}</td>
+                        <td class="table-success">{{ row.ge60_count }}</td>
+                        <td class="table-success">{{ row.ge60_pct }}</td>
+                        <td class="table-info">{{ row.ge70_count }}</td>
+                        <td class="table-info">{{ row.ge70_pct }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
