@@ -1184,11 +1184,6 @@ def analytics_internal():
     math_n, math60, math70, math_pct60, math_pct70 = ge60_ge70_for(InternalExam.maths_currPct) # compute Maths for current-year 60/70+
     sci_n, sci60, sci70, sci_pct60, sci_pct70 = ge60_ge70_for(InternalExam.sci_currPct) # compute Science for current-year 60/70+
 
-    # per-subject stats
-    # eng_n, eng_ge60, eng_ge70, eng_pct60, eng_pct70 = ge60_ge70_for(InternalExam.eng_currPct)
-    # math_n, math_ge60, math_ge70, math_pct60, math_pct70 = ge60_ge70_for(InternalExam.maths_currPct)
-    # sci_n, sci_ge60, sci_ge70, sci_pct60, sci_pct70 = ge60_ge70_for(InternalExam.sci_currPct)
-
     # table rows
     attainment_table = [
         {
@@ -1243,6 +1238,10 @@ def analytics_internal():
             func.sum(case((norm == "above expected", 1), else_=0))
         ).scalar() or 0
 
+        # count of expected and above (sum), and above only
+        cnt_exp_above = exp_cnt + above_cnt
+        cnt_above_only = above_cnt
+
         # percentages (protect from divide-by-zero)
         p_expected = round((exp_cnt / total * 100.0), 2) if total else 0.0
         p_above    = round((above_cnt / total * 100.0), 2) if total else 0.0
@@ -1251,18 +1250,20 @@ def analytics_internal():
         p_sum      = round(p_expected + p_above, 2)  # Expected + Above Expected
         p_above_only = p_above # Above Expected only (explicit name)
 
-        return p_sum, p_above_only
+        return cnt_exp_above, cnt_above_only, p_sum, p_above_only
 
     # Compute per subject
-    eng_sum, eng_above_only = simple_progress(InternalExam.eng_progcat)
-    maths_sum, maths_above_only = simple_progress(InternalExam.maths_progcat)
-    sci_sum, sci_above_only = simple_progress(InternalExam.sci_progcat)
+    cnt_eng_exp_above, cnt_eng_above_only, eng_sum, eng_above_only = simple_progress(InternalExam.eng_progcat)
+    cnt_maths_exp_above, cnt_maths_above_only, maths_sum, maths_above_only = simple_progress(InternalExam.maths_progcat)
+    cnt_sci_exp_above, cnt_sci_above_only, sci_sum, sci_above_only = simple_progress(InternalExam.sci_progcat)
+
+
 
     # Payload for the simple progress chart
     progress_simple_data = [
-        {"subject": "English", "sum_expected_above": eng_sum,   "above_only": eng_above_only},
-        {"subject": "Maths",   "sum_expected_above": maths_sum, "above_only": maths_above_only},
-        {"subject": "Science", "sum_expected_above": sci_sum,   "above_only": sci_above_only},
+        {"subject": "English", "count_exp_above": cnt_eng_exp_above, "count_above_only": cnt_eng_above_only, "sum_expected_above": eng_sum,   "above_only": eng_above_only},
+        {"subject": "Maths", "count_exp_above": cnt_maths_exp_above, "count_above_only": cnt_maths_above_only, "sum_expected_above": maths_sum, "above_only": maths_above_only},
+        {"subject": "Science", "count_exp_above": cnt_sci_exp_above, "count_above_only": cnt_sci_above_only, "sum_expected_above": sci_sum,   "above_only": sci_above_only},
     ]
 
     #*** Student ATTAINMENT Chart: Gender-specific 
