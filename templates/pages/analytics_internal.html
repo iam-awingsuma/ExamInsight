@@ -186,6 +186,31 @@
                 <div class="chart-body mt-1">
                   <div id="chart_cohort_progress" class="w-100" style="height:360px;"></div>
                 </div>
+                <!-- Cohort Progress Table -->
+                <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
+                  <table class="table table-sm table-tight align-middle w-100 mb-0">
+                    <tbody class="small">
+                      <tr class="text-center">
+                        <th scope="row">Subject</th>
+                        <td class="table-light">#</th>
+                        <td class="table-success">Exp/Better Prog</th>
+                        <td class="table-success">%</th>
+                        <td class="table-info">Better Prog</th>
+                        <td class="table-info">%</th>
+                      </tr>
+                      {% for row in progress_simple_data %}
+                      <tr class="text-center">
+                        <th scope="row">{{ row.subject }}</th>
+                        <td class="table-light">{{ row.n }}</td>
+                        <td class="table-success">{{ row.count_exp_above }}</td>
+                        <td class="table-success">{{ row.sum_expected_above }}</td>
+                        <td class="table-info">{{ row.count_above_only }}</td>
+                        <td class="table-info">{{ row.above_only }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
