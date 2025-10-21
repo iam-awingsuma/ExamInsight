@@ -1148,14 +1148,14 @@ def analytics_internal():
     prev_avg_maths = round(db.session.query(func.avg(InternalExam.maths_prevPct)).scalar() or 0, 2)
     prev_avg_sci = round(db.session.query(func.avg(InternalExam.sci_prevPct)).scalar() or 0, 2)
     
-    # Round for display, but keep as float and 2 decimal place for English, Maths, Science
+    # Round for display, but keep as float and 1 decimal place for English, Maths, Science
     data = {
-        "eng_prev": round(float(prev_avg_eng), 2), 
-        "maths_prev": round(float(prev_avg_maths), 2),
-        "sci_prev": round(float(prev_avg_sci), 2),
-        "eng_curr": round(float(curr_avg_eng), 2),
-        "maths_curr": round(float(curr_avg_maths), 2),
-        "sci_curr": round(float(curr_avg_sci), 2),
+        "eng_prev": round(float(prev_avg_eng), 1), 
+        "maths_prev": round(float(prev_avg_maths), 1),
+        "sci_prev": round(float(prev_avg_sci), 1),
+        "eng_curr": round(float(curr_avg_eng), 1),
+        "maths_curr": round(float(curr_avg_maths), 1),
+        "sci_curr": round(float(curr_avg_sci), 1),
     }
 
     #*** Cohort ATTAINMENT Chart
