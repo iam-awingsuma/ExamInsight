@@ -23,14 +23,18 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     [
     { x: subjects, y: aboveOnly, type:"bar", name:"Students that made better progress",
       marker:{ color:"#0073e5" },
-      // text: aboveOnly.map(v=>v.toFixed(1)+"%"),
-      text: aboveOnly.map(v=> `${Number(v).toFixed(1)}%`),
-      textposition:"outside" },
+      text: aboveOnly.map(v=>v.toFixed(1)+"%"),
+      // text: aboveOnly.map(v=> `${Number(v).toFixed(1)}%`),
+      textposition:"outside",
+      // hovertemplate: cntAboveOnly + text + " students"
+    },
     { x: subjects, y: sumExpectedAbove, type:"bar", name:"Students that made expected or better progress",
       marker:{ color:"#7ddc1f" },
       // text: sumExpectedAbove.map(v=>v.toFixed(1)+"%"),
       text: sumExpectedAbove.map(v=> `${Number(v).toFixed(1)}%`),
-      textposition:"outside" }
+      textposition:"outside",
+      // hovertemplate: cntExpectedAbove + " students"
+    }
     ], {
       autosize:true, barmode:"stack", barnorm:"percent",
       yaxis:{ title:"Percent of Students", range:[0,110] },
