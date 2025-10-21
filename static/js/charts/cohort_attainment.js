@@ -24,16 +24,8 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     ge70_count[i] = Number(r.ge70_count ?? 0);
   });
 
-  // For hover, we also want percentages. If we have intake `n`, compute from counts;
-  // otherwise fall back to the provided pct arrays.
-  const pctFrom = (countArr, i) => {
-    const total = n[i];
-    return total ? (countArr[i] / total) * 100 : (countArr === ge70_count ? ge70_pct[i] : (ge60_pct[i] - ge70_pct[i]));
-  };
-
   const custom70 = subjects.map((_, i) => [ge70_count[i], (n[i] ? (ge70_count[i]/n[i]*100) : ge70_pct[i])]);
   const custom60 = subjects.map((_, i) => [ge60_count[i], (n[i] ? (ge60_count[i]/n[i]*100) : ge60_pct[i])]);
-  // const custom60 = subjects.map((_, i) => [add60_count[i], pctFrom(add60_count, i)]);
 
   const t70 = {
     x: subjects,
@@ -44,7 +36,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     text: ge70_pct.map(v => `${Number(v).toFixed(1)}%`),   // label with total ≥70%
     textposition: "outside",
     customdata: custom70,
-    hovertemplate: "(%{x}, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<extra>≥70%</extra>"
+    hovertemplate: "(%{x}, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<extra>≥70% (above curriculum standard)</extra>"
   };
 
   const t60 = {
@@ -56,7 +48,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     text: ge60_pct.map(v => `${Number(v).toFixed(1)}%`),   // label with total ≥60%
     textposition: "outside",
     customdata: custom60,
-    hovertemplate: "(%{x}, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<extra>≥60% (additional)</extra>"
+    hovertemplate: "(%{x}, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<extra>≥60% (at/above curriculum standard)</extra>"
   };
 
   Plotly.newPlot(
