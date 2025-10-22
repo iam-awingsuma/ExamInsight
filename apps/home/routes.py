@@ -1343,7 +1343,13 @@ def analytics_internal():
         p_above    = _pct(int(above_cnt), int(denom))
         p_sum      = round(p_expected + p_above, 2)
 
-        return p_sum, p_above
+        # count of expected + above
+        c_sum = int(exp_cnt + above_cnt)
+        c_above = int(above_cnt)
+
+        # return int(numer), _pct(int(numer), int(denom)), int(denom)
+        # return p_sum, p_above
+        return c_sum, p_sum, c_above, p_above, int(denom)
 
     def _build_gender_progress_payload():
         """
@@ -1352,24 +1358,24 @@ def analytics_internal():
         - above_data : [{subject, male, female}] using Above Expected only
         """
         # English
-        m_sum_e, m_abv_e = _gender_progress_for(InternalExam.eng_progcat,   male_pred)
-        f_sum_e, f_abv_e = _gender_progress_for(InternalExam.eng_progcat,   female_pred)
+        mc_sum_e, m_sum_e, mc_abv_e, m_abv_e, m_total_e = _gender_progress_for(InternalExam.eng_progcat,   male_pred)
+        fc_sum_e, f_sum_e, fc_abv_e, f_abv_e, f_total_e = _gender_progress_for(InternalExam.eng_progcat,   female_pred)
         # Maths
-        m_sum_m, m_abv_m = _gender_progress_for(InternalExam.maths_progcat, male_pred)
-        f_sum_m, f_abv_m = _gender_progress_for(InternalExam.maths_progcat, female_pred)
+        mc_sum_m, m_sum_m, mc_abv_m, m_abv_m, m_total_m = _gender_progress_for(InternalExam.maths_progcat, male_pred)
+        fc_sum_m, f_sum_m, fc_abv_m, f_abv_m, f_total_m = _gender_progress_for(InternalExam.maths_progcat, female_pred)
         # Science
-        m_sum_s, m_abv_s = _gender_progress_for(InternalExam.sci_progcat,   male_pred)
-        f_sum_s, f_abv_s = _gender_progress_for(InternalExam.sci_progcat,   female_pred)
+        mc_sum_s, m_sum_s, mc_abv_s, m_abv_s, m_total_s = _gender_progress_for(InternalExam.sci_progcat,   male_pred)
+        fc_sum_s, f_sum_s, fc_abv_s, f_abv_s, f_total_s = _gender_progress_for(InternalExam.sci_progcat,   female_pred)
 
         sum_data = [
-            {"subject": "English", "male": m_sum_e, "female": f_sum_e},
-            {"subject": "Maths",   "male": m_sum_m, "female": f_sum_m},
-            {"subject": "Science", "male": m_sum_s, "female": f_sum_s},
+            {"subject": "English", "male_n": mc_sum_e, "male_pct": m_sum_e, "male_total": m_total_e, "female_n": fc_sum_e, "female_pct": f_sum_e, "female_total": f_total_e},
+            {"subject": "Maths", "male_n": mc_sum_m, "male_pct": m_sum_m, "male_total": m_total_m, "female_n": fc_sum_m, "female_pct": f_sum_m, "female_total": f_total_m},
+            {"subject": "Science", "male_n": mc_sum_s, "male_pct": m_sum_s, "male_total": m_total_s, "female_n": fc_sum_s, "female_pct": f_sum_s, "female_total": f_total_s},
         ]
         above_data = [
-            {"subject": "English", "male": m_abv_e, "female": f_abv_e},
-            {"subject": "Maths",   "male": m_abv_m, "female": f_abv_m},
-            {"subject": "Science", "male": m_abv_s, "female": f_abv_s},
+            {"subject": "English", "male_n": mc_abv_e, "male_pct": m_abv_e, "male_total": m_total_e, "female_n": fc_abv_e, "female_pct": f_abv_e, "female_total": f_total_e},
+            {"subject": "Maths", "male_n": mc_abv_m, "male_pct": m_abv_m, "male_total": m_total_e, "female_n": fc_abv_m, "female_pct": f_abv_m, "female_total": f_total_e},
+            {"subject": "Science", "male_n": mc_abv_s, "male_pct": m_abv_s, "male_total": m_total_e, "female_n": fc_abv_s, "female_pct": f_abv_s, "female_total": f_total_e},
         ]
         
         return sum_data, above_data
