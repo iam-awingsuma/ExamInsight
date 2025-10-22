@@ -1268,7 +1268,7 @@ def analytics_internal():
 
     #*** Student ATTAINMENT Chart: Gender-specific 
     def _pct(n, d):
-        return round((n / d) * 100.0, 2) if d else 0.0
+        return round((n / d) * 100.0, 1) if d else 0.0
     
     # Normalise gender to lowercase for M/Male or F/Female
     male_pred = or_(
@@ -1297,27 +1297,23 @@ def analytics_internal():
         ).join(Students, InternalExam.student_id == Students.student_id)\
         .filter(gender_pred).scalar() or 0
 
-        return _pct(int(numer), int(denom))
+        return int(numer), _pct(int(numer), int(denom)), int(denom)
 
     def _build_gender_payload(threshold):
-        """Return a list of dicts [{subject, male, female}] for the given threshold."""
-        return [
-            {
-                "subject": "English",
-                "male":   _gender_threshold_for(InternalExam.eng_currPct,   threshold, male_pred),
-                "female": _gender_threshold_for(InternalExam.eng_currPct,   threshold, female_pred),
-            },
-            {
-                "subject": "Maths",
-                "male":   _gender_threshold_for(InternalExam.maths_currPct, threshold, male_pred),
-                "female": _gender_threshold_for(InternalExam.maths_currPct, threshold, female_pred),
-            },
-            {
-                "subject": "Science",
-                "male":   _gender_threshold_for(InternalExam.sci_currPct,   threshold, male_pred),
-                "female": _gender_threshold_for(InternalExam.sci_currPct,   threshold, female_pred),
-            },
-        ]
+        """[{subject, male_n, male_pct, female_n, female_pct}]"""
+        m_n, m_p, m_t = _gender_threshold_for(InternalExam.eng_currPct,   threshold, male_pred)
+        f_n, f_p, f_t = _gender_threshold_for(InternalExam.eng_currPct,   threshold, female_pred)
+        eng_row = {"subject":"English","male_n":m_n,"male_pct":m_p,"male_total": m_t,"female_n":f_n,"female_pct":f_p,"female_total": f_t}
+
+        m_n, m_p, m_t = _gender_threshold_for(InternalExam.maths_currPct, threshold, male_pred)
+        f_n, f_p, f_t = _gender_threshold_for(InternalExam.maths_currPct, threshold, female_pred)
+        maths_row = {"subject":"Maths","male_n":m_n,"male_pct":m_p,"male_total": m_t,"female_n":f_n,"female_pct":f_p,"female_total": f_t}
+
+        m_n, m_p, m_t = _gender_threshold_for(InternalExam.sci_currPct,   threshold, male_pred)
+        f_n, f_p, f_t = _gender_threshold_for(InternalExam.sci_currPct,   threshold, female_pred)
+        sci_row = {"subject":"Science","male_n":m_n,"male_pct":m_p,"male_total": m_t,"female_n":f_n,"female_pct":f_p,"female_total": f_t}
+
+        return [eng_row, maths_row, sci_row]
     
     gender_ge60_data = _build_gender_payload(60)
     gender_ge70_data = _build_gender_payload(70)

@@ -147,13 +147,13 @@
                 <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
                   <table class="table table-sm table-tight align-middle w-100 mb-0">
                     <tbody class="small">
-                      <tr class="text-center">
+                      <tr class="text-center fw-bold">
                         <th scope="row">Subject</th>
-                        <td class="table-light">#</th>
-                        <td class="table-success">≥60</th>
-                        <td class="table-success">%</th>
-                        <td class="table-info">≥70</th>
-                        <td class="table-info">%</th>
+                        <td class="table-light">#</td>
+                        <td class="table-success">≥60</td>
+                        <td class="table-success">%</td>
+                        <td class="table-info">≥70</td>
+                        <td class="table-info">%</td>
                       </tr>
                       {% for row in attainment_table %}
                       <tr class="text-center">
@@ -190,13 +190,13 @@
                 <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
                   <table class="table table-sm table-tight align-middle w-100 mb-0">
                     <tbody class="small">
-                      <tr class="text-center">
+                      <tr class="text-center fw-bold">
                         <th scope="row">Subject</th>
-                        <td class="table-light">#</th>
-                        <td class="table-success">Exp/Better Prog</th>
-                        <td class="table-success">%</th>
-                        <td class="table-info">Better Prog</th>
-                        <td class="table-info">%</th>
+                        <td class="table-light">#</td>
+                        <td class="table-success">Exp/Better Prog</td>
+                        <td class="table-success">%</td>
+                        <td class="table-info">Better Prog</td>
+                        <td class="table-info">%</td>
                       </tr>
                       {% for row in progress_simple_data %}
                       <tr class="text-center">
@@ -233,6 +233,33 @@
                 </div>
                 <div class="chart-body mt-1">
                   <div id="chart_gender_ge60" class="w-100" style="height:360px;"></div>
+                </div>
+                <!-- Gender-specific Attainment Table -->
+                <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
+                  <table class="table table-sm table-tight align-middle w-100 mb-0">
+                    <tbody class="small">
+                      <tr class="text-center fw-bold">
+                        <th scope="row">Subject</th>
+                        <td class="table-light">M (#)</td>
+                        <td class="table-warning">(n)</td>
+                        <td class="table-warning">%</td>
+                        <td class="table-light">F (#)</td>
+                        <td class="table-danger">(n)</td>
+                        <td class="table-danger">%</td>
+                      </tr>
+                      {% for row in gender_ge60_data %}
+                      <tr class="text-center">
+                        <th scope="row">{{ row.subject }}</th>
+                        <td class="table-light">{{ row.male_total }}</td>
+                        <td class="table-warning">{{ row.male_n }}</td>
+                        <td class="table-warning">{{ row.male_pct }}</td>
+                        <td class="table-light">{{ row.female_total }}</td>
+                        <td class="table-danger">{{ row.female_n }}</td>
+                        <td class="table-danger">{{ row.female_pct }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
