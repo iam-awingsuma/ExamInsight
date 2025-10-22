@@ -1176,10 +1176,6 @@ def analytics_internal():
         # return pct60, pct70
         return n, ge60, ge70, pct60, pct70
 
-    # eng60, eng70 = ge60_ge70_for(InternalExam.eng_currPct) # compute English for current-year 60/70+
-    # math60, math70 = ge60_ge70_for(InternalExam.maths_currPct) # compute Maths for current-year 60/70+
-    # sci60, sci70 = ge60_ge70_for(InternalExam.sci_currPct) # compute Science for current-year 60/70+
-
     eng_n, eng60, eng70, eng_pct60, eng_pct70 = ge60_ge70_for(InternalExam.eng_currPct) # compute English for current-year 60/70+
     math_n, math60, math70, math_pct60, math_pct70 = ge60_ge70_for(InternalExam.maths_currPct) # compute Maths for current-year 60/70+
     sci_n, sci60, sci70, sci_pct60, sci_pct70 = ge60_ge70_for(InternalExam.sci_currPct) # compute Science for current-year 60/70+
@@ -1257,8 +1253,6 @@ def analytics_internal():
     maths_total, cnt_maths_exp_above, cnt_maths_above_only, maths_sum, maths_above_only = simple_progress(InternalExam.maths_progcat)
     sci_total, cnt_sci_exp_above, cnt_sci_above_only, sci_sum, sci_above_only = simple_progress(InternalExam.sci_progcat)
 
-
-
     # Payload for the simple progress chart
     progress_simple_data = [
         {"subject": "English", "n": eng_total, "count_exp_above": cnt_eng_exp_above, "count_above_only": cnt_eng_above_only, "sum_expected_above": eng_sum,   "above_only": eng_above_only},
@@ -1300,7 +1294,7 @@ def analytics_internal():
         return int(numer), _pct(int(numer), int(denom)), int(denom)
 
     def _build_gender_payload(threshold):
-        """[{subject, male_n, male_pct, female_n, female_pct}]"""
+        """[{subject, male_n, male_pct, male_total, female_n, female_pct, female_total}]"""
         m_n, m_p, m_t = _gender_threshold_for(InternalExam.eng_currPct,   threshold, male_pred)
         f_n, f_p, f_t = _gender_threshold_for(InternalExam.eng_currPct,   threshold, female_pred)
         eng_row = {"subject":"English","male_n":m_n,"male_pct":m_p,"male_total": m_t,"female_n":f_n,"female_pct":f_p,"female_total": f_t}
