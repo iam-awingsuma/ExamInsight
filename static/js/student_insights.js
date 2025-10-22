@@ -77,7 +77,7 @@
     const titleEl = document.getElementById('kpi_total_title');
     const countEl = document.getElementById('kpi_total_value');
 
-    if (titleEl) titleEl.textContent = t.title || 'Total Students';
+    if (titleEl) titleEl.textContent = t.title || 'Year 2 Cohort';
     if (countEl) countEl.textContent = t.count ?? '—';
   }
 

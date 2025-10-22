@@ -1445,13 +1445,6 @@ def api_analytics():
     if not rows:
         prog_order = ["Below Expected", "Expected", "Above Expected"]
         empty = {
-            # "summary": {
-                # "total_students": 0,
-                # "avg_attainment": 0.0,
-                # "progress_delta": 0.0,
-                # "above_target": 0,
-                # "below_target": 0
-            # },
             "line": {  # prev vs current by subject with line chart
                 "labels": ["Previous", "Current"],
                 "english": [0, 0],
@@ -1487,13 +1480,8 @@ def api_analytics():
         }
         return jsonify(empty)
 
-    # ---- Summary metrics ----
-    # total distinct students
-    # total_students = len({r.student_id for r in rows})
-
     # aggregate current % across 3 subjects (skip Nones)
     curr_values, prev_values = [], []
-    # above = below = 0
 
     # ---------- progress categories per subject ----------
     # Normalize to 3 buckets and keep a locked order for the x-axis
@@ -1571,12 +1559,6 @@ def api_analytics():
             if prev is not None:
                 prev_values.append(prev)
 
-            # Above/below target simple rule: curr vs prev
-            # if curr is not None and prev is not None:
-            #     if curr > prev: above += 1
-            #     elif curr < prev: below += 1
-                # equal = neither
-
             # ---------- Progress category tally ----------
             bucket = norm_progcat(progcat)
             if bucket:
@@ -1595,21 +1577,13 @@ def api_analytics():
                 if prev is not None: s_prev += prev; n_s += 1
                 if curr is not None: s_curr += curr
 
-    # Averages (avoid zero division)
-    # def avg(lst): 
-    #     return round(sum(lst)/len(lst), 2) if lst else 0.0
-
-    # avg_attainment = avg(curr_values)
-    # avg_prev       = avg(prev_values)
-    # progress_delta = round(avg_attainment - avg_prev, 2)
-
     # Subject means for line chart (based on counts where prev existed)
-    eng_prev_mean = round(eng_prev / n_eng, 2) if n_eng else 0.0
-    eng_curr_mean = round(eng_curr / n_eng, 2) if n_eng else 0.0
-    m_prev_mean   = round(m_prev / n_m, 2)     if n_m   else 0.0
-    m_curr_mean   = round(m_curr / n_m, 2)     if n_m   else 0.0
-    s_prev_mean   = round(s_prev / n_s, 2)     if n_s   else 0.0
-    s_curr_mean   = round(s_curr / n_s, 2)     if n_s   else 0.0
+    eng_prev_mean = round(eng_prev / n_eng, 1) if n_eng else 0.0
+    eng_curr_mean = round(eng_curr / n_eng, 1) if n_eng else 0.0
+    m_prev_mean   = round(m_prev / n_m, 1)     if n_m   else 0.0
+    m_curr_mean   = round(m_curr / n_m, 1)     if n_m   else 0.0
+    s_prev_mean   = round(s_prev / n_s, 1)     if n_s   else 0.0
+    s_curr_mean   = round(s_curr / n_s, 1)     if n_s   else 0.0
 
     # --- Per-subject CURRENT% lists for KPIs (ignore None) ---
     eng_curr_list = [r.eng_currPct for r in rows if r.eng_currPct is not None]
@@ -1635,20 +1609,13 @@ def api_analytics():
         total_label = full_name
         total_value = 1
     elif yrgrp:
-        total_label = f"Year {yrgrp} Students"
+        total_label = f"Year {yrgrp}"
         total_value = len({r.student_id for r in rows})
     else:
-        total_label = "Total Students"
+        total_label = "Year 2 Cohort"
         total_value = len({r.student_id for r in rows})
 
     payload = {
-        # "summary": {
-            # "total_students": int(total_students),
-            # "avg_attainment": avg_attainment,
-            # "progress_delta": progress_delta,
-            # "above_target": int(above),
-            # "below_target": int(below),
-        # },
         "line": {
             "labels": ["Previous", "Current"],
             "english": [eng_prev_mean, eng_curr_mean],
