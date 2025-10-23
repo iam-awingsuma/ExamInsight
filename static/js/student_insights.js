@@ -60,7 +60,7 @@
   function renderKPIs(k = {}) {
     const set = (id, val) => {
       const el = document.getElementById(id);
-      if (el) el.textContent = (typeof val === 'number' ? val.toFixed(2) : '—');
+      if (el) el.textContent = (typeof val === 'number' ? val.toFixed(1) : '—');
     };
     const setText = (id, txt) => {
       const el = document.getElementById(id);

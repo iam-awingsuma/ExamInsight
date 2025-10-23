@@ -1468,11 +1468,6 @@ def api_analytics():
                 "maths":   [0, 0, 0],
                 "science": [0, 0, 0],
             },
-            "kpis_subjects": {
-                "mode": "cohort",
-                "title": "Cohort Average (Current %)",
-                "english": 0.0, "maths": 0.0, "science": 0.0
-            },
             "kpi_total": {
                 "title": "All Year Groups (Total Cohort)",
                 "count": 0
@@ -1585,17 +1580,17 @@ def api_analytics():
     s_prev_mean   = round(s_prev / n_s, 1)     if n_s   else 0.0
     s_curr_mean   = round(s_curr / n_s, 1)     if n_s   else 0.0
 
-    # --- Per-subject CURRENT% lists for KPIs (ignore None) ---
+    # # --- Per-subject CURRENT% lists for KPIs (ignore None) ---
     eng_curr_list = [r.eng_currPct for r in rows if r.eng_currPct is not None]
     m_curr_list   = [r.maths_currPct for r in rows if r.maths_currPct is not None]
     s_curr_list   = [r.sci_currPct for r in rows if r.sci_currPct is not None]
 
     def avg_num(lst):
-        return round(sum(lst) / len(lst), 2) if lst else 0.0
+        return round(sum(lst) / len(lst), 1) if lst else 0.0
 
-    eng_avg = avg_num(eng_curr_list)
-    m_avg   = avg_num(m_curr_list)
-    s_avg   = avg_num(s_curr_list)
+    eng_avg = round(avg_num(eng_curr_list), 1)
+    m_avg   = round(avg_num(m_curr_list), 1)
+    s_avg   = round(avg_num(s_curr_list), 1)
 
     # --- Adaptive total-students KPI ---
     if sid:
