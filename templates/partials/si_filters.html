@@ -1,0 +1,24 @@
+<!-- Filters -->
+<div class="bg-white border-0 rounded-3 shadow-sm p-3 mb-3">
+    <div class="row align-items-center justify-content-between mx-auto">
+        <div class="col-12 col-md-3 col-sm-12">
+            <label class="form-label mb-1 small text-secondary text-xs">Year Group</label>
+            <select id="yrgrp" class="form-select w-100">
+                <option value="">All Year Groups</option>
+                {% for y in year_groups %}
+                    <option value="{{ y }}">{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12 col-md-9 col-sm-12">
+            <label class="form-label mb-1 small text-secondary text-xs">Student</label>
+            <select id="student" class="form-select w-100">
+                <option value="">All Students</option>
+            </select>
+        </div>
+        <!-- <div class="ms-auto d-flex gap-2"> -->
+            <!-- <button id="btnApply" class="btn btn-md btn-primary mx-0 my-0">View Analytics</button> -->
+            <!-- <button id="btnViewAnalytics" class="btn btn-md btn-primary mx-0 my-0">View Analytics</button> -->
+        <!-- </div> -->
+    </div>
+</div>
