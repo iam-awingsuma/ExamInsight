@@ -1134,19 +1134,31 @@ def analytics_internal():
                    .distinct() # only distinct values
                    .order_by(Students.yrgrp).all()] # order by year group ascending and fetch all rows
     
+    # count students per year group (excluding NULLs), ordered ascending
+    rc_yrgrp = (
+        db.session.query(Students.yrgrp, func.count(Students.id))
+        .filter(Students.yrgrp.isnot(None))
+        .group_by(Students.yrgrp)
+        .order_by(Students.yrgrp)
+        .all()
+    )
+
+    # if you want a dict {yrgrp: count}
+    counts_by_yrgrp = dict(rc_yrgrp)
+    
     #* KPIs: Y2 Cohort, Average Attainment for E/M/S
     # Total count of InternalExam intakes
     count_intake = db.session.query(InternalExam).count()
 
     # Render Cohort averages of current year for English, Maths, Science (chart 1)
-    curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
-    curr_avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
-    curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 2) # round to ensure it doesn’t return None
+    curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    curr_avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
 
     # averages for English, Maths, Science but for previous-year results
-    prev_avg_eng = round(db.session.query(func.avg(InternalExam.eng_prevPct)).scalar() or 0, 2)
-    prev_avg_maths = round(db.session.query(func.avg(InternalExam.maths_prevPct)).scalar() or 0, 2)
-    prev_avg_sci = round(db.session.query(func.avg(InternalExam.sci_prevPct)).scalar() or 0, 2)
+    prev_avg_eng = round(db.session.query(func.avg(InternalExam.eng_prevPct)).scalar() or 0, 1)
+    prev_avg_maths = round(db.session.query(func.avg(InternalExam.maths_prevPct)).scalar() or 0, 1)
+    prev_avg_sci = round(db.session.query(func.avg(InternalExam.sci_prevPct)).scalar() or 0, 1)
     
     # Round for display, but keep as float and 1 decimal place for English, Maths, Science
     data = {
@@ -1399,7 +1411,7 @@ def analytics_internal():
         gender_prog_exp_above=gender_prog_exp_above,
         gender_prog_above_data=gender_prog_above_data,
         attainment_table=attainment_table,
-        # total_row=total_row,
+        counts_by_yrgrp=counts_by_yrgrp,
     )
 
 
