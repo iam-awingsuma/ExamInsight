@@ -45,8 +45,30 @@
 
     <!-- Collapsible contents -->
     <!-- Accordion 2: Year Group Insights -->
+    <!-- Year Group vs. Cohort: Average Attainment Comparison Chart -->
     <div id="c2" class="accordion-collapse collapse" data-bs-parent="#oneAtATime">
-      {% include "partials/yi_kpi.html" %}
+      <div class="container-fluid px-0 mb-3">
+        <div class="row g-0">
+          {% include "partials/yi_avg_att_comparison.html" %}
+        </div>
+      </div>
+    
+
+    <!-- Attainment Comparison Chart | Year Group vs. Cohort -->
+      <!-- Attainment Comparison Chart | Year Group vs. Cohort ≥60 & ≥70 -->
+      <div class="container-fluid px-0 mb-3">
+        <div class="row g-3 align-items-stretch">
+          {% include "partials/yi_yg_att_charts.html" %}
+        </div>
+      </div>
+
+      <!-- Progress Category Distribution Charts | Expected/Better Progress & Better Progress -->
+      <div class="container-fluid px-0 mb-3">
+        <div class="row g-3 align-items-stretch">
+          {% include "partials/yi_yg_prog_charts.html" %}
+        </div>
+      </div>
+
     </div>
     <!-- End of Accordion 2 -->
 
