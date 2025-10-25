@@ -1414,10 +1414,9 @@ def analytics_internal():
         counts_by_yrgrp=counts_by_yrgrp,
     )
 
-
-#********************************************************
-#*** Performance Analytics Routes - Student Insights ***#
-#********************************************************
+#*********************************************************************
+#*** Performance Analytics Routes - Student & Year Group Insights ***#
+#*********************************************************************
 # --- Student dropdown for analytics page :: Student Insights page ---
 @blueprint.route("/api/students_by_year", methods=["GET"])
 def api_students_by_year():
@@ -1435,8 +1434,8 @@ def api_students_by_year():
     )
     data = [{"id": sid, "name": f"{fn} {sn}"} for (sid, fn, sn) in q.all()]
     return jsonify({"students": data})
-
-# --- Main analytics payload (cards + charts) :: Student Insights (Internal Assessment Analytics) ---
+    
+# --- Main analytics payload (cards + charts + tables) :: Year Group & Student Insights (Internal Assessment Analytics) ---
 @blueprint.route("/api/analytics", methods=["GET"])
 def api_analytics():
     # Get 'yrgrp' and 'student_id' from the request's query parameters
@@ -1518,6 +1517,7 @@ def api_analytics():
         "science": {k: 0 for k in prog_order},
     }
 
+    # Attainment Bands:
     # distribution bands use current % from all subjects
     #* Boundary Behaviour for Distribution Bands:
     #* <60 Beginning/Developing
@@ -1592,7 +1592,7 @@ def api_analytics():
     s_prev_mean   = round(s_prev / n_s, 1)     if n_s   else 0.0
     s_curr_mean   = round(s_curr / n_s, 1)     if n_s   else 0.0
 
-    # # --- Per-subject CURRENT% lists for KPIs (ignore None) ---
+    # --- Per-subject CURRENT% lists for KPIs (ignore None) ---
     eng_curr_list = [r.eng_currPct for r in rows if r.eng_currPct is not None]
     m_curr_list   = [r.maths_currPct for r in rows if r.maths_currPct is not None]
     s_curr_list   = [r.sci_currPct for r in rows if r.sci_currPct is not None]
@@ -1652,7 +1652,79 @@ def api_analytics():
         "kpi_total": {
             "title": total_label,
             "count": int(total_value),
-        }
+        },     
     }
 
     return jsonify(payload)
+
+   
+@blueprint.route("/api/yrgrp_analytics", methods=["GET"])
+def api_yeargroup_attainment_by_class():
+    # --- Year Group Attainment by Class :: Year Group Insights page ---
+    target_year = 2
+    class_labels = sorted([c[0] for c in db.session.query(Students.yrgrp).distinct().filter(Students.yrgrp.ilike(f"{target_year}-%")).all()])
+
+    CLASS_COL = Students.yrgrp
+
+    def _r(v, dp=1):  # safe round
+        try:
+            return round(float(v), dp)
+        except (TypeError, ValueError):
+            return 0.0
+
+    # Per class subject average - attainment
+    rows = (
+        db.session.query(
+            CLASS_COL.label("class"),
+            func.avg(InternalExam.eng_currPct).label("eng"),
+            func.avg(InternalExam.maths_currPct).label("maths"),
+            func.avg(InternalExam.sci_currPct).label("sci"),
+        )
+        .join(InternalExam, InternalExam.student_id == Students.student_id)
+        .filter(func.lower(func.trim(CLASS_COL)).in_([c.lower() for c in class_labels]))
+        .filter(func.trim(CLASS_COL).in_(class_labels))
+        .group_by(CLASS_COL)
+        .all()
+    )
+
+    # put into dict keyed by class for easy lookup
+    by_class = {c: {"eng": 0.0, "maths": 0.0, "sci": 0.0} for c in class_labels}
+
+    for r in rows:
+        cls = r._mapping["class"]
+        if cls in by_class:
+            by_class[cls] = {
+                "eng":   _r(r._mapping["eng"]),
+                "maths": _r(r._mapping["maths"]),
+                "sci":   _r(r._mapping["sci"]),
+            }
+
+    # Cohort averages of current year for English, Maths, Science
+    c_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    c_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    c_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+
+    cohort = {"eng": _r(c_eng), "maths": _r(c_maths), "sci": _r(c_sci)}
+
+    # --- Single-chart payload ---
+    yrgrp_payload = {
+        "subjects": ["English", "Maths", "Science"],
+        # traces: one per class + cohort
+        "traces": [
+            {"name": cls.upper(),
+             "y": [by_class[cls]["eng"], by_class[cls]["maths"], by_class[cls]["sci"]],
+             "type": "bar"
+            } for cls in class_labels
+        ] + [{
+            "name": "Cohort",
+            "y": [cohort["eng"], cohort["maths"], cohort["sci"]],
+            "type": "bar",
+            "isCohort": True  # hint for styling on the frontend
+        }],
+        "meta": {
+            "year": target_year,
+            "notes": "Averages (0–100), rounded to 1 dp."
+        }
+    }
+
+    return jsonify(yrgrp_payload)
