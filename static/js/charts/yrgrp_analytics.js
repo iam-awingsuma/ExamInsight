@@ -70,7 +70,7 @@ window.yrgrp_analytics = function (elId = "chart_yrgrp_analytics") {
         };
         
         let html = `
-          <table class="table table-responsive table-tight table-sm text-xs text-center align-middle mb-0">
+          <table class="table table-responsive table-tight table-sm text-xs text-center align-middle w-100 mb-0">
             <thead class="table-light">
               <tr>
                 <th>Class / Cohort</th>
@@ -81,11 +81,8 @@ window.yrgrp_analytics = function (elId = "chart_yrgrp_analytics") {
               ${td.traces.map(t => `
                 <tr ${t.isCohort ? "style='font-weight:bold;background:#f9f9f9;'" : ""}>
                   <td>${t.name}</td>
-                  ${t.y.map((v,i) =>
-                    `<td style="background:${Object.values(colColors)[i]};">${Number(v).toFixed(1)}</td>`
-                  ).join("")}
-                </tr>`
-              ).join("")}
+                  ${t.y.map(v => `<td>${Number(v).toFixed(1)}</td>`).join("")}
+                </tr>`).join("")}
             </tbody>
           </table>
         `;
