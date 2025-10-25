@@ -57,6 +57,40 @@ window.yrgrp_analytics = function (elId = "chart_yrgrp_analytics") {
       new ResizeObserver(() => Plotly.Plots.resize(el)).observe(el);
       document.addEventListener("shown.bs.tab", () => Plotly.Plots.resize(el));
       document.addEventListener("shown.bs.collapse", () => Plotly.Plots.resize(el));
+
+      // --- Render data table below the chart ---
+      const tableContainer = document.getElementById("tbl_yrgrp_analytics");
+      if (tableContainer) {
+
+        // Define per-subject column colors
+        const colColors = {
+          English:  "#d6ecff", // light blue
+          Maths:    "#ffe8cc", // light orange
+          Science:  "#e5f9e0"  // light green
+        };
+        
+        let html = `
+          <table class="table table-responsive table-tight table-sm text-xs text-center align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Class / Cohort</th>
+                ${subjects.map(s => `<th style="background:${colColors[s] || '#fff'}">${s}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${td.traces.map(t => `
+                <tr ${t.isCohort ? "style='font-weight:bold;background:#f9f9f9;'" : ""}>
+                  <td>${t.name}</td>
+                  ${t.y.map((v,i) =>
+                    `<td style="background:${Object.values(colColors)[i]};">${Number(v).toFixed(1)}</td>`
+                  ).join("")}
+                </tr>`
+              ).join("")}
+            </tbody>
+          </table>
+        `;
+        tableContainer.innerHTML = html;
+      }
     })
     .catch(err => console.error("[renderYrgrpAnalytics] Fetch error:", err));
 };
