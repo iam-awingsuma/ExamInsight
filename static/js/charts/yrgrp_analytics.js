@@ -17,8 +17,8 @@ window.yrgrp_analytics = function (elId = "chart_yrgrp_analytics") {
         "2-C": "#95cf92",
         "2-D": "#f8e16f",
         "2-E": "#F8961e",
-        "2-F": "#de324c",
-        "Cohort": "#577590" // default fallback
+        "2-F": "#DC3C22",
+        "Cohort": "#065084" // default fallback
       };
 
       // Create traces for Plotly (bars per class + cohort)
