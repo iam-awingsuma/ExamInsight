@@ -4,12 +4,12 @@ window.renderPerfOverTime = function (elId = "chart_perf_over_time") {
   const subjects = ["English","Maths","Science"];
   const prev = [d.eng_prev ?? 0, d.maths_prev ?? 0, d.sci_prev ?? 0];
   const curr = [d.eng_curr ?? 0, d.maths_curr ?? 0, d.sci_curr ?? 0];
-  const currColors = curr.map((v,i) => v >= prev[i] ? "#9BEC00" : "#FF0060");
+  const currColors = curr.map((v,i) => v >= prev[i] ? "#A7E399" : "#FF0060");
   const deltas = curr.map((v,i) => +(v - prev[i]).toFixed(1));
 
   Plotly.newPlot(elId, [
     { x: subjects, y: prev, type:"bar", name:"Previous Academic Year",
-      marker:{ color:"#00CAFF" }, text: prev.map(v=>v.toFixed(1)), textposition:"outside",
+      marker:{ color:"#0BA6DF" }, text: prev.map(v=>v.toFixed(1)), textposition:"outside",
       hovertemplate:
         "<b>%{x}</b><br>" +
         "Previous AY Avg: %{y:.1f}<extra></extra>"

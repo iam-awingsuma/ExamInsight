@@ -32,7 +32,8 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     y: ge70_count,
     type: "bar",
     name: "≥70 (Students above curriculum standard)",
-    marker: { color: "#0073e5" },
+    // marker: { color: "#0073e5" },
+    marker: { color: "#0BA6DF" },
     text: ge70_pct.map(v => `${Number(v).toFixed(1)}%`),   // label with total ≥70%
     textposition: "outside",
     customdata: custom70,
@@ -44,7 +45,8 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     y: ge60_count,
     type: "bar",
     name: "≥60 (Students at/above curriculum standard)",
-    marker: { color: "#7ddc1f" },
+    // marker: { color: "#7ddc1f" },
+    marker: { color: "#A7E399" },
     text: ge60_pct.map(v => `${Number(v).toFixed(1)}%`),   // label with total ≥60%
     textposition: "outside",
     customdata: custom60,

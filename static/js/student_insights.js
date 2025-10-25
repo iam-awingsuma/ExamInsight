@@ -87,9 +87,9 @@
     const math= line.maths   || [0,0];
     const sci = line.science || [0,0];
     const traces = [
-      { x: labels, y: eng,  type: 'scatter', mode: 'lines+markers', name: 'English', marker:{ color:"#0073e5" }},
-      { x: labels, y: math, type: 'scatter', mode: 'lines+markers', name: 'Maths', marker:{ color:"#FF6500" }},
-      { x: labels, y: sci,  type: 'scatter', mode: 'lines+markers', name: 'Science', marker:{ color:"#7ddc1f" }},
+      { x: labels, y: eng,  type: 'scatter', mode: 'lines+markers', name: 'English', marker:{ color:"#0BA6DF" }},
+      { x: labels, y: math, type: 'scatter', mode: 'lines+markers', name: 'Maths', marker:{ color:"#FCB53B" }},
+      { x: labels, y: sci,  type: 'scatter', mode: 'lines+markers', name: 'Science', marker:{ color:"#A7E399" }},
     ];
     const layout = {
       margin: { t: 10, r: 10, b: 40, l: 50 },
@@ -106,9 +106,9 @@
 
     const traces = hasStacks
       ? [
-        { x: labels, y: toNums(bands.science), type:'bar', name:'Science', marker:{ color:"#7ddc1f" }},
-        { x: labels, y: toNums(bands.maths),   type:'bar', name:'Maths', marker:{ color:"#FF6500" }},
-        { x: labels, y: toNums(bands.english), type:'bar', name:'English', marker:{ color:"#0073e5" }},
+        { x: labels, y: toNums(bands.science), type:'bar', name:'Science', marker:{ color:"#A7E399" }},
+        { x: labels, y: toNums(bands.maths),   type:'bar', name:'Maths', marker:{ color:"#FCB53B" }},
+        { x: labels, y: toNums(bands.english), type:'bar', name:'English', marker:{ color:"#0BA6DF" }},
         ]
       : [{ x: labels, y: toNums(bands.counts), type:'bar', name:'All subjects' }];
 
@@ -129,9 +129,9 @@
 
     const tracess = hasStacks
       ? [
-        { x: labels, y: toNums(progcats.science), type:'bar', name:'Science', marker:{ color:"#7ddc1f" }},
-        { x: labels, y: toNums(progcats.maths),   type:'bar', name:'Maths', marker:{ color:"#FF6500" }},
-        { x: labels, y: toNums(progcats.english), type:'bar', name:'English', marker:{ color:"#0073e5" }},
+        { x: labels, y: toNums(progcats.science), type:'bar', name:'Science', marker:{ color:"#A7E399" }},  // previous color: #7ddc1f
+        { x: labels, y: toNums(progcats.maths),   type:'bar', name:'Maths', marker:{ color:"#FCB53B" }},  // previous color: #FF6500
+        { x: labels, y: toNums(progcats.english), type:'bar', name:'English', marker:{ color:"#0BA6DF" }},  // previous color: #0073e5
         ]
       : [{ x: labels, y: toNums(progcats.counts), type:'bar', name:'All subjects' }];
 

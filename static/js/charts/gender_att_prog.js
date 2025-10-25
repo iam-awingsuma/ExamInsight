@@ -43,7 +43,8 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
   // Build traces (clustered side-by-side)
   const traces = [
     { x: subjects, y: male, type:"bar", name:`Male ${labelSuffix}`,
-      marker:{ color:"#F8DE22" },
+      // marker:{ color:"#F8DE22" },
+      marker:{ color:"#FDEB9E" },
       text: male.map(v => `${(Number.isFinite(v)?v:0).toFixed(1)}%`),
       textposition:"outside",
       hoverinfo:"text",
@@ -51,7 +52,8 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
       offsetgroup:"male", legendgroup:"male"
     },
     { x: subjects, y: female, type:"bar", name:`Female ${labelSuffix}`,
-      marker:{ color:"#FF6500" },
+      // marker:{ color:"#FF6500" },
+      marker:{ color:"#FCB53B" },
       text: female.map(v => `${(Number.isFinite(v)?v:0).toFixed(1)}%`),
       textposition:"outside",
       hoverinfo:"text",
