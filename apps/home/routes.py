@@ -1713,6 +1713,7 @@ def api_yeargroup_attainment_by_class():
     #****************************************
     # Per-class or year group average attainment (E/M/S) ≥60
     thr60 = 60
+    thr70 = 70
     classes = class_labels  # use all classes found for target year group
     yrgrp_norm = func.lower(func.trim(Students.yrgrp))
 
@@ -1735,7 +1736,12 @@ def api_yeargroup_attainment_by_class():
             func.sum(case((InternalExam.maths_currPct >= thr60, 1), else_=0)).label("maths60_pass"),
             func.sum(case((InternalExam.sci_currPct   >= thr60, 1), else_=0)).label("sci60_pass"),
 
-            # Per-class percentages (safe divide)
+            # Per-class pass counts (≥670 threshold)
+            func.sum(case((InternalExam.eng_currPct   >= thr70, 1), else_=0)).label("eng70_pass"),
+            func.sum(case((InternalExam.maths_currPct >= thr70, 1), else_=0)).label("maths70_pass"),
+            func.sum(case((InternalExam.sci_currPct   >= thr70, 1), else_=0)).label("sci70_pass"),
+
+            # Per-class percentages (≥60 threshold) | (safe divide)
             ((func.sum(case((InternalExam.eng_currPct   >= thr60, 1), else_=0)) * 100.0) /
             func.nullif(func.count(InternalExam.eng_currPct), 0)).label("eng60_pct"),
 
@@ -1744,6 +1750,16 @@ def api_yeargroup_attainment_by_class():
 
             ((func.sum(case((InternalExam.sci_currPct   >= thr60, 1), else_=0)) * 100.0) /
             func.nullif(func.count(InternalExam.sci_currPct), 0)).label("sci60_pct"),
+
+            # Per-class percentages (≥70 threshold) | (safe divide)
+            ((func.sum(case((InternalExam.eng_currPct   >= thr70, 1), else_=0)) * 100.0) /
+            func.nullif(func.count(InternalExam.eng_currPct), 0)).label("eng70_pct"),
+
+            ((func.sum(case((InternalExam.maths_currPct >= thr70, 1), else_=0)) * 100.0) /
+            func.nullif(func.count(InternalExam.maths_currPct), 0)).label("maths70_pct"),
+
+            ((func.sum(case((InternalExam.sci_currPct   >= thr70, 1), else_=0)) * 100.0) /
+            func.nullif(func.count(InternalExam.sci_currPct), 0)).label("sci70_pct"),
         )
         .join(Students, Students.student_id == InternalExam.student_id)
         .filter(yrgrp_norm.in_([c.lower() for c in classes]))
@@ -1763,16 +1779,24 @@ def api_yeargroup_attainment_by_class():
             "sci_avg":    round(m["sci_avg"]   or 0, 1),
 
             "class_n":      int(m["eng_n"] or 0),
-            "class_n":    int(m["maths_n"] or 0),
+            "class_n":      int(m["maths_n"] or 0),
             "class_n":      int(m["sci_n"] or 0),
 
             "eng60_pass":   int(m["eng60_pass"] or 0),
             "maths60_pass": int(m["maths60_pass"] or 0),
             "sci60_pass":   int(m["sci60_pass"] or 0),
 
+            "eng70_pass":   int(m["eng70_pass"] or 0),
+            "maths70_pass": int(m["maths70_pass"] or 0),
+            "sci70_pass":   int(m["sci70_pass"] or 0),
+
             "eng60_pct":    round(m["eng60_pct"]   or 0, 1),
             "maths60_pct":  round(m["maths60_pct"] or 0, 1),
             "sci60_pct":    round(m["sci60_pct"]   or 0, 1),
+
+            "eng70_pct":    round(m["eng70_pct"]   or 0, 1),
+            "maths70_pct":  round(m["maths70_pct"] or 0, 1),
+            "sci70_pct":    round(m["sci70_pct"]   or 0, 1),
         })
 
     # Cohort average attainment (E/M/S) ≥60
@@ -1789,7 +1813,12 @@ def api_yeargroup_attainment_by_class():
         func.sum(case((InternalExam.maths_currPct >= thr60, 1), else_=0)),
         func.sum(case((InternalExam.sci_currPct   >= thr60, 1), else_=0)),
 
-        # Cohort percentages (safe divide)
+        # Cohort pass counts (≥70 threshold)
+        func.sum(case((InternalExam.eng_currPct   >= thr70, 1), else_=0)),
+        func.sum(case((InternalExam.maths_currPct >= thr70, 1), else_=0)),
+        func.sum(case((InternalExam.sci_currPct   >= thr70, 1), else_=0)),
+
+        # Cohort percentages (≥60 threshold)|(safe divide) 
         ((func.sum(case((InternalExam.eng_currPct >= thr60, 1), else_=0)) * 100.0) /
          func.nullif(func.count(InternalExam.eng_currPct), 0)),
 
@@ -1797,6 +1826,16 @@ def api_yeargroup_attainment_by_class():
          func.nullif(func.count(InternalExam.maths_currPct), 0)),
 
         ((func.sum(case((InternalExam.sci_currPct >= thr60, 1), else_=0)) * 100.0) /
+         func.nullif(func.count(InternalExam.sci_currPct), 0)),
+
+        # Cohort percentages (≥70 threshold)|(safe divide) 
+        ((func.sum(case((InternalExam.eng_currPct >= thr70, 1), else_=0)) * 100.0) /
+         func.nullif(func.count(InternalExam.eng_currPct), 0)),
+
+        ((func.sum(case((InternalExam.maths_currPct >= thr70, 1), else_=0)) * 100.0) /
+         func.nullif(func.count(InternalExam.maths_currPct), 0)),
+
+        ((func.sum(case((InternalExam.sci_currPct >= thr70, 1), else_=0)) * 100.0) /
          func.nullif(func.count(InternalExam.sci_currPct), 0)),
     )
     .join(Students, Students.student_id == InternalExam.student_id)
@@ -1807,7 +1846,9 @@ def api_yeargroup_attainment_by_class():
     (engCo_avg, mathsCo_avg, sciCo_avg,
     engCo_n, mathsCo_n, sciCo_n,
     engC60_pass, mathsC60_pass, sciC60_pass,
-    engC60_pct, mathsC60_pct, sciC60_pct) = cohort_row
+    engC70_pass, mathsC70_pass, sciC70_pass,
+    engC60_pct, mathsC60_pct, sciC60_pct,
+    engC70_pct, mathsC70_pct, sciC70_pct) = cohort_row
 
     cohort_stats = {
         "class":       "Cohort",
@@ -1823,9 +1864,17 @@ def api_yeargroup_attainment_by_class():
         "mathsC60_pass":int(mathsC60_pass or 0),
         "sciC60_pass":  int(sciC60_pass or 0),
 
+        "engC70_pass":  int(engC70_pass or 0),
+        "mathsC70_pass":int(mathsC70_pass or 0),
+        "sciC70_pass":  int(sciC70_pass or 0),
+
         "engC60_pct":   round(engC60_pct   or 0, 1),
         "mathsC60_pct": round(mathsC60_pct or 0, 1),
         "sciC60_pct":   round(sciC60_pct   or 0, 1),
+
+        "engC70_pct":   round(engC70_pct   or 0, 1),
+        "mathsC70_pct": round(mathsC70_pct or 0, 1),
+        "sciC70_pct":   round(sciC70_pct   or 0, 1),
     }
 
     # --- Single-chart payload ---
