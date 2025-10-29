@@ -1710,9 +1710,9 @@ def api_yeargroup_attainment_by_class():
 
     cohort = {"eng": _r(c_eng), "maths": _r(c_maths), "sci": _r(c_sci)}
 
-    #****************************************
-    #* Year Group vs. Cohort | Attainment ≥60
-    #****************************************
+    #**********************************************
+    #* Year Group vs. Cohort | Attainment ≥60 & ≥70
+    #**********************************************
     # # Per-class or year group average attainment (E/M/S) ≥60
     thr60, thr70 = 60, 70
     classes = class_labels  # use all classes found for target year group
@@ -1743,13 +1743,24 @@ def api_yeargroup_attainment_by_class():
 
     def _row_to_dict(m):
         out = {"class": (m.get("class") or "").upper()}
+        n_values = []
         for s in subjects:
             out[f"{s}_avg"] = _rfloat(m, f"{s}_avg")
-            out[f"{s}_n"]   = _rint(m,   f"{s}_n")
+            # out[f"{s}_n"]   = _rint(m, f"{s}_n")
+            n = _rint(m, f"{s}_n")
+            out[f"{s}_n"] = n
             out[f"{s}60_pass"] = _rint(m, f"{s}60_pass")
             out[f"{s}70_pass"] = _rint(m, f"{s}70_pass")
             out[f"{s}60_pct"]  = _rfloat(m, f"{s}60_pct")
             out[f"{s}70_pct"]  = _rfloat(m, f"{s}70_pct")
+            n_values.append(n)
+
+        # Derive a single class_n
+        # Prefer the first non-zero (common when all subjects share same cohort size);
+        # otherwise fall back to max; otherwise 0.
+        class_n = next((n for n in n_values if n), (max(n_values) if n_values else 0))
+        out["class_n"] = class_n
+
         return out
 
     class_stats = [_row_to_dict(rec._mapping) for rec in per_class]
@@ -1773,8 +1784,6 @@ def api_yeargroup_attainment_by_class():
         ]
 
     def build_cohort_stats(classes, thr60=60, thr70=70):
-        yrgrp_norm = func.lower(func.trim(Students.yrgrp))
-
         row = (
             db.session.query(*_cohort_exprs(thr60, thr70))
             .join(Students, Students.student_id == InternalExam.student_id)
@@ -1793,14 +1802,17 @@ def api_yeargroup_attainment_by_class():
 
         # Fill using a single loop; keys match your existing schema exactly
         cohort_stats = {"class": "Cohort"}
+
         for s in subjects:
+            n = rint(f"{s}_n")  # read once
             cohort_stats[f"{s}Co_avg"]   = rfloat(f"{s}_avg")
-            cohort_stats[f"{s}Co_n"]     = rint(f"{s}_n")
+            cohort_stats[f"{s}Co_n"]     = n
             cohort_stats[f"{s}C60_pass"] = rint(f"{s}60_pass")
             cohort_stats[f"{s}C70_pass"] = rint(f"{s}70_pass")
             cohort_stats[f"{s}C60_pct"]  = rfloat(f"{s}60_pct")
             cohort_stats[f"{s}C70_pct"]  = rfloat(f"{s}70_pct")
 
+        cohort_stats["cohort_n"] = n # all subjects have the same n
         return cohort_stats
  
     cohort_stats = build_cohort_stats(classes, thr60, thr70)

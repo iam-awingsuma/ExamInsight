@@ -15,7 +15,7 @@
         </h5>
     </div>
     <div class="chart-body mt-1">
-        <div id="chart_gender_ge60" class="w-100" style="height:360px;"></div>
+        <div id="chart_yrgrp_analytics60" class="w-100" style="height:360px;"></div>
     </div>
     <!-- Year Group vs. Cohort Attainment Table ≥60 -->
     <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
@@ -67,7 +67,7 @@
         </h5>
     </div>
     <div class="chart-body mt-1">
-        <div id="chart_gender_ge70" class="w-100" style="height:360px;"></div>
+        <div id="chart_yrgrp_analytics70" class="w-100" style="height:360px;"></div>
     </div>
     <!-- Year Group vs. Cohort Attainment Table ≥70 -->
     <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
@@ -88,12 +88,12 @@
             <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
                 <th scope="row">{{ row.class }}</th>
                 <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
-                <td class="table-info">{{ row.eng60_pass or row.engC60_pass }}</td>
-                <td class="table-info">{{ row.eng60_pct or row.engC60_pct }}</td>
-                <td class="table-warning">{{ row.maths60_pass or row.mathsC60_pass }}</td>
-                <td class="table-warning">{{ row.maths60_pct or row.mathsC60_pct }}</td>
-                <td class="table-success">{{ row.sci60_pass or row.sciC60_pass }}</td>
-                <td class="table-success">{{ row.sci60_pct or row.sciC60_pct }}</td>
+                <td class="table-info">{{ row.eng70_pass or row.engC70_pass }}</td>
+                <td class="table-info">{{ row.eng70_pct or row.engC70_pct }}</td>
+                <td class="table-warning">{{ row.maths70_pass or row.mathsC70_pass }}</td>
+                <td class="table-warning">{{ row.maths70_pct or row.mathsC70_pct }}</td>
+                <td class="table-success">{{ row.sci70_pass or row.sciC70_pass }}</td>
+                <td class="table-success">{{ row.sci70_pct or row.sciC70_pct }}</td>
             </tr>
             {% endfor %}
         </tbody>

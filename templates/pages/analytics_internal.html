@@ -102,7 +102,6 @@
   <script id="gender-ge70-data" type="application/json">{{ gender_ge70_data | default([]) | tojson | safe }}</script>
   <script id="gender-prog-exp-above" type="application/json">{{ gender_prog_exp_above | default([]) | tojson | safe }}</script>
   <script id="gender-prog-above-data" type="application/json">{{ gender_prog_above_data | default([]) | tojson | safe }}</script>
-  <!-- <script id="chart-yrgrp-avg-att" type="application/json">{{ yrgrp_data | default([]) | tojson | safe }}</script> -->
 
   <!-- Your chart globals -->
   <script src="{{ url_for('static', filename='js/charts/perf_over_time.js') }}?v=3"></script>
@@ -127,6 +126,7 @@
 
     // Year Group Analytics: Average Attainment Comparison
     window.yrgrp_analytics('chart_yrgrp_analytics');
+    window.yrgrp_analytics60('chart_yrgrp_analytics60');
 
     // if chart is in collapsed accordion/tab:
     document.addEventListener('shown.bs.collapse', () => {
