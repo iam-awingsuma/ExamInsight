@@ -258,7 +258,7 @@ def _subject_cols(col, prefix: str, thr60: int, thr70: int):
     """
     Build labeled SQLAlchemy expressions for one subject:
       avg, n, >=60 pass, >=70 pass, >=60 pct, >=70 pct.
-    Labels match your current schema (e.g., eng_avg, eng_n, eng60_pass, eng70_pass, eng60_pct, eng70_pct).
+    Labels match the current schema (e.g., eng_avg, eng_n, eng60_pass, eng70_pass, eng60_pct, eng70_pct).
     """
     n     = func.count(col).label(f"{prefix}_n")
     ge60  = func.sum(case((col >= thr60, 1), else_=0)).label(f"{prefix}60_pass")
@@ -271,7 +271,7 @@ def _subject_cols(col, prefix: str, thr60: int, thr70: int):
 def per_class_metrics(thr60: int = 60, thr70: int = 70):
     """
     Return the full list of labeled columns for ENG / MATHS / SCI
-    with the exact labels you’re using:
+    with the exact labels being used:
       eng_* , maths_* , sci_*
     """
     eng   = _subject_cols(InternalExam.eng_currPct,   "eng",   thr60, thr70)
