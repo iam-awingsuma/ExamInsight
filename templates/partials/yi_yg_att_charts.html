@@ -1,4 +1,6 @@
-
+<div class="accordion" id="one_AtATime">
+{% include "partials/btns_yrgrp_att.html" %}
+<div id="btn_yrgrp_att_60" class="accordion-collapse collapse show" data-bs-parent="#one_AtATime">
 <!-- Year Group vs. Cohort Attainment chart ≥60 -->
 <div class="col-12 col-xl-6">
 <div class="card h-100 chart-card">
@@ -53,7 +55,9 @@
     </div>
 </div>
 </div>
+</div>
 
+<div id="btn_yrgrp_att_70" class="accordion-collapse collapse" data-bs-parent="#one_AtATime">
 <!-- Year Group vs. Cohort Attainment chart ≥70 -->
 <div class="col-12 col-xl-6">
 <div class="card h-100 chart-card">
@@ -103,5 +107,7 @@
         {% endif %}
     </div>
     </div>
+</div>
+</div>
 </div>
 </div>
