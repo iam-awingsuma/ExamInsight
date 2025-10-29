@@ -250,3 +250,31 @@ def make_list_context(*, model, db, config, endpoint):
         "dropdowns": dropdowns,
         "current": current,
     }
+
+from apps.authentication.models import InternalExam
+from sqlalchemy.sql import func, case
+
+def _subject_cols(col, prefix: str, thr60: int, thr70: int):
+    """
+    Build labeled SQLAlchemy expressions for one subject:
+      avg, n, >=60 pass, >=70 pass, >=60 pct, >=70 pct.
+    Labels match your current schema (e.g., eng_avg, eng_n, eng60_pass, eng70_pass, eng60_pct, eng70_pct).
+    """
+    n     = func.count(col).label(f"{prefix}_n")
+    ge60  = func.sum(case((col >= thr60, 1), else_=0)).label(f"{prefix}60_pass")
+    ge70  = func.sum(case((col >= thr70, 1), else_=0)).label(f"{prefix}70_pass")
+    avg   = func.avg(col).label(f"{prefix}_avg")
+    pct60 = ((ge60 * 100.0) / func.nullif(n, 0)).label(f"{prefix}60_pct")
+    pct70 = ((ge70 * 100.0) / func.nullif(n, 0)).label(f"{prefix}70_pct")
+    return [avg, n, ge60, ge70, pct60, pct70]
+
+def per_class_metrics(thr60: int = 60, thr70: int = 70):
+    """
+    Return the full list of labeled columns for ENG / MATHS / SCI
+    with the exact labels you’re using:
+      eng_* , maths_* , sci_*
+    """
+    eng   = _subject_cols(InternalExam.eng_currPct,   "eng",   thr60, thr70)
+    maths = _subject_cols(InternalExam.maths_currPct, "maths", thr60, thr70)
+    sci   = _subject_cols(InternalExam.sci_currPct,   "sci",   thr60, thr70)
+    return [*eng, *maths, *sci]

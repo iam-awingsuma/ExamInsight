@@ -15,6 +15,8 @@ from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Studen
 
 from apps.home import make_list_context, _build_predicates
 
+from apps.helpers import per_class_metrics
+
 from urllib.parse import urlencode
 
 from flask_login import (
@@ -1659,7 +1661,7 @@ def api_analytics():
 
     return jsonify(payload)
 
-   
+
 @blueprint.route("/api/yrgrp_analytics", methods=["GET"])
 def api_yeargroup_attainment_by_class():
     # --- Year Group Attainment by Class :: Year Group Insights page ---
@@ -1711,175 +1713,101 @@ def api_yeargroup_attainment_by_class():
     #****************************************
     #* Year Group vs. Cohort | Attainment ≥60
     #****************************************
-    # Per-class or year group average attainment (E/M/S) ≥60
-    thr60 = 60
-    thr70 = 70
+    # # Per-class or year group average attainment (E/M/S) ≥60
+    thr60, thr70 = 60, 70
     classes = class_labels  # use all classes found for target year group
     yrgrp_norm = func.lower(func.trim(Students.yrgrp))
 
     per_class = (
         db.session.query(
             Students.yrgrp.label("class"),
-
-            # Per-class Averages
-            func.avg(InternalExam.eng_currPct).label("eng_avg"),
-            func.avg(InternalExam.maths_currPct).label("maths_avg"),
-            func.avg(InternalExam.sci_currPct).label("sci_avg"),
-
-            # Per-class denominators (non-null counts)
-            func.count(InternalExam.eng_currPct).label("eng_n"),
-            func.count(InternalExam.maths_currPct).label("maths_n"),
-            func.count(InternalExam.sci_currPct).label("sci_n"),
-
-            # Per-class pass counts (≥60 threshold)
-            func.sum(case((InternalExam.eng_currPct   >= thr60, 1), else_=0)).label("eng60_pass"),
-            func.sum(case((InternalExam.maths_currPct >= thr60, 1), else_=0)).label("maths60_pass"),
-            func.sum(case((InternalExam.sci_currPct   >= thr60, 1), else_=0)).label("sci60_pass"),
-
-            # Per-class pass counts (≥670 threshold)
-            func.sum(case((InternalExam.eng_currPct   >= thr70, 1), else_=0)).label("eng70_pass"),
-            func.sum(case((InternalExam.maths_currPct >= thr70, 1), else_=0)).label("maths70_pass"),
-            func.sum(case((InternalExam.sci_currPct   >= thr70, 1), else_=0)).label("sci70_pass"),
-
-            # Per-class percentages (≥60 threshold) | (safe divide)
-            ((func.sum(case((InternalExam.eng_currPct   >= thr60, 1), else_=0)) * 100.0) /
-            func.nullif(func.count(InternalExam.eng_currPct), 0)).label("eng60_pct"),
-
-            ((func.sum(case((InternalExam.maths_currPct >= thr60, 1), else_=0)) * 100.0) /
-            func.nullif(func.count(InternalExam.maths_currPct), 0)).label("maths60_pct"),
-
-            ((func.sum(case((InternalExam.sci_currPct   >= thr60, 1), else_=0)) * 100.0) /
-            func.nullif(func.count(InternalExam.sci_currPct), 0)).label("sci60_pct"),
-
-            # Per-class percentages (≥70 threshold) | (safe divide)
-            ((func.sum(case((InternalExam.eng_currPct   >= thr70, 1), else_=0)) * 100.0) /
-            func.nullif(func.count(InternalExam.eng_currPct), 0)).label("eng70_pct"),
-
-            ((func.sum(case((InternalExam.maths_currPct >= thr70, 1), else_=0)) * 100.0) /
-            func.nullif(func.count(InternalExam.maths_currPct), 0)).label("maths70_pct"),
-
-            ((func.sum(case((InternalExam.sci_currPct   >= thr70, 1), else_=0)) * 100.0) /
-            func.nullif(func.count(InternalExam.sci_currPct), 0)).label("sci70_pct"),
+            *per_class_metrics(thr60, thr70)
         )
         .join(Students, Students.student_id == InternalExam.student_id)
-        .filter(yrgrp_norm.in_([c.lower() for c in classes]))
+        .filter(func.lower(func.trim(Students.yrgrp)).in_([c.lower() for c in classes]))
         .group_by(Students.yrgrp)
         .order_by(Students.yrgrp)
         .all()
     )
 
     # Turn into a tidy list of dicts
-    class_stats = []
-    for rec in per_class:
-        m = rec._mapping
-        class_stats.append({
-            "class":      m["class"].upper(), # "2-A"
-            "eng_avg":    round(m["eng_avg"]   or 0, 1),
-            "maths_avg":  round(m["maths_avg"] or 0, 1),
-            "sci_avg":    round(m["sci_avg"]   or 0, 1),
+    subjects = ("eng", "maths", "sci")
 
-            "class_n":      int(m["eng_n"] or 0),
-            "class_n":      int(m["maths_n"] or 0),
-            "class_n":      int(m["sci_n"] or 0),
+    def _rfloat(m, k, dp=1):
+        v = m.get(k)
+        return round(float(v), dp) if v is not None else 0.0
 
-            "eng60_pass":   int(m["eng60_pass"] or 0),
-            "maths60_pass": int(m["maths60_pass"] or 0),
-            "sci60_pass":   int(m["sci60_pass"] or 0),
+    def _rint(m, k):
+        v = m.get(k)
+        return int(v) if v is not None else 0
 
-            "eng70_pass":   int(m["eng70_pass"] or 0),
-            "maths70_pass": int(m["maths70_pass"] or 0),
-            "sci70_pass":   int(m["sci70_pass"] or 0),
+    def _row_to_dict(m):
+        out = {"class": (m.get("class") or "").upper()}
+        for s in subjects:
+            out[f"{s}_avg"] = _rfloat(m, f"{s}_avg")
+            out[f"{s}_n"]   = _rint(m,   f"{s}_n")
+            out[f"{s}60_pass"] = _rint(m, f"{s}60_pass")
+            out[f"{s}70_pass"] = _rint(m, f"{s}70_pass")
+            out[f"{s}60_pct"]  = _rfloat(m, f"{s}60_pct")
+            out[f"{s}70_pct"]  = _rfloat(m, f"{s}70_pct")
+        return out
 
-            "eng60_pct":    round(m["eng60_pct"]   or 0, 1),
-            "maths60_pct":  round(m["maths60_pct"] or 0, 1),
-            "sci60_pct":    round(m["sci60_pct"]   or 0, 1),
+    class_stats = [_row_to_dict(rec._mapping) for rec in per_class]
 
-            "eng70_pct":    round(m["eng70_pct"]   or 0, 1),
-            "maths70_pct":  round(m["maths70_pct"] or 0, 1),
-            "sci70_pct":    round(m["sci70_pct"]   or 0, 1),
-        })
+    # Cohort average attainment (E/M/S) ≥60 & ≥70
+    def _cohort_exprs(thr60=60, thr70=70):
+        """Return labeled expressions for all subjects (avg, n, ≥60/≥70 counts, %)."""
+        def cols(col, pfx):
+            n     = func.count(col).label(f"{pfx}_n")
+            ge60  = func.sum(case((col >= thr60, 1), else_=0)).label(f"{pfx}60_pass")
+            ge70  = func.sum(case((col >= thr70, 1), else_=0)).label(f"{pfx}70_pass")
+            avg   = func.avg(col).label(f"{pfx}_avg")
+            pct60 = ((ge60 * 100.0) / func.nullif(n, 0)).label(f"{pfx}60_pct")
+            pct70 = ((ge70 * 100.0) / func.nullif(n, 0)).label(f"{pfx}70_pct")
+            return [avg, n, ge60, ge70, pct60, pct70]
 
-    # Cohort average attainment (E/M/S) ≥60
-    cohort_row = (
-    db.session.query(
-        # Cohort Averages
-        func.avg(InternalExam.eng_currPct), func.avg(InternalExam.maths_currPct), func.avg(InternalExam.sci_currPct),
+        return [
+            *cols(InternalExam.eng_currPct,   "eng"),
+            *cols(InternalExam.maths_currPct, "maths"),
+            *cols(InternalExam.sci_currPct,   "sci"),
+        ]
 
-        # Cohort Denominators (non-null counts)
-        func.count(InternalExam.eng_currPct), func.count(InternalExam.maths_currPct), func.count(InternalExam.sci_currPct),
+    def build_cohort_stats(classes, thr60=60, thr70=70):
+        yrgrp_norm = func.lower(func.trim(Students.yrgrp))
 
-        # Cohort pass counts (≥60 threshold)
-        func.sum(case((InternalExam.eng_currPct   >= thr60, 1), else_=0)),
-        func.sum(case((InternalExam.maths_currPct >= thr60, 1), else_=0)),
-        func.sum(case((InternalExam.sci_currPct   >= thr60, 1), else_=0)),
+        row = (
+            db.session.query(*_cohort_exprs(thr60, thr70))
+            .join(Students, Students.student_id == InternalExam.student_id)
+            .filter(yrgrp_norm.in_([c.lower() for c in classes]))
+            .one()
+        )
+        m = row._mapping
 
-        # Cohort pass counts (≥70 threshold)
-        func.sum(case((InternalExam.eng_currPct   >= thr70, 1), else_=0)),
-        func.sum(case((InternalExam.maths_currPct >= thr70, 1), else_=0)),
-        func.sum(case((InternalExam.sci_currPct   >= thr70, 1), else_=0)),
+        def rfloat(k, dp=1): 
+            v = m.get(k)
+            return round(float(v), dp) if v is not None else 0.0
 
-        # Cohort percentages (≥60 threshold)|(safe divide) 
-        ((func.sum(case((InternalExam.eng_currPct >= thr60, 1), else_=0)) * 100.0) /
-         func.nullif(func.count(InternalExam.eng_currPct), 0)),
+        def rint(k): 
+            v = m.get(k)
+            return int(v) if v is not None else 0
 
-        ((func.sum(case((InternalExam.maths_currPct >= thr60, 1), else_=0)) * 100.0) /
-         func.nullif(func.count(InternalExam.maths_currPct), 0)),
+        # Fill using a single loop; keys match your existing schema exactly
+        cohort_stats = {"class": "Cohort"}
+        for s in subjects:
+            cohort_stats[f"{s}Co_avg"]   = rfloat(f"{s}_avg")
+            cohort_stats[f"{s}Co_n"]     = rint(f"{s}_n")
+            cohort_stats[f"{s}C60_pass"] = rint(f"{s}60_pass")
+            cohort_stats[f"{s}C70_pass"] = rint(f"{s}70_pass")
+            cohort_stats[f"{s}C60_pct"]  = rfloat(f"{s}60_pct")
+            cohort_stats[f"{s}C70_pct"]  = rfloat(f"{s}70_pct")
 
-        ((func.sum(case((InternalExam.sci_currPct >= thr60, 1), else_=0)) * 100.0) /
-         func.nullif(func.count(InternalExam.sci_currPct), 0)),
-
-        # Cohort percentages (≥70 threshold)|(safe divide) 
-        ((func.sum(case((InternalExam.eng_currPct >= thr70, 1), else_=0)) * 100.0) /
-         func.nullif(func.count(InternalExam.eng_currPct), 0)),
-
-        ((func.sum(case((InternalExam.maths_currPct >= thr70, 1), else_=0)) * 100.0) /
-         func.nullif(func.count(InternalExam.maths_currPct), 0)),
-
-        ((func.sum(case((InternalExam.sci_currPct >= thr70, 1), else_=0)) * 100.0) /
-         func.nullif(func.count(InternalExam.sci_currPct), 0)),
-    )
-    .join(Students, Students.student_id == InternalExam.student_id)
-    .filter(yrgrp_norm.in_([c.lower() for c in classes]))
-    .one()
-    )
-
-    (engCo_avg, mathsCo_avg, sciCo_avg,
-    engCo_n, mathsCo_n, sciCo_n,
-    engC60_pass, mathsC60_pass, sciC60_pass,
-    engC70_pass, mathsC70_pass, sciC70_pass,
-    engC60_pct, mathsC60_pct, sciC60_pct,
-    engC70_pct, mathsC70_pct, sciC70_pct) = cohort_row
-
-    cohort_stats = {
-        "class":       "Cohort",
-        "engCo_avg":   round(engCo_avg   or 0, 1),
-        "mathsCo_avg": round(mathsCo_avg or 0, 1),
-        "sciCo_avg":   round(sciCo_avg   or 0, 1),
-
-        "cohort_n":     int(engCo_n or 0),
-        "cohort_n":     int(mathsCo_n or 0),
-        "cohort_n":     int(sciCo_n or 0),
-
-        "engC60_pass":  int(engC60_pass or 0),
-        "mathsC60_pass":int(mathsC60_pass or 0),
-        "sciC60_pass":  int(sciC60_pass or 0),
-
-        "engC70_pass":  int(engC70_pass or 0),
-        "mathsC70_pass":int(mathsC70_pass or 0),
-        "sciC70_pass":  int(sciC70_pass or 0),
-
-        "engC60_pct":   round(engC60_pct   or 0, 1),
-        "mathsC60_pct": round(mathsC60_pct or 0, 1),
-        "sciC60_pct":   round(sciC60_pct   or 0, 1),
-
-        "engC70_pct":   round(engC70_pct   or 0, 1),
-        "mathsC70_pct": round(mathsC70_pct or 0, 1),
-        "sciC70_pct":   round(sciC70_pct   or 0, 1),
-    }
+        return cohort_stats
+ 
+    cohort_stats = build_cohort_stats(classes, thr60, thr70)
 
     # --- Single-chart payload ---
     yrgrp_payload = {
-        "thr60": thr60,
+        "thr60": thr60, "thr70": thr70,
         "subjects": ["English", "Maths", "Science"],
         "by_class": class_stats + [cohort_stats],
         # traces: one per class + cohort
