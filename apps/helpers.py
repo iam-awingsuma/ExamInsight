@@ -3,6 +3,7 @@ import re
 import uuid
 import re
 from colorama import Fore, Style
+from apps import db
 from apps.authentication.models import Users
 from apps.config import Config
 from marshmallow import ValidationError
@@ -194,64 +195,64 @@ def _active_filters(args, labels, endpoint):
     return items
 
 # the code below has been transferred to _init_.py in home
-def make_list_context(*, model, db, config, endpoint):
-    """
-    config = {
-      "search": {"param": "q", "columns": [Model.col1, Model.col2, ...]},
-      "filters": [
-         {"param":"gender","column":Model.gender},
-         {"param":"yrgrp","column":Model.yrgrp},
-         {"param":"status","column":Model.status},
-         {"param":"sped","custom": lambda q,v: ...},
-      ],
-      "order_by": [Model.colA, Model.colB],
-      "dropdowns": {"genders": lambda s: [...], ...},
-      "labels": {"q":"Search","gender":"Gender", ...},
-    }
-    """
-    args = request.args
-    q_param = config.get("search", {}).get("param", "q")
+# def make_list_context(*, model, db, config, endpoint):
+#     """
+#     config = {
+#       "search": {"param": "q", "columns": [Model.col1, Model.col2, ...]},
+#       "filters": [
+#          {"param":"gender","column":Model.gender},
+#          {"param":"yrgrp","column":Model.yrgrp},
+#          {"param":"status","column":Model.status},
+#          {"param":"sped","custom": lambda q,v: ...},
+#       ],
+#       "order_by": [Model.colA, Model.colB],
+#       "dropdowns": {"genders": lambda s: [...], ...},
+#       "labels": {"q":"Search","gender":"Gender", ...},
+#     }
+#     """
+#     args = request.args
+#     q_param = config.get("search", {}).get("param", "q")
 
-    # base query
-    query = model.query
+#     # base query
+#     query = model.query
 
-    # search
-    query = _apply_search(
-        query,
-        config.get("search"),
-        (args.get(q_param, "") or "").strip()
-    )
+#     # search
+#     query = _apply_search(
+#         query,
+#         config.get("search"),
+#         (args.get(q_param, "") or "").strip()
+#     )
 
-    # filters
-    query = _apply_filters(query, config.get("filters", []), args)
+#     # filters
+#     query = _apply_filters(query, config.get("filters", []), args)
 
-    # order + fetch
-    order_by = config.get("order_by", [])
-    for col in order_by:
-        query = query.order_by(col)
-    rows = query.all()
+#     # order + fetch
+#     order_by = config.get("order_by", [])
+#     for col in order_by:
+#         query = query.order_by(col)
+#     rows = query.all()
 
-    # dropdowns
-    dropdowns = _dropdown_values(config.get("dropdowns", {}), db.session)
+#     # dropdowns
+#     dropdowns = _dropdown_values(config.get("dropdowns", {}), db.session)
 
-    # chips / flags
-    table_is_empty = model.query.count() == 0
-    filtered_is_empty = (len(rows) == 0 and not table_is_empty)
-    active_filters = _active_filters(args, config.get("labels", {}), endpoint)
+#     # chips / flags
+#     table_is_empty = model.query.count() == 0
+#     filtered_is_empty = (len(rows) == 0 and not table_is_empty)
+#     active_filters = _active_filters(args, config.get("labels", {}), endpoint)
 
-    # expose current selections so selects stay selected
-    current = {k: (args.get(k, "") or "").strip() for k in config.get("labels", {}).keys()}
+#     # expose current selections so selects stay selected
+#     current = {k: (args.get(k, "") or "").strip() for k in config.get("labels", {}).keys()}
 
-    return {
-        "rows": rows,
-        "no_data": table_is_empty,
-        "filtered_is_empty": filtered_is_empty,
-        "active_filters": active_filters,
-        "dropdowns": dropdowns,
-        "current": current,
-    }
+#     return {
+#         "rows": rows,
+#         "no_data": table_is_empty,
+#         "filtered_is_empty": filtered_is_empty,
+#         "active_filters": active_filters,
+#         "dropdowns": dropdowns,
+#         "current": current,
+#     }
 
-from apps.authentication.models import InternalExam
+from apps.authentication.models import InternalExam, Students
 from sqlalchemy.sql import func, case
 
 def _subject_cols(col, prefix: str, thr60: int, thr70: int):
@@ -278,3 +279,79 @@ def per_class_metrics(thr60: int = 60, thr70: int = 70):
     maths = _subject_cols(InternalExam.maths_currPct, "maths", thr60, thr70)
     sci   = _subject_cols(InternalExam.sci_currPct,   "sci",   thr60, thr70)
     return [*eng, *maths, *sci]
+
+# Extract cohort progress for E/M/S
+def cohort_progress(col):
+        """
+        Return 2 percentages for a progcat column:
+        - p_sum = %('expected') + %('above expected')
+        - p_above = %('above expected')
+        """
+        norm = func.lower(func.trim(col))  # normalise for safe matching
+
+        # total non-null rows for this subject's progcat
+        total = db.session.query(func.count(col)).scalar() or 0
+
+        # count of 'expected'
+        exp_cnt = db.session.query(
+            func.sum(case((norm == "expected", 1), else_=0))
+        ).scalar() or 0
+
+        # count of 'above expected'
+        above_cnt = db.session.query(
+            func.sum(case((norm == "above expected", 1), else_=0))
+        ).scalar() or 0
+
+        # count of expected and above (sum), and above only
+        cnt_exp_above = exp_cnt + above_cnt
+        cnt_above_only = above_cnt
+
+        # percentages (protect from divide-by-zero)
+        p_expected = round((exp_cnt / total * 100.0), 1) if total else 0.0
+        p_above    = round((above_cnt / total * 100.0), 1) if total else 0.0
+
+        # requested variables
+        pct_exp_above = round(p_expected + p_above, 1)  # Expected + Above Expected
+        pct_above_only = p_above # Above Expected only (explicit name)
+
+        return total, cnt_exp_above, cnt_above_only, pct_exp_above, pct_above_only
+
+# Extract class-wise progress for E/M/S
+def class_progress(col, class_col):
+    """
+    Returns a dict mapping each class -> the same 5-tuple as cohort_progress:
+      { "2-A": (total, cnt_exp_above, cnt_above_only, pct_exp_above, pct_above_only), ... }
+
+    Assumes you can join Students to InternalExam to get class/section.
+    """
+    norm = func.lower(func.trim(col))
+    q = (
+        db.session.query(
+            class_col.label("klass"),
+            func.count(col).label("total"),
+            func.sum(case((norm == "expected", 1), else_=0)).label("exp_cnt"),
+            func.sum(case((norm == "above expected", 1), else_=0)).label("above_cnt"),
+        )
+        .select_from(InternalExam)
+        .join(Students, InternalExam.student_id == Students.id)   # adjust if your FK/name differs
+        .group_by(class_col)
+    )
+
+    result = {}
+    for klass, total, exp_cnt, above_cnt in q.all():
+        total = total or 0
+        exp_cnt = exp_cnt or 0
+        above_cnt = above_cnt or 0
+
+        cnt_exp_above  = exp_cnt + above_cnt
+        cnt_above_only = above_cnt
+
+        p_expected = round((exp_cnt / total * 100.0), 1) if total else 0.0
+        p_above    = round((above_cnt / total * 100.0), 1) if total else 0.0
+
+        pct_exp_above  = round(p_expected + p_above, 1)
+        pct_above_only = p_above
+
+        result[str(klass)] = (total, cnt_exp_above, cnt_above_only, pct_exp_above, pct_above_only)
+
+    return result

@@ -15,7 +15,7 @@ from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Studen
 
 from apps.home import make_list_context, _build_predicates
 
-from apps.helpers import per_class_metrics
+from apps.helpers import per_class_metrics, cohort_progress
 
 from urllib.parse import urlencode
 
@@ -1817,8 +1817,44 @@ def api_yeargroup_attainment_by_class():
  
     cohort_stats = build_cohort_stats(classes, thr60, thr70)
 
+    cohort_progress_list = [
+        cohort_progress(getattr(InternalExam, f"{subj}_progcat"))
+        for subj in subjects
+    ]
+
+    engCo, mathsCo, sciCo = cohort_progress_list
+
+    (eng_total, eng_cnt_exp_above, eng_cnt_above_only,
+    eng_pct_exp_above, eng_pct_above_only) = engCo
+
+    (maths_total, maths_cnt_exp_above, maths_cnt_above_only,
+    maths_pct_exp_above, maths_pct_above_only) = mathsCo
+
+    (sci_total, sci_cnt_exp_above, sci_cnt_above_only,
+    sci_pct_exp_above, sci_pct_above_only) = sciCo
+
     # --- Single-chart payload ---
     yrgrp_payload = {
+        "cohort_progress": [
+            {"subject": "English", 
+             "cohort_n": eng_total,
+             "engCnt_exp_above": eng_cnt_exp_above,
+             "engCnt_above_only": eng_cnt_above_only,
+             "engPct_exp_above": eng_pct_exp_above,  
+             "engPct_above_only": eng_pct_above_only},
+            {"subject": "Maths",   
+             "cohort_n": maths_total, 
+             "mathsCnt_exp_above": maths_cnt_exp_above, 
+             "mathsCnt_above_only": maths_cnt_above_only, 
+             "mathsPct_exp_above": maths_pct_exp_above, 
+             "mathsPct_above_only": maths_pct_above_only},
+            {"subject": "Science", 
+             "cohort_n": sci_total, 
+             "sciCnt_exp_above": sci_cnt_exp_above, 
+             "sciCnt_above_only": sci_cnt_above_only, 
+             "sciPct_exp_above": sci_pct_exp_above,   
+             "sciPct_above_only": sci_pct_above_only},
+        ],
         "thr60": thr60, "thr70": thr70,
         "subjects": ["English", "Maths", "Science"],
         "by_class": class_stats + [cohort_stats],

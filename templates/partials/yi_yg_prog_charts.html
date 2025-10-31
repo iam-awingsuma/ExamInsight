@@ -26,29 +26,29 @@
                     </div>
                     <!-- Year Group vs. Cohort Dataset | Expected/Better Progress -->
                     <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
-                        {% if yrgrp_payload.by_class %}
+                        {% if yrgrp_payload.cohort_progress %}
                         <table class="table table-sm table-tight align-middle w-100 mb-0">
                         <tbody class="small">
                             <tr class="text-center fw-bold">
                                 <th scope="row">Class / Cohort</th>
                                 <td class="table-light">#</td>
                                 <td class="table-info">Eng (n)</td>
-                                <td class="table-info">%</td>
+                                <td class="table-info">Pct (%)</td>
                                 <td class="table-warning">Maths (n)</td>
-                                <td class="table-warning">%</td>
+                                <td class="table-warning">Pct (%)</td>
                                 <td class="table-success">Sci (n)</td>
-                                <td class="table-success">%</td>
+                                <td class="table-success">Pct (%)</td>
                             </tr>
-                            {% for row in yrgrp_payload.by_class %}
+                            {% for row in yrgrp_payload.cohort_progress %}
                             <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
                                 <th scope="row">{{ row.class }}</th>
                                 <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
-                                <td class="table-info">{{ row.eng60_pass or row.engC60_pass }}</td>
-                                <td class="table-info">{{ row.eng60_pct or row.engC60_pct }}</td>
-                                <td class="table-warning">{{ row.maths60_pass or row.mathsC60_pass }}</td>
-                                <td class="table-warning">{{ row.maths60_pct or row.mathsC60_pct }}</td>
-                                <td class="table-success">{{ row.sci60_pass or row.sciC60_pass }}</td>
-                                <td class="table-success">{{ row.sci60_pct or row.sciC60_pct }}</td>
+                                <td class="table-info">{{ row.eng60_pass or row.engCnt_exp_above }}</td>
+                                <td class="table-info">{{ row.eng60_pct or row.engPct_exp_above }}</td>
+                                <td class="table-warning">{{ row.maths60_pass or row.mathsCnt_exp_above }}</td>
+                                <td class="table-warning">{{ row.maths60_pct or row.mathsPct_exp_above }}</td>
+                                <td class="table-success">{{ row.sci60_pass or row.sciCnt_exp_above }}</td>
+                                <td class="table-success">{{ row.sci60_pct or row.sciPct_exp_above }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -88,29 +88,29 @@
                     </div>
                     <!-- Year Group vs. Cohort Dataset | Better Progress -->
                     <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
-                        {% if yrgrp_payload.by_class %}
+                        {% if yrgrp_payload.cohort_progress %}
                         <table class="table table-sm table-tight align-middle w-100 mb-0">
                         <tbody class="small">
                             <tr class="text-center fw-bold">
                                 <th scope="row">Class / Cohort</th>
                                 <td class="table-light">#</td>
                                 <td class="table-info">Eng (n)</td>
-                                <td class="table-info">%</td>
+                                <td class="table-info">Pct (%)</td>
                                 <td class="table-warning">Maths (n)</td>
-                                <td class="table-warning">%</td>
+                                <td class="table-warning">Pct (%)</td>
                                 <td class="table-success">Sci (n)</td>
-                                <td class="table-success">%</td>
+                                <td class="table-success">Pct (%)</td>
                             </tr>
-                            {% for row in yrgrp_payload.by_class %}
+                            {% for row in yrgrp_payload.cohort_progress %}
                             <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
                                 <th scope="row">{{ row.class }}</th>
                                 <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
-                                <td class="table-info">{{ row.eng70_pass or row.engC70_pass }}</td>
-                                <td class="table-info">{{ row.eng70_pct or row.engC70_pct }}</td>
-                                <td class="table-warning">{{ row.maths70_pass or row.mathsC70_pass }}</td>
-                                <td class="table-warning">{{ row.maths70_pct or row.mathsC70_pct }}</td>
-                                <td class="table-success">{{ row.sci70_pass or row.sciC70_pass }}</td>
-                                <td class="table-success">{{ row.sci70_pct or row.sciC70_pct }}</td>
+                                <td class="table-info">{{ row.eng70_pass or row.engCnt_above_only }}</td>
+                                <td class="table-info">{{ row.eng70_pct or row.engPct_above_only }}</td>
+                                <td class="table-warning">{{ row.maths70_pass or row.mathsCnt_above_only }}</td>
+                                <td class="table-warning">{{ row.maths70_pct or row.mathsPct_above_only }}</td>
+                                <td class="table-success">{{ row.sci70_pass or row.sciCnt_above_only }}</td>
+                                <td class="table-success">{{ row.sci70_pct or row.sciPct_above_only }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
