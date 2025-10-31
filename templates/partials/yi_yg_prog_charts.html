@@ -1,91 +1,126 @@
-<!-- Gender-specific Progress Chart - Expected or Better Progress -->
-<div class="col-12 col-xl-6">
-<div class="card h-100 chart-card">
-    <div class="card-body d-flex flex-column">
-    <div class="chart-title d-flex align-items-start gap-2">
-        <i data-lucide="bar-chart-3" class="text-primary"></i>
-        <h5 class="text-body mb-0 lh-1">
-        <span class="text-uppercase text-primary font-weight-bolder">Progress Distribution</span><br/>
-        <span class="p-1 bg-gradient-success text-white text-xs text-uppercase font-weight-bolder">％ of Students that made Expected/Better Progress</span><br/>
-        <span class="text-muted text-xs"><span class="text-info font-weight-bolder">YEAR GROUP vs. COHORT</span> | Current Academic Year (English, Maths, Science)</span>
-        </h5>
+<div class="accordion" id="two_AtATime">
+{% include "partials/btns_yrgrp_prog.html" %}
+    <div id="btn_yrgrp_prog_ebp" class="accordion-collapse collapse show" data-bs-parent="#two_AtATime">
+        <!-- Year Group vs. Cohort Progress Chart | Expected/Better Progress -->
+        <div class="col-12 px-0 h-100 d-flex flex-column">
+            <div class="card h-100 chart-card">
+                <div class="card-body d-flex flex-column">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-8 chart-title d-flex align-items-start gap-2 mb-2">
+                                <i data-lucide="bar-chart-3" class="text-primary"></i>
+                                <h5 class="text-body mb-0 lh-1">
+                                <span class="text-uppercase text-primary font-weight-bolder">Progress Distribution</span><br/>
+                                <span class="text-muted text-xs"><span class="text-info font-weight-bolder">YEAR GROUP vs. COHORT</span><br />| Current Academic Year (English, Maths, Science)</span>
+                                </h5>
+                            </div>
+                            <div class="col-md-4 card card-kpi
+                                bg-gradient-success text-white text-xs text-uppercase text-center
+                                fw-bold d-flex justify-content-center align-items-center pt-2">
+                                    ％ of Students that made<br/><span class="h5 font-weight-bolder text-white">Expected/Better Progress</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-body mt-1">
+                        <div id="chart_yrgrp_analytics60" class="w-100" style="height:360px;"></div>
+                    </div>
+                    <!-- Year Group vs. Cohort Dataset | Expected/Better Progress -->
+                    <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
+                        {% if yrgrp_payload.by_class %}
+                        <table class="table table-sm table-tight align-middle w-100 mb-0">
+                        <tbody class="small">
+                            <tr class="text-center fw-bold">
+                                <th scope="row">Class / Cohort</th>
+                                <td class="table-light">#</td>
+                                <td class="table-info">Eng (n)</td>
+                                <td class="table-info">%</td>
+                                <td class="table-warning">Maths (n)</td>
+                                <td class="table-warning">%</td>
+                                <td class="table-success">Sci (n)</td>
+                                <td class="table-success">%</td>
+                            </tr>
+                            {% for row in yrgrp_payload.by_class %}
+                            <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
+                                <th scope="row">{{ row.class }}</th>
+                                <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
+                                <td class="table-info">{{ row.eng60_pass or row.engC60_pass }}</td>
+                                <td class="table-info">{{ row.eng60_pct or row.engC60_pct }}</td>
+                                <td class="table-warning">{{ row.maths60_pass or row.mathsC60_pass }}</td>
+                                <td class="table-warning">{{ row.maths60_pct or row.mathsC60_pct }}</td>
+                                <td class="table-success">{{ row.sci60_pass or row.sciC60_pass }}</td>
+                                <td class="table-success">{{ row.sci60_pct or row.sciC60_pct }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                        {% else %}
+                            <div class="text-muted">No data available</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="chart-body mt-1">
-        <div id="chart_gender_exp_above" class="w-100" style="height:360px;"></div>
-    </div>
-    <!-- Gender-specific Progress Table "Expected/Better Progress" -->
-    <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
-        <table class="table table-sm table-tight align-middle w-100 mb-0">
-        <tbody class="small">
-            <tr class="text-center fw-bold">
-            <th scope="row">Subject</th>
-            <td class="table-light">Male</td>
-            <td class="table-warning">#</td>
-            <td class="table-warning">%</td>
-            <td class="table-light">Female</td>
-            <td class="table-danger">#</td>
-            <td class="table-danger">%</td>
-            </tr>
-            {% for row in gender_prog_exp_above %}
-            <tr class="text-center">
-            <th scope="row">{{ row.subject }}</th>
-            <td class="table-light">{{ row.male_total }}</td>
-            <td class="table-warning">{{ row.male_n }}</td>
-            <td class="table-warning">{{ row.male_pct }}</td>
-            <td class="table-light">{{ row.female_total }}</td>
-            <td class="table-danger">{{ row.female_n }}</td>
-            <td class="table-danger">{{ row.female_pct }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        </table>
-    </div>
-    </div>
-</div>
-</div>
 
-<!-- Gender-specific Progress Chart - Better Progress -->
-<div class="col-12 col-xl-6">
-<div class="card h-100 chart-card">
-    <div class="card-body d-flex flex-column">
-    <div class="chart-title d-flex align-items-start gap-2">
-        <i data-lucide="bar-chart-3" class="text-primary"></i>
-        <h5 class="text-body mb-0 lh-1">
-        <span class="text-uppercase text-primary font-weight-bolder">Progress Distribution</span><br/>
-        <span class="p-1 bg-gradient-success text-white text-xs text-uppercase font-weight-bolder">％ of Students that made Better Progress</span><br/>
-        <span class="text-muted text-xs"><span class="text-info font-weight-bolder">YEAR GROUP vs. COHORT</span> | Current Academic Year (English, Maths, Science)</span>
-        </h5>
+    <div id="btn_yrgrp_prog_bp" class="accordion-collapse collapse" data-bs-parent="#two_AtATime">
+        <!-- Year Group vs. Cohort Chart | Better Progress -->
+        <div class="col-12 px-0 h-100 d-flex flex-column">
+            <div class="card h-100 chart-card">
+                <div class="card-body d-flex flex-column">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-8 chart-title d-flex align-items-start gap-2 mb-2">
+                                <i data-lucide="bar-chart-3" class="text-primary"></i>
+                                <h5 class="text-body mb-0 lh-1">
+                                <span class="text-uppercase text-primary font-weight-bolder">Progress Distribution</span><br/>
+                                <span class="text-muted text-xs"><span class="text-info font-weight-bolder">YEAR GROUP vs. COHORT</span><br />| Current Academic Year (English, Maths, Science)</span>
+                                </h5>
+                            </div>
+                            <div class="col-md-4 card card-kpi
+                                bg-gradient-success text-white text-xs text-uppercase text-center
+                                fw-bold d-flex justify-content-center align-items-center pt-2">
+                                    ％ of Students that made<br/><span class="h5 font-weight-bolder text-white">Better Progress</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-body mt-1">
+                        <div id="chart_yrgrp_analytics70" class="w-100" style="height:360px;"></div>
+                    </div>
+                    <!-- Year Group vs. Cohort Dataset | Better Progress -->
+                    <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
+                        {% if yrgrp_payload.by_class %}
+                        <table class="table table-sm table-tight align-middle w-100 mb-0">
+                        <tbody class="small">
+                            <tr class="text-center fw-bold">
+                                <th scope="row">Class / Cohort</th>
+                                <td class="table-light">#</td>
+                                <td class="table-info">Eng (n)</td>
+                                <td class="table-info">%</td>
+                                <td class="table-warning">Maths (n)</td>
+                                <td class="table-warning">%</td>
+                                <td class="table-success">Sci (n)</td>
+                                <td class="table-success">%</td>
+                            </tr>
+                            {% for row in yrgrp_payload.by_class %}
+                            <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
+                                <th scope="row">{{ row.class }}</th>
+                                <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
+                                <td class="table-info">{{ row.eng70_pass or row.engC70_pass }}</td>
+                                <td class="table-info">{{ row.eng70_pct or row.engC70_pct }}</td>
+                                <td class="table-warning">{{ row.maths70_pass or row.mathsC70_pass }}</td>
+                                <td class="table-warning">{{ row.maths70_pct or row.mathsC70_pct }}</td>
+                                <td class="table-success">{{ row.sci70_pass or row.sciC70_pass }}</td>
+                                <td class="table-success">{{ row.sci70_pct or row.sciC70_pct }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        </table>
+                        {% else %}
+                            <div class="text-muted">No data available</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="chart-body mt-1">
-        <div id="chart_gender_above_data" class="w-100" style="height:360px;"></div>
-    </div>
-    <!-- Gender-specific Progress Table "Better Progress" -->
-    <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
-        <table class="table table-sm table-tight align-middle w-100 mb-0">
-        <tbody class="small">
-            <tr class="text-center fw-bold">
-            <th scope="row">Subject</th>
-            <td class="table-light">Male</td>
-            <td class="table-warning">#</td>
-            <td class="table-warning">%</td>
-            <td class="table-light">Female</td>
-            <td class="table-danger">#</td>
-            <td class="table-danger">%</td>
-            </tr>
-            {% for row in gender_prog_above_data %}
-            <tr class="text-center">
-            <th scope="row">{{ row.subject }}</th>
-            <td class="table-light">{{ row.male_total }}</td>
-            <td class="table-warning">{{ row.male_n }}</td>
-            <td class="table-warning">{{ row.male_pct }}</td>
-            <td class="table-light">{{ row.female_total }}</td>
-            <td class="table-danger">{{ row.female_n }}</td>
-            <td class="table-danger">{{ row.female_pct }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        </table>
-    </div>
-    </div>
-</div>
 </div>
