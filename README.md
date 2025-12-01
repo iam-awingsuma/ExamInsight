@@ -10,7 +10,15 @@ It’s best to use a Python Virtual Environment for installing the project depen
 
 <code>virtualenv env</code>
 
-To activate the environment execute <code>env\Scripts\activate.bat</code> for Windows (or <code>source env/bin/activate</code> on Linux-based operating systems).
+If you are using Python 3, you don't need <code>virtualenv</code> anymore because Python 3 already includes a virtual environment tool.
+
+Just run:
+
+<code>python3 venv env</code>
+
+*** <code>env</code> is the name of the virtual environment
+
+To activate the environment execute <code>env\Scripts\activate.bat</code> for Windows (or <code>source env/bin/activate</code> on Mac/Linux-based operating systems).
 
 Having the VENV active, we can proceed and install the project dependencies:
 
@@ -22,6 +30,10 @@ Having the VENV active, we can proceed and install the project dependencies:
 
 <code>set FLASK_APP=run.py</code><br/>
 <code>set FLASK_ENV=development</code>
+
+or you can use the following option:
+<code>export FLASK_APP=run.py</code><br/>
+<code>export FLASK_ENV=development</code>
 
 <h4>RUNNING THE APP</h4>
 Windows:
