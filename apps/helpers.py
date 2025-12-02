@@ -11,7 +11,7 @@ from apps.messages import Messages
 from functools import wraps
 from urllib.parse import urlencode
 from flask import request, url_for
-from sqlalchemy import or_, String
+from sqlalchemy import or_, String, literal
 from uuid import uuid4
 import datetime, time
 message = Messages.message
