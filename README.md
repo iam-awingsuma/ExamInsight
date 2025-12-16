@@ -29,7 +29,8 @@ Having the VENV active, we can proceed and install the project dependencies:
 <h4>SETUP THE ENVIRONMENT</h4>
 
 <code>set FLASK_APP=run.py</code><br/>
-<code>set FLASK_ENV=development</code>
+<code>set FLASK_ENV=development</code><br/>
+<code>set FLASK_DEBUG=1</code>
 
 or you can use the following option:<br/><br/>
 <code>export FLASK_APP=run.py</code><br/>
@@ -39,6 +40,7 @@ or you can use the following option:<br/><br/>
 Windows:
 <code>flask run</code>
 or
-<code>flask --app run.py run</code><br/>
+<code>flask --app run.py --debug run</code><br/>
+to run the app with automatic reload when file changes<br/>
 or use the most common and recommended way to enable auto-reloading 
 <code>flask --app run.py --debug run</code>
