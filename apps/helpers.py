@@ -194,63 +194,6 @@ def _active_filters(args, labels, endpoint):
             items.append((label, val, _build_remove_url(endpoint, base_args, key)))
     return items
 
-# the code below has been transferred to _init_.py in home
-# def make_list_context(*, model, db, config, endpoint):
-#     """
-#     config = {
-#       "search": {"param": "q", "columns": [Model.col1, Model.col2, ...]},
-#       "filters": [
-#          {"param":"gender","column":Model.gender},
-#          {"param":"yrgrp","column":Model.yrgrp},
-#          {"param":"status","column":Model.status},
-#          {"param":"sped","custom": lambda q,v: ...},
-#       ],
-#       "order_by": [Model.colA, Model.colB],
-#       "dropdowns": {"genders": lambda s: [...], ...},
-#       "labels": {"q":"Search","gender":"Gender", ...},
-#     }
-#     """
-#     args = request.args
-#     q_param = config.get("search", {}).get("param", "q")
-
-#     # base query
-#     query = model.query
-
-#     # search
-#     query = _apply_search(
-#         query,
-#         config.get("search"),
-#         (args.get(q_param, "") or "").strip()
-#     )
-
-#     # filters
-#     query = _apply_filters(query, config.get("filters", []), args)
-
-#     # order + fetch
-#     order_by = config.get("order_by", [])
-#     for col in order_by:
-#         query = query.order_by(col)
-#     rows = query.all()
-
-#     # dropdowns
-#     dropdowns = _dropdown_values(config.get("dropdowns", {}), db.session)
-
-#     # chips / flags
-#     table_is_empty = model.query.count() == 0
-#     filtered_is_empty = (len(rows) == 0 and not table_is_empty)
-#     active_filters = _active_filters(args, config.get("labels", {}), endpoint)
-
-#     # expose current selections so selects stay selected
-#     current = {k: (args.get(k, "") or "").strip() for k in config.get("labels", {}).keys()}
-
-#     return {
-#         "rows": rows,
-#         "no_data": table_is_empty,
-#         "filtered_is_empty": filtered_is_empty,
-#         "active_filters": active_filters,
-#         "dropdowns": dropdowns,
-#         "current": current,
-#     }
 
 from apps.authentication.models import InternalExam, Students
 from sqlalchemy.sql import func, case
@@ -324,6 +267,12 @@ def class_progress(col, class_col):
 
     Assumes you can join Students to InternalExam to get class/section.
     """
+    # If strings are provided, resolve them to actual SQLAlchemy columns
+    if isinstance(col, str):
+        col = getattr(InternalExam, col)
+    if isinstance(class_col, str):
+        class_col = getattr(Students, class_col)
+
     norm = func.lower(func.trim(col))
     q = (
         db.session.query(
@@ -333,7 +282,7 @@ def class_progress(col, class_col):
             func.sum(case((norm == "above expected", 1), else_=0)).label("above_cnt"),
         )
         .select_from(InternalExam)
-        .join(Students, InternalExam.student_id == Students.id)   # adjust if your FK/name differs
+        .join(Students, InternalExam.student_id == Students.id)
         .group_by(class_col)
     )
 

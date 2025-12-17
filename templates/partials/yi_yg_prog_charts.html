@@ -26,7 +26,7 @@
                     </div>
                     <!-- Year Group vs. Cohort Dataset | Expected/Better Progress -->
                     <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
-                        {% if yrgrp_payload.cohort_progress %}
+                        {% if yrgrp_payload.class_progress %}
                         <table class="table table-sm table-tight align-middle w-100 mb-0">
                         <tbody class="small">
                             <tr class="text-center fw-bold">
@@ -39,7 +39,7 @@
                                 <td class="table-success">Sci (n)</td>
                                 <td class="table-success">Pct (%)</td>
                             </tr>
-                            {% for row in yrgrp_payload.cohort_progress %}
+                            {% for row in yrgrp_payload.class_progress %}
                             <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
                                 <th scope="row">{{ row.class }}</th>
                                 <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
@@ -54,7 +54,7 @@
                         </tbody>
                         </table>
                         {% else %}
-                            <div class="text-muted">No data available</div>
+                            <div class="badge bg-danger">No data available</div>
                         {% endif %}
                     </div>
                 </div>
@@ -88,7 +88,7 @@
                     </div>
                     <!-- Year Group vs. Cohort Dataset | Better Progress -->
                     <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
-                        {% if yrgrp_payload.cohort_progress %}
+                        {% if yrgrp_payload.class_progress %}
                         <table class="table table-sm table-tight align-middle w-100 mb-0">
                         <tbody class="small">
                             <tr class="text-center fw-bold">
@@ -101,7 +101,7 @@
                                 <td class="table-success">Sci (n)</td>
                                 <td class="table-success">Pct (%)</td>
                             </tr>
-                            {% for row in yrgrp_payload.cohort_progress %}
+                            {% for row in yrgrp_payload.class_progress %}
                             <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
                                 <th scope="row">{{ row.class }}</th>
                                 <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
@@ -116,7 +116,7 @@
                         </tbody>
                         </table>
                         {% else %}
-                            <div class="text-muted">No data available</div>
+                            <div class="badge bg-danger">No data available</div>
                         {% endif %}
                     </div>
                 </div>

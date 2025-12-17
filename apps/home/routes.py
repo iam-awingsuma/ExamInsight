@@ -1823,6 +1823,11 @@ def api_yeargroup_attainment_by_class():
         for subj in subjects
     ]
 
+    # Class Progress (Expected + Above Expected, Above Expected only)
+    class_progress_list = [
+        class_progress(getattr(InternalExam, f"{subj}_progcat"), CLASS_COL) for subj in subjects
+    ]
+
     engCo, mathsCo, sciCo = cohort_progress_list
 
     (eng_total, eng_cnt_exp_above, eng_cnt_above_only,
@@ -1846,6 +1851,20 @@ def api_yeargroup_attainment_by_class():
             {"subject": "Science", "cohort_n": sci_total, 
              "sciCnt_exp_above": sci_cnt_exp_above, "sciCnt_above_only": sci_cnt_above_only, 
              "sciPct_exp_above": sci_pct_exp_above, "sciPct_above_only": sci_pct_above_only},
+        ],
+        "class_progress": [
+            {
+                "class": cls,
+                **dict(zip(
+                    ["eng_total", "eng_cnt_exp_above", "eng_cnt_above_only", "eng_pct_exp_above", "eng_pct_above_only",
+                     "maths_total", "maths_cnt_exp_above", "maths_cnt_above_only", "maths_pct_exp_above", "maths_pct_above_only",
+                     "sci_total", "sci_cnt_exp_above", "sci_cnt_above_only", "sci_pct_exp_above", "sci_pct_above_only"],
+                    (class_progress(getattr(InternalExam, f"{subj}_progcat"), CLASS_COL) for subj in subjects)
+                ))
+            } for cls in class_labels
+        ],
+        "klass_progress": [
+            results for results in class_progress_list
         ],
         "thr60": thr60, "thr70": thr70,
         "subjects": ["English", "Maths", "Science"],
