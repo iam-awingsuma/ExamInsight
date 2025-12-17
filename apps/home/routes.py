@@ -1824,9 +1824,9 @@ def api_yeargroup_attainment_by_class():
     ]
 
     # Class Progress (Expected + Above Expected, Above Expected only)
-    class_progress_list = [
-        class_progress(getattr(InternalExam, f"{subj}_progcat"), CLASS_COL) for subj in subjects
-    ]
+    # class_progress_list = [
+    #     class_progress(getattr(InternalExam, f"{subj}_progcat"), CLASS_COL) for subj in subjects
+    # ]
 
     engCo, mathsCo, sciCo = cohort_progress_list
 
@@ -1839,32 +1839,62 @@ def api_yeargroup_attainment_by_class():
     (sci_total, sci_cnt_exp_above, sci_cnt_above_only,
     sci_pct_exp_above, sci_pct_above_only) = sciCo
 
+    #**********************************************
+    #* Year Group vs. Cohort | Progress by Class
+    #**********************************************
+    per_class = {
+        subj: class_progress(getattr(InternalExam, f"{subj}_progcat"), Students.yrgrp)
+        for subj in subjects
+    }
+
+    default_tuple = (0, 0, 0, 0.0, 0.0)
+    keys = ["total", "cnt_exp_above", "cnt_above_only", "pct_exp_above", "pct_above_only"]
+
+
+
     # --- Single-chart payload ---
     yrgrp_payload = {
-        "cohort_progress": [
-            {"subject": "English", "cohort_n": eng_total,
-             "engCnt_exp_above": eng_cnt_exp_above, "engCnt_above_only": eng_cnt_above_only,
-             "engPct_exp_above": eng_pct_exp_above, "engPct_above_only": eng_pct_above_only},
-            {"subject": "Maths", "cohort_n": maths_total, 
-             "mathsCnt_exp_above": maths_cnt_exp_above, "mathsCnt_above_only": maths_cnt_above_only, 
-             "mathsPct_exp_above": maths_pct_exp_above, "mathsPct_above_only": maths_pct_above_only},
-            {"subject": "Science", "cohort_n": sci_total, 
-             "sciCnt_exp_above": sci_cnt_exp_above, "sciCnt_above_only": sci_cnt_above_only, 
-             "sciPct_exp_above": sci_pct_exp_above, "sciPct_above_only": sci_pct_above_only},
-        ],
+        # "cohort_progress": [
+        #     {"subject": "English", "class": "Cohort", "cohort_n": eng_total,
+        #      "engCnt_exp_above": eng_cnt_exp_above, "engCnt_above_only": eng_cnt_above_only,
+        #      "engPct_exp_above": eng_pct_exp_above, "engPct_above_only": eng_pct_above_only},
+        #     {"subject": "Maths", "class": "Cohort", "cohort_n": maths_total, 
+        #      "mathsCnt_exp_above": maths_cnt_exp_above, "mathsCnt_above_only": maths_cnt_above_only, 
+        #      "mathsPct_exp_above": maths_pct_exp_above, "mathsPct_above_only": maths_pct_above_only},
+        #     {"subject": "Science", "class": "Cohort", "cohort_n": sci_total, 
+        #      "sciCnt_exp_above": sci_cnt_exp_above, "sciCnt_above_only": sci_cnt_above_only, 
+        #      "sciPct_exp_above": sci_pct_exp_above, "sciPct_above_only": sci_pct_above_only},
+        # ],
         "class_progress": [
             {
-                "class": cls,
-                **dict(zip(
-                    ["eng_total", "eng_cnt_exp_above", "eng_cnt_above_only", "eng_pct_exp_above", "eng_pct_above_only",
-                     "maths_total", "maths_cnt_exp_above", "maths_cnt_above_only", "maths_pct_exp_above", "maths_pct_above_only",
-                     "sci_total", "sci_cnt_exp_above", "sci_cnt_above_only", "sci_pct_exp_above", "sci_pct_above_only"],
-                    (class_progress(getattr(InternalExam, f"{subj}_progcat"), CLASS_COL) for subj in subjects)
-                ))
-            } for cls in class_labels
-        ],
-        "klass_progress": [
-            results for results in class_progress_list
+                "class": cls.upper(),
+                "class_n": per_class[subjects[0]].get(cls, default_tuple)[0],  # total students (same for all subjects)
+                **{
+                    f"{subj}_{k}": per_class[subj].get(cls, default_tuple)[i]
+                    for subj in subjects
+                    for i, k in enumerate(keys)
+                }
+            }
+            for cls in class_labels
+        ] + 
+        [
+            {
+                "class": "Cohort",
+                "cohort_n": cohort_stats["cohort_n"],
+                "subject": "English",
+                "engCnt_exp_above": eng_cnt_exp_above, "engCnt_above_only": eng_cnt_above_only,
+                "engPct_exp_above": eng_pct_exp_above, "engPct_above_only": eng_pct_above_only
+            },
+            {
+                "subject": "Maths",
+                "mathsCnt_exp_above": maths_cnt_exp_above, "mathsCnt_above_only": maths_cnt_above_only, 
+                "mathsPct_exp_above": maths_pct_exp_above, "mathsPct_above_only": maths_pct_above_only
+            },
+            {
+                "subject": "Science", 
+                "sciCnt_exp_above": sci_cnt_exp_above, "sciCnt_above_only": sci_cnt_above_only, 
+                "sciPct_exp_above": sci_pct_exp_above, "sciPct_above_only": sci_pct_above_only
+            }
         ],
         "thr60": thr60, "thr70": thr70,
         "subjects": ["English", "Maths", "Science"],

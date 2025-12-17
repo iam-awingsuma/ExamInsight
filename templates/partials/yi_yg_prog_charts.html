@@ -40,17 +40,27 @@
                                 <td class="table-success">Pct (%)</td>
                             </tr>
                             {% for row in yrgrp_payload.class_progress %}
-                            <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
+                            <tr class="text-center">
                                 <th scope="row">{{ row.class }}</th>
-                                <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
-                                <td class="table-info">{{ row.eng60_pass or row.engCnt_exp_above }}</td>
-                                <td class="table-info">{{ row.eng60_pct or row.engPct_exp_above }}</td>
-                                <td class="table-warning">{{ row.maths60_pass or row.mathsCnt_exp_above }}</td>
-                                <td class="table-warning">{{ row.maths60_pct or row.mathsPct_exp_above }}</td>
-                                <td class="table-success">{{ row.sci60_pass or row.sciCnt_exp_above }}</td>
-                                <td class="table-success">{{ row.sci60_pct or row.sciPct_exp_above }}</td>
+                                <td class="table-light">{{ row.class_n }}</td>
+                                <td class="table-info">{{ row.eng_cnt_exp_above }}</td>
+                                <td class="table-info">{{ row.eng_pct_exp_above }}</td>
+                                <td class="table-warning">{{ row.maths_cnt_exp_above }}</td>
+                                <td class="table-warning">{{ row.maths_pct_exp_above }}</td>
+                                <td class="table-success">{{ row.sci_cnt_exp_above }}</td>
+                                <td class="table-success">{{ row.sci_pct_exp_above }}</td>
                             </tr>
                             {% endfor %}
+                            <tr style="font-weight:500;background:#f9f9f9" class="text-center">
+                                <th scope="row">Cohort</th>
+                                <td class="table-light">{{ yrgrp_payload.class_progress.cohort_n }}</td>
+                                <td class="table-info">{{ engCnt_exp_above }}</td>
+                                <td class="table-info">{{ engPct_exp_above }}</td>
+                                <td class="table-warning">{{ mathsCnt_exp_above }}</td>
+                                <td class="table-warning">{{ mathsPct_exp_above }}</td>
+                                <td class="table-success">{{ sciCnt_exp_above }}</td>
+                                <td class="table-success">{{ sciPct_exp_above }}</td>
+                            </tr>
                         </tbody>
                         </table>
                         {% else %}

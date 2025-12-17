@@ -264,8 +264,6 @@ def class_progress(col, class_col):
     """
     Returns a dict mapping each class -> the same 5-tuple as cohort_progress:
       { "2-A": (total, cnt_exp_above, cnt_above_only, pct_exp_above, pct_above_only), ... }
-
-    Assumes you can join Students to InternalExam to get class/section.
     """
     # If strings are provided, resolve them to actual SQLAlchemy columns
     if isinstance(col, str):
@@ -273,34 +271,36 @@ def class_progress(col, class_col):
     if isinstance(class_col, str):
         class_col = getattr(Students, class_col)
 
-    norm = func.lower(func.trim(col))
+    # Normalize values: handle NULL, spaces, commas, casing
+    norm = func.lower(func.trim(func.replace(func.coalesce(col, ""), ",", "")))
+
     q = (
         db.session.query(
             class_col.label("klass"),
-            func.count(col).label("total"),
+
+            # IMPORTANT: don't use count(col); count rows instead
+            func.count(InternalExam.student_id).label("total"),
+
             func.sum(case((norm == "expected", 1), else_=0)).label("exp_cnt"),
             func.sum(case((norm == "above expected", 1), else_=0)).label("above_cnt"),
         )
         .select_from(InternalExam)
-        .join(Students, InternalExam.student_id == Students.id)
+        .join(Students, InternalExam.student_id == Students.student_id)
         .group_by(class_col)
     )
 
     result = {}
     for klass, total, exp_cnt, above_cnt in q.all():
-        total = total or 0
-        exp_cnt = exp_cnt or 0
-        above_cnt = above_cnt or 0
+        total = int(total or 0)
+        exp_cnt = int(exp_cnt or 0)
+        above_cnt = int(above_cnt or 0)
 
         cnt_exp_above  = exp_cnt + above_cnt
         cnt_above_only = above_cnt
 
-        p_expected = round((exp_cnt / total * 100.0), 1) if total else 0.0
-        p_above    = round((above_cnt / total * 100.0), 1) if total else 0.0
+        pct_exp_above  = round((cnt_exp_above / total * 100.0), 1) if total else 0.0
+        pct_above_only = round((cnt_above_only / total * 100.0), 1) if total else 0.0
 
-        pct_exp_above  = round(p_expected + p_above, 1)
-        pct_above_only = p_above
-
-        result[str(klass)] = (total, cnt_exp_above, cnt_above_only, pct_exp_above, pct_above_only)
+        result[str(klass).strip().lower()] = (total, cnt_exp_above, cnt_above_only, pct_exp_above, pct_above_only)
 
     return result
