@@ -13,12 +13,8 @@ window.yrgrp_analytics = function (elId = "chart_yrgrp_analytics") {
 
       // Define a color for each class / trace name
       const colorMap = {
-        "2-A": "#9656a2",
-        "2-B": "#369acc",
-        "2-C": "#95cf92",
-        "2-D": "#f8e16f",
-        "2-E": "#F8961e",
-        "2-F": "#DC3C22",
+        "2-A": "#9656a2", "2-B": "#369acc", "2-C": "#95cf92",
+        "2-D": "#f8e16f", "2-E": "#F8961e", "2-F": "#DC3C22",
         "Cohort": "#065084" // default fallback
       };
 
@@ -122,12 +118,8 @@ window.yrgrp_analytics60 = function (elId = "chart_yrgrp_analytics60") {
 
       // Define a color for each class / trace name
       const colorMap = {
-        "2-A": "#9656a2",
-        "2-B": "#369acc",
-        "2-C": "#95cf92",
-        "2-D": "#f8e16f",
-        "2-E": "#F8961e",
-        "2-F": "#DC3C22",
+        "2-A": "#9656a2", "2-B": "#369acc", "2-C": "#95cf92",
+        "2-D": "#f8e16f", "2-E": "#F8961e", "2-F": "#DC3C22",
         "Cohort": "#065084" // default fallback
       };
 
@@ -211,12 +203,8 @@ window.yrgrp_analytics70 = function (elId = "chart_yrgrp_analytics70") {
 
       // Define a color for each class / trace name
       const colorMap = {
-        "2-A": "#9656a2",
-        "2-B": "#369acc",
-        "2-C": "#95cf92",
-        "2-D": "#f8e16f",
-        "2-E": "#F8961e",
-        "2-F": "#DC3C22",
+        "2-A": "#9656a2", "2-B": "#369acc", "2-C": "#95cf92",
+        "2-D": "#f8e16f", "2-E": "#F8961e", "2-F": "#DC3C22",
         "Cohort": "#065084" // default fallback
       };
 
@@ -269,4 +257,113 @@ window.yrgrp_analytics70 = function (elId = "chart_yrgrp_analytics70") {
       }
     })
     .catch(err => console.error("[yrgrp_analytics70] Fetch error:", err));
+};
+
+// Year Group: Progress Category Chart (Expected+Above or Above Only)
+window.yrgrp_progressChart = function (
+  elId = "chart_yrgrp_progress",
+  metric = "exp_above" // "exp_above" | "above_only"
+) {
+  fetch("/api/yrgrp_analytics")
+    .then(r => r.json())
+    .then(td => {
+      if (!td.class_progress || !Array.isArray(td.class_progress)) {
+        console.error("[yrgrp_progressChart] Invalid payload", td);
+        return;
+      }
+
+      // Subjects shown on x-axis
+      const subjects = ["English", "Maths", "Science"];
+      const order = ["2-A","2-B","2-C","2-D","2-E","2-F","Cohort"];
+
+      // ---- Builds a single Cohort row from td.cohort_progress (3 rows: Eng/Maths/Sci) ----
+      const cohortRec = { class: "Cohort" };
+
+      if (Array.isArray(td.cohort_progress)) {
+        td.cohort_progress.forEach(c => {
+          const subj = (c.subject || "").toLowerCase();
+          if (subj === "english") {
+            cohortRec.eng_pct_exp_above  = Number(c.engPct_exp_above ?? 0);
+            cohortRec.eng_pct_above_only = Number(c.engPct_above_only ?? 0);
+          } else if (subj === "maths" || subj === "math") {
+            cohortRec.maths_pct_exp_above  = Number(c.mathsPct_exp_above ?? 0);
+            cohortRec.maths_pct_above_only = Number(c.mathsPct_above_only ?? 0);
+          } else if (subj === "science" || subj === "sci") {
+            cohortRec.sci_pct_exp_above  = Number(c.sciPct_exp_above ?? 0);
+            cohortRec.sci_pct_above_only = Number(c.sciPct_above_only ?? 0);
+          }
+        });
+      }
+
+      // Combine class rows + cohort row
+      const combined = [...td.class_progress, cohortRec];
+
+      // Fast lookup by class name
+      const byName = Object.fromEntries(combined.map(r => [r.class, r]));
+
+      // Pick which pct field to chart
+      const pctKey = (subjKey) => {
+        if (metric === "above_only") return `${subjKey}_pct_above_only`;
+        return `${subjKey}_pct_exp_above`; // default: expected+above
+      };
+
+      const getPct = (rec, subjKey) => Number(rec?.[pctKey(subjKey)] ?? 0);
+
+      // Colors (same idea as your chart)
+      const colorMap = {
+        "2-A": "#9656a2", "2-B": "#369acc", "2-C": "#95cf92",
+        "2-D": "#f8e16f", "2-E": "#F8961e", "2-F": "#DC3C22",
+        "Cohort": "#065084" // default fallback
+      };
+
+      // Build traces (one trace per class, grouped across subjects)
+      const traces = order
+        .map(name => byName[name])
+        .filter(Boolean)
+        .map(rec => {
+          const y = [
+            getPct(rec, "eng"), getPct(rec, "maths"), getPct(rec, "sci")
+          ];
+
+          return {
+            x: subjects,
+            y,
+            type: "bar",
+            name: rec.class,
+            marker: { color: colorMap[rec.class] || "#90be6d" },
+            text: y.map(v => `${Number(v).toFixed(1)}%`),
+            textposition: "outside",
+            hovertemplate: "%{y:.1f}%<extra><b>" + rec.class + "</b></extra>"
+          };
+        });
+
+      Plotly.newPlot(
+        elId,
+        traces,
+        {
+          autosize: true,
+          barmode: "group",
+          yaxis: {
+            title: metric === "above_only" ? "Percent of Better Progress" : "Percent of Expected/Better Progress",
+            range: [0, 110]
+          },
+          margin: { t: 20, r: 20, b: 60, l: 60 },
+          legend: { orientation: "h", y: -0.2 },
+          hoverlabel: { bgcolor: "#fff", bordercolor: "#ccc", align: "left" },
+          hovermode: "x unified"
+        },
+        { displayModeBar: false, responsive: true }
+      );
+
+      // Responsive handling (same as your pattern)
+      const el = document.getElementById(elId);
+      if (el) {
+        const resize = () => Plotly.Plots.resize(el);
+        window.addEventListener("resize", resize);
+        new ResizeObserver(resize).observe(el);
+        document.addEventListener("shown.bs.tab", resize);
+        document.addEventListener("shown.bs.collapse", resize);
+      }
+    })
+    .catch(err => console.error("[yrgrp_progressChart] Fetch error:", err));
 };

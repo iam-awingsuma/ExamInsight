@@ -122,17 +122,48 @@
         window.renderGenderThresholdBars('gender-prog-exp-above', 'chart_gender_exp_above');
         window.renderGenderThresholdBars('gender-prog-above-data', 'chart_gender_above_data');
       }
+
+      const accordion = document.getElementById('two_AtATime');
+      if (!accordion || !window.yrgrp_progressChart) return;
+
+      // Map metric to chart container id
+      const chartIdByMetric = {
+        exp_above: 'chart_yrgrp_progress_ebp', // inside btn_yrgrp_prog_ebp
+        above_only: 'chart_yrgrp_progress_bp'  // inside btn_yrgrp_prog_bp
+      };
+
+      // Render initial state based on whichever panel is open
+      const initialPanel = accordion.querySelector('.accordion-collapse.show');
+      const initialMetric = initialPanel?.dataset?.metric || 'exp_above';
+      const initialChartId = chartIdByMetric[initialMetric] || chartIdByMetric.exp_above;
+      
+      window.yrgrp_progressChart(initialChartId, initialMetric);
+
+      // Render whenever an accordion panel opens
+      accordion.addEventListener('shown.bs.collapse', (e) => {
+        const metric = e.target?.dataset?.metric || 'exp_above';
+        const chartId = chartIdByMetric[metric] || chartIdByMetric.exp_above;
+
+        console.log('[progressAccordion] open panel:', e.target.id, 'metric:', metric, 'chartId:', chartId);
+
+        window.yrgrp_progressChart(chartId, metric);
+
+        // Plotly sometimes needs a resize after becoming visible
+        const el = document.getElementById(chartId);
+        if (el) setTimeout(() => Plotly.Plots.resize(el), 50);
+      });
     });
 
     // Year Group Analytics: Average Attainment Comparison
     window.yrgrp_analytics('chart_yrgrp_analytics');
     window.yrgrp_analytics60('chart_yrgrp_analytics60');
     window.yrgrp_analytics70('chart_yrgrp_analytics70');
-
+    
     // if chart is in collapsed accordion/tab:
     document.addEventListener('shown.bs.collapse', () => {
       ['chart_gender_ge60','chart_gender_ge70','chart_gender_exp_above','chart_gender_above_data', 
-      'chart_line', 'chart_bands', 'chart_progcats'].forEach(id => {
+      'chart_line', 'chart_bands', 'chart_progcats', 'chart_yrgrp_progress_ebp',
+      'chart_yrgrp_progress_bp'].forEach(id => {
         const el = document.getElementById(id); if (el) Plotly.Plots.resize(el);
       });
     });

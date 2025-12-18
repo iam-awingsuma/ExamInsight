@@ -20,7 +20,6 @@ Currency = Config.CURRENCY
 PAYMENT_TYPE = Config.PAYMENT_TYPE
 STATE = Config.STATE
 
-
 regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
 
 def get_ts():
@@ -72,7 +71,7 @@ def uniqueFileName(file_name):
 
 def serverImageUrl(file_name):
     """ for Unique file name"""
-    url = f'{FTP_IMAGE_URL}{file_name}'
+    url = f'{FTP_IMAGE_URL}{file_name}' # type: ignore
     return url
 
 def errorColor(error):

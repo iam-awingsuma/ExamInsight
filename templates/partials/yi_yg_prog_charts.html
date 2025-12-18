@@ -1,6 +1,6 @@
 <div class="accordion" id="two_AtATime">
 {% include "partials/btns_yrgrp_prog.html" %}
-    <div id="btn_yrgrp_prog_ebp" class="accordion-collapse collapse show" data-bs-parent="#two_AtATime">
+    <div id="btn_yrgrp_prog_ebp" class="accordion-collapse collapse show" data-metric="exp_above" data-bs-parent="#two_AtATime">
         <!-- Year Group vs. Cohort Progress Chart | Expected/Better Progress -->
         <div class="col-12 px-0 h-100 d-flex flex-column">
             <div class="card h-100 chart-card">
@@ -22,7 +22,7 @@
                         </div>
                     </div>
                     <div class="chart-body mt-1">
-                        <div id="chart_yrgrp_analytics60" class="w-100" style="height:360px;"></div>
+                        <div id="chart_yrgrp_progress_ebp" class="w-100" style="height:360px;"></div>
                     </div>
                     <!-- Year Group vs. Cohort Dataset | Expected/Better Progress -->
                     <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
@@ -39,6 +39,7 @@
                                 <td class="table-success">Sci (n)</td>
                                 <td class="table-success">Pct (%)</td>
                             </tr>
+                            
                             {% set cohort = namespace(n=0, eng_n=0, eng_pct=0, math_n=0, math_pct=0, sci_n=0, sci_pct=0) %}
 
                             {# Collect cohort values from cohort_progress list (3 dicts) #}
@@ -94,7 +95,7 @@
         </div>
     </div>
 
-    <div id="btn_yrgrp_prog_bp" class="accordion-collapse collapse" data-bs-parent="#two_AtATime">
+    <div id="btn_yrgrp_prog_bp" class="accordion-collapse collapse" data-metric="above_only" data-bs-parent="#two_AtATime">
         <!-- Year Group vs. Cohort Chart | Better Progress -->
         <div class="col-12 px-0 h-100 d-flex flex-column">
             <div class="card h-100 chart-card">
@@ -116,7 +117,7 @@
                         </div>
                     </div>
                     <div class="chart-body mt-1">
-                        <div id="chart_yrgrp_analytics70" class="w-100" style="height:360px;"></div>
+                        <div id="chart_yrgrp_progress_bp" class="w-100" style="height:360px;"></div>
                     </div>
                     <!-- Year Group vs. Cohort Dataset | Better Progress -->
                     <div class="table-responsive text-xs w-100" style="display: block; overflow-x: auto;">
@@ -133,18 +134,51 @@
                                 <td class="table-success">Sci (n)</td>
                                 <td class="table-success">Pct (%)</td>
                             </tr>
+
+                            {% set cohort = namespace(n=0, eng_n=0, eng_pct=0, math_n=0, math_pct=0, sci_n=0, sci_pct=0) %}
+
+                            {# Collect cohort values from cohort_progress list (3 dicts) #}
+                            {% for c in yrgrp_payload.cohort_progress %}
+                            {% if c.subject == "English" %}
+                                {% set cohort.n = c.cohort_n %}
+                                {% set cohort.eng_n = c.engCnt_above_only %}
+                                {% set cohort.eng_pct = c.engPct_above_only %}
+                            {% elif c.subject == "Maths" %}
+                                {% set cohort.n = c.cohort_n %}
+                                {% set cohort.math_n = c.mathsCnt_above_only %}
+                                {% set cohort.math_pct = c.mathsPct_above_only %}
+                            {% elif c.subject == "Science" %}
+                                {% set cohort.n = c.cohort_n %}
+                                {% set cohort.sci_n = c.sciCnt_above_only %}
+                                {% set cohort.sci_pct = c.sciPct_above_only %}
+                            {% endif %}
+                            {% endfor %}
+
+                            {# Render CLASS rows only #}
                             {% for row in yrgrp_payload.class_progress %}
-                            <tr{% if row.class == 'Cohort' %} style="font-weight:500;background:#f9f9f9"{% endif %} class="text-center">
+                            <tr class="text-center">
                                 <th scope="row">{{ row.class }}</th>
-                                <td class="table-light">{{ row.class_n or row.cohort_n }}</td>
-                                <td class="table-info">{{ row.eng70_pass or row.engCnt_above_only }}</td>
-                                <td class="table-info">{{ row.eng70_pct or row.engPct_above_only }}</td>
-                                <td class="table-warning">{{ row.maths70_pass or row.mathsCnt_above_only }}</td>
-                                <td class="table-warning">{{ row.maths70_pct or row.mathsPct_above_only }}</td>
-                                <td class="table-success">{{ row.sci70_pass or row.sciCnt_above_only }}</td>
-                                <td class="table-success">{{ row.sci70_pct or row.sciPct_above_only }}</td>
+                                <td class="table-light">{{ row.class_n }}</td>
+                                <td class="table-info">{{ row.eng_cnt_above_only }}</td>
+                                <td class="table-info">{{ row.eng_pct_above_only }}</td>
+                                <td class="table-warning">{{ row.maths_cnt_above_only }}</td>
+                                <td class="table-warning">{{ row.maths_pct_above_only }}</td>
+                                <td class="table-success">{{ row.sci_cnt_above_only }}</td>
+                                <td class="table-success">{{ row.sci_pct_above_only }}</td>
                             </tr>
                             {% endfor %}
+
+                            {# Render ONE COHORT row #}
+                            <tr class="text-center" style="font-weight:500;background:#f9f9f9">
+                                <th scope="row">Cohort</th>
+                                <td class="table-light">{{ cohort.n }}</td>
+                                <td class="table-info">{{ cohort.eng_n }}</td>
+                                <td class="table-info">{{ cohort.eng_pct }}</td>
+                                <td class="table-warning">{{ cohort.math_n }}</td>
+                                <td class="table-warning">{{ cohort.math_pct }}</td>
+                                <td class="table-success">{{ cohort.sci_n }}</td>
+                                <td class="table-success">{{ cohort.sci_pct }}</td>
+                            </tr>
                         </tbody>
                         </table>
                         {% else %}
