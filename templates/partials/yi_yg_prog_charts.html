@@ -39,6 +39,26 @@
                                 <td class="table-success">Sci (n)</td>
                                 <td class="table-success">Pct (%)</td>
                             </tr>
+                            {% set cohort = namespace(n=0, eng_n=0, eng_pct=0, math_n=0, math_pct=0, sci_n=0, sci_pct=0) %}
+
+                            {# Collect cohort values from cohort_progress list (3 dicts) #}
+                            {% for c in yrgrp_payload.cohort_progress %}
+                            {% if c.subject == "English" %}
+                                {% set cohort.n = c.cohort_n %}
+                                {% set cohort.eng_n = c.engCnt_exp_above %}
+                                {% set cohort.eng_pct = c.engPct_exp_above %}
+                            {% elif c.subject == "Maths" %}
+                                {% set cohort.n = c.cohort_n %}
+                                {% set cohort.math_n = c.mathsCnt_exp_above %}
+                                {% set cohort.math_pct = c.mathsPct_exp_above %}
+                            {% elif c.subject == "Science" %}
+                                {% set cohort.n = c.cohort_n %}
+                                {% set cohort.sci_n = c.sciCnt_exp_above %}
+                                {% set cohort.sci_pct = c.sciPct_exp_above %}
+                            {% endif %}
+                            {% endfor %}
+
+                            {# Render CLASS rows only #}
                             {% for row in yrgrp_payload.class_progress %}
                             <tr class="text-center">
                                 <th scope="row">{{ row.class }}</th>
@@ -51,15 +71,17 @@
                                 <td class="table-success">{{ row.sci_pct_exp_above }}</td>
                             </tr>
                             {% endfor %}
-                            <tr style="font-weight:500;background:#f9f9f9" class="text-center">
+
+                            {# Render ONE COHORT row #}
+                            <tr class="text-center" style="font-weight:500;background:#f9f9f9">
                                 <th scope="row">Cohort</th>
-                                <td class="table-light">{{ yrgrp_payload.class_progress.cohort_n }}</td>
-                                <td class="table-info">{{ engCnt_exp_above }}</td>
-                                <td class="table-info">{{ engPct_exp_above }}</td>
-                                <td class="table-warning">{{ mathsCnt_exp_above }}</td>
-                                <td class="table-warning">{{ mathsPct_exp_above }}</td>
-                                <td class="table-success">{{ sciCnt_exp_above }}</td>
-                                <td class="table-success">{{ sciPct_exp_above }}</td>
+                                <td class="table-light">{{ cohort.n }}</td>
+                                <td class="table-info">{{ cohort.eng_n }}</td>
+                                <td class="table-info">{{ cohort.eng_pct }}</td>
+                                <td class="table-warning">{{ cohort.math_n }}</td>
+                                <td class="table-warning">{{ cohort.math_pct }}</td>
+                                <td class="table-success">{{ cohort.sci_n }}</td>
+                                <td class="table-success">{{ cohort.sci_pct }}</td>
                             </tr>
                         </tbody>
                         </table>

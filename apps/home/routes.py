@@ -1850,21 +1850,19 @@ def api_yeargroup_attainment_by_class():
     default_tuple = (0, 0, 0, 0.0, 0.0)
     keys = ["total", "cnt_exp_above", "cnt_above_only", "pct_exp_above", "pct_above_only"]
 
-
-
     # --- Single-chart payload ---
     yrgrp_payload = {
-        # "cohort_progress": [
-        #     {"subject": "English", "class": "Cohort", "cohort_n": eng_total,
-        #      "engCnt_exp_above": eng_cnt_exp_above, "engCnt_above_only": eng_cnt_above_only,
-        #      "engPct_exp_above": eng_pct_exp_above, "engPct_above_only": eng_pct_above_only},
-        #     {"subject": "Maths", "class": "Cohort", "cohort_n": maths_total, 
-        #      "mathsCnt_exp_above": maths_cnt_exp_above, "mathsCnt_above_only": maths_cnt_above_only, 
-        #      "mathsPct_exp_above": maths_pct_exp_above, "mathsPct_above_only": maths_pct_above_only},
-        #     {"subject": "Science", "class": "Cohort", "cohort_n": sci_total, 
-        #      "sciCnt_exp_above": sci_cnt_exp_above, "sciCnt_above_only": sci_cnt_above_only, 
-        #      "sciPct_exp_above": sci_pct_exp_above, "sciPct_above_only": sci_pct_above_only},
-        # ],
+        "cohort_progress": [
+            {"subject": "English", "class": "Cohort", "cohort_n": eng_total,
+             "engCnt_exp_above": eng_cnt_exp_above, "engCnt_above_only": eng_cnt_above_only,
+             "engPct_exp_above": eng_pct_exp_above, "engPct_above_only": eng_pct_above_only},
+            {"subject": "Maths", "class": "Cohort", "cohort_n": maths_total, 
+             "mathsCnt_exp_above": maths_cnt_exp_above, "mathsCnt_above_only": maths_cnt_above_only, 
+             "mathsPct_exp_above": maths_pct_exp_above, "mathsPct_above_only": maths_pct_above_only},
+            {"subject": "Science", "class": "Cohort", "cohort_n": sci_total, 
+             "sciCnt_exp_above": sci_cnt_exp_above, "sciCnt_above_only": sci_cnt_above_only, 
+             "sciPct_exp_above": sci_pct_exp_above, "sciPct_above_only": sci_pct_above_only},
+        ],
         "class_progress": [
             {
                 "class": cls.upper(),
@@ -1876,25 +1874,6 @@ def api_yeargroup_attainment_by_class():
                 }
             }
             for cls in class_labels
-        ] + 
-        [
-            {
-                "class": "Cohort",
-                "cohort_n": cohort_stats["cohort_n"],
-                "subject": "English",
-                "engCnt_exp_above": eng_cnt_exp_above, "engCnt_above_only": eng_cnt_above_only,
-                "engPct_exp_above": eng_pct_exp_above, "engPct_above_only": eng_pct_above_only
-            },
-            {
-                "subject": "Maths",
-                "mathsCnt_exp_above": maths_cnt_exp_above, "mathsCnt_above_only": maths_cnt_above_only, 
-                "mathsPct_exp_above": maths_pct_exp_above, "mathsPct_above_only": maths_pct_above_only
-            },
-            {
-                "subject": "Science", 
-                "sciCnt_exp_above": sci_cnt_exp_above, "sciCnt_above_only": sci_cnt_above_only, 
-                "sciPct_exp_above": sci_pct_exp_above, "sciPct_above_only": sci_pct_above_only
-            }
         ],
         "thr60": thr60, "thr70": thr70,
         "subjects": ["English", "Maths", "Science"],
