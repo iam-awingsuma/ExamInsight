@@ -57,6 +57,27 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# function to upsert student record from CSV row (used by external exams upload)
+def _upsert_student_from_row(row):
+    student_id = int(row["student_id"])
+    student_attrs = {
+        "forename": str(row["forename"]),
+        "surname": str(row["surname"]),
+        "gender": str(row["gender"]),
+        "date_of_birth": str(row["date_of_birth"]),
+        "yrgrp": str(row["yrgrp"]),
+        "sped": str(row["sped"]),
+        "nationality": str(row["nationality"]),
+        "status": str(row["status"]),
+    }
+    student = Students.query.filter_by(student_id=student_id).first()
+    if student:
+        for key, value in student_attrs.items():
+            setattr(student, key, value)
+    else:
+        student = Students(student_id=student_id, **student_attrs)
+        db.session.add(student)
+    return student_id
 
 #*******************************
 #*** User Management Routes ***#
@@ -189,34 +210,7 @@ def upload_ngrta():
         
         for index, row in df.iterrows():
             # Insert data into table - students
-            student_id=int(row['student_id'])
-
-            # Handle students table
-            student = Students.query.filter_by(student_id=student_id).first()
-            if student:
-                # Update existing student record
-                student.forename = str(row['forename'])
-                student.surname = str(row['surname'])
-                student.gender = str(row['gender'])
-                student.date_of_birth = str(row['date_of_birth'])
-                student.yrgrp = str(row['yrgrp'])
-                student.sped = str(row['sped'])
-                student.nationality = str(row['nationality'])
-                student.status = str(row['status'])
-            else:
-                # New student record
-                student = Students(
-                    student_id=student_id,
-                    forename=str(row['forename']),
-                    surname=str(row['surname']),
-                    gender=str(row['gender']),
-                    date_of_birth=str(row['date_of_birth']),
-                    yrgrp=str(row['yrgrp']),
-                    sped=str(row['sped']),
-                    nationality=str(row['nationality']),
-                    status=str(row['status'])
-                )
-                db.session.add(student)
+            student_id = _upsert_student_from_row(row)
             
             # Handle NGRTA table
             ngrta = NGRTA.query.filter_by(student_id=student_id).first()
@@ -378,34 +372,7 @@ def upload_ngrtb():
         
         for index, row in df.iterrows():
             # Insert data into table - students
-            student_id=int(row['student_id'])
-
-            # Handle students table
-            student = Students.query.filter_by(student_id=student_id).first()
-            if student:
-                # Update existing student record
-                student.forename = str(row['forename'])
-                student.surname = str(row['surname'])
-                student.gender = str(row['gender'])
-                student.date_of_birth = str(row['date_of_birth'])
-                student.yrgrp = str(row['yrgrp'])
-                student.sped = str(row['sped'])
-                student.nationality = str(row['nationality'])
-                student.status = str(row['status'])
-            else:
-                # New student record
-                student = Students(
-                    student_id=student_id,
-                    forename=str(row['forename']),
-                    surname=str(row['surname']),
-                    gender=str(row['gender']),
-                    date_of_birth=str(row['date_of_birth']),
-                    yrgrp=str(row['yrgrp']),
-                    sped=str(row['sped']),
-                    nationality=str(row['nationality']),
-                    status=str(row['status'])
-                )
-                db.session.add(student)
+            student_id = _upsert_student_from_row(row)
             
             # Handle NGRTB table
             ngrtb = NGRTB.query.filter_by(student_id=student_id).first()
@@ -597,34 +564,7 @@ def upload_ngrtc():
         
         for index, row in df.iterrows():
             # Insert data into table - students
-            student_id=int(row['student_id'])
-
-            # Handle students table
-            student = Students.query.filter_by(student_id=student_id).first()
-            if student:
-                # Update existing student record
-                student.forename = str(row['forename'])
-                student.surname = str(row['surname'])
-                student.gender = str(row['gender'])
-                student.date_of_birth = str(row['date_of_birth'])
-                student.yrgrp = str(row['yrgrp'])
-                student.sped = str(row['sped'])
-                student.nationality = str(row['nationality'])
-                student.status = str(row['status'])
-            else:
-                # New student record
-                student = Students(
-                    student_id=student_id,
-                    forename=str(row['forename']),
-                    surname=str(row['surname']),
-                    gender=str(row['gender']),
-                    date_of_birth=str(row['date_of_birth']),
-                    yrgrp=str(row['yrgrp']),
-                    sped=str(row['sped']),
-                    nationality=str(row['nationality']),
-                    status=str(row['status'])
-                )
-                db.session.add(student)
+            student_id = _upsert_student_from_row(row)
             
             # Handle NGRTC table
             ngrtc = NGRTC.query.filter_by(student_id=student_id).first()
@@ -800,34 +740,7 @@ def upload_intlexam():
         
         for index, row in df.iterrows():
             # Insert data into table - students
-            student_id=int(row['student_id'])
-
-            # Handle students table
-            student = Students.query.filter_by(student_id=student_id).first()
-            if student:
-                # Update existing student record
-                student.forename = str(row['forename'])
-                student.surname = str(row['surname'])
-                student.gender = str(row['gender'])
-                student.date_of_birth = str(row['date_of_birth'])
-                student.yrgrp = str(row['yrgrp'])
-                student.sped = str(row['sped'])
-                student.nationality = str(row['nationality'])
-                student.status = str(row['status'])
-            else:
-                # New student record
-                student = Students(
-                    student_id=student_id,
-                    forename=str(row['forename']),
-                    surname=str(row['surname']),
-                    gender=str(row['gender']),
-                    date_of_birth=str(row['date_of_birth']),
-                    yrgrp=str(row['yrgrp']),
-                    sped=str(row['sped']),
-                    nationality=str(row['nationality']),
-                    status=str(row['status'])
-                )
-                db.session.add(student)
+            student_id = _upsert_student_from_row(row)
 
             # Handle internal_exam table
             internalexam = InternalExam.query.filter_by(student_id=student_id).first()
