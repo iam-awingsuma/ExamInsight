@@ -42,12 +42,21 @@ def create_app(config):
 
     # Contextual
     static_prefix = '/static'
-    templates_dir = os.path.dirname(config.BASE_DIR)
+    # templates_dir = os.path.dirname(config.BASE_DIR)
 
-    TEMPLATES_FOLDER = os.path.join(templates_dir,'templates')
-    STATIC_FOLDER = os.path.join(templates_dir,'static')
+    # TEMPLATES_FOLDER = os.path.join(templates_dir,'templates')
+    # STATIC_FOLDER = os.path.join(templates_dir,'static')
 
-    app = Flask(__name__, static_url_path=static_prefix, template_folder=TEMPLATES_FOLDER, static_folder=STATIC_FOLDER)
+    templates_dir = config.BASE_DIR.parent  # Path
+    TEMPLATES_FOLDER = templates_dir / "templates"
+    STATIC_FOLDER = templates_dir / "static"
+
+    app = Flask(
+        __name__,
+        static_url_path=static_prefix,
+        template_folder=TEMPLATES_FOLDER,
+        static_folder=STATIC_FOLDER
+    )
     app.secret_key = "your_secret_key"  # Required for session management
 
     app.config.from_object(config)

@@ -1,8 +1,10 @@
 import os
 import pandas as pd
 import requests
+from openai import OpenAI
 from apps.home import blueprint
 from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort
+from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
@@ -1810,3 +1812,155 @@ def api_yeargroup_attainment_by_class():
     }
 
     return jsonify(yrgrp_payload)
+
+
+#*************************************************************
+#*** ChatGPT Interpretation API - Student Performance ***#
+#*************************************************************
+@blueprint.route("/api/interpret_performance", methods=["GET"])
+def api_interpret_performance():
+    """
+    Generate AI interpretation of student performance data using ChatGPT.
+    Accepts: student_id or yrgrp as query parameters
+    Returns: JSON with interpretation (max 5 sentences)
+    """
+    # Get parameters
+    yrgrp = request.args.get("yrgrp", "").strip()
+    sid = request.args.get("student_id", "").strip()
+    
+    # Check if OpenAI API key is configured
+    api_key = current_app.config.get('OPENAI_API_KEY')
+    if not api_key:
+        return jsonify({
+            "error": "OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.",
+            "interpretation": None
+        }), 500
+    
+    # Fetch analytics data using existing logic
+    base_q = db.session.query(InternalExam).join(
+        Students, Students.student_id == InternalExam.student_id
+    )
+    
+    if yrgrp:
+        base_q = base_q.filter(Students.yrgrp == yrgrp)
+    if sid:
+        base_q = base_q.filter(InternalExam.student_id == sid)
+    
+    rows = base_q.all()
+    
+    if not rows:
+        return jsonify({
+            "error": "No data found for the specified criteria.",
+            "interpretation": None
+        }), 404
+    
+    # Format data for ChatGPT
+    data_summary = _format_data_for_chatgpt(rows, yrgrp, sid)
+    
+    # Call OpenAI API
+    try:
+        client = OpenAI(api_key=api_key)
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an educational data analyst specializing in student performance interpretation. Provide concise, actionable insights in exactly 5 sentences or fewer. Focus on key patterns, strengths, areas for improvement, and forecasts."
+                },
+                {
+                    "role": "user",
+                    "content": f"Analyze this student performance data and provide a comprehensive interpretation and forecast:\n\n{data_summary}\n\nProvide your analysis in maximum 5 sentences."
+                }
+            ],
+            max_tokens=300,
+            temperature=0.7
+        )
+        
+        interpretation = response.choices[0].message.content.strip()
+        
+        return jsonify({
+            "interpretation": interpretation,
+            "data_summary": data_summary,
+            "student_id": sid if sid else None,
+            "yrgrp": yrgrp if yrgrp else None
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "error": f"OpenAI API error: {str(e)}",
+            "interpretation": None
+        }), 500
+
+
+def _format_data_for_chatgpt(rows, yrgrp=None, sid=None):
+    """
+    Format student performance data into a readable summary for ChatGPT.
+    """
+    # Calculate aggregates
+    eng_curr = [r.eng_currPct for r in rows if r.eng_currPct is not None]
+    maths_curr = [r.maths_currPct for r in rows if r.maths_currPct is not None]
+    sci_curr = [r.sci_currPct for r in rows if r.sci_currPct is not None]
+    
+    eng_prev = [r.eng_prevPct for r in rows if r.eng_prevPct is not None]
+    maths_prev = [r.maths_prevPct for r in rows if r.maths_prevPct is not None]
+    sci_prev = [r.sci_prevPct for r in rows if r.sci_prevPct is not None]
+    
+    # Calculate averages
+    def safe_avg(lst):
+        return round(sum(lst) / len(lst), 1) if lst else 0
+    
+    eng_avg = safe_avg(eng_curr)
+    maths_avg = safe_avg(maths_curr)
+    sci_avg = safe_avg(sci_curr)
+    
+    eng_prev_avg = safe_avg(eng_prev)
+    maths_prev_avg = safe_avg(maths_prev)
+    sci_prev_avg = safe_avg(sci_prev)
+    
+    # Calculate progress
+    eng_progress = eng_avg - eng_prev_avg if eng_prev_avg else 0
+    maths_progress = maths_avg - maths_prev_avg if maths_prev_avg else 0
+    sci_progress = sci_avg - sci_prev_avg if sci_prev_avg else 0
+    
+    # Progress categories
+    prog_categories = {
+        "Below Expected": 0,
+        "Expected": 0,
+        "Above Expected": 0
+    }
+    
+    for r in rows:
+        for prog_col in [r.eng_progcat, r.maths_progcat, r.sci_progcat]:
+            if prog_col:
+                normalized = prog_col.strip().title()
+                if "Below" in normalized:
+                    prog_categories["Below Expected"] += 1
+                elif "Above" in normalized:
+                    prog_categories["Above Expected"] += 1
+                elif "Expected" in normalized:
+                    prog_categories["Expected"] += 1
+    
+    # Build summary text
+    context = f"Student ID {sid}" if sid else f"Year Group {yrgrp}" if yrgrp else "Cohort"
+    num_records = len(rows)
+    
+    summary = f"""Performance Analysis for {context} (n={num_records}):
+
+Current Performance (Average %):
+- English: {eng_avg}% (Previous: {eng_prev_avg}%, Change: {eng_progress:+.1f}%)
+- Maths: {maths_avg}% (Previous: {maths_prev_avg}%, Change: {maths_progress:+.1f}%)
+- Science: {sci_avg}% (Previous: {sci_prev_avg}%, Change: {sci_progress:+.1f}%)
+
+Progress Categories (across all subjects):
+- Below Expected: {prog_categories['Below Expected']}
+- Expected: {prog_categories['Expected']}
+- Above Expected: {prog_categories['Above Expected']}
+
+Key Metrics:
+- Overall average: {round((eng_avg + maths_avg + sci_avg) / 3, 1)}%
+- Strongest subject: {max([(eng_avg, 'English'), (maths_avg, 'Maths'), (sci_avg, 'Science')])[1]}
+- Most improved: {max([(eng_progress, 'English'), (maths_progress, 'Maths'), (sci_progress, 'Science')])[1]}
+"""
+    
+    return summary

@@ -18,6 +18,9 @@ class Config(object):
     # Set up the App SECRET_KEY
     SECRET_KEY  = os.getenv('SECRET_KEY', 'S3cret_999')
 
+    # OpenAI API Key for ChatGPT integration
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', None)
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     DB_ENGINE   = os.getenv('DB_ENGINE'   , None)
