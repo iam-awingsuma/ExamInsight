@@ -1854,8 +1854,17 @@ def api_interpret_performance():
             "interpretation": None
         }), 404
     
+    # Fetch student name if student_id is provided
+    student_name = None
+    if sid:
+        student = db.session.query(Students).filter(
+            Students.student_id == sid
+        ).first()
+        if student:
+            student_name = f"{student.forename} {student.surname}"
+    
     # Format data for ChatGPT
-    data_summary = _format_data_for_chatgpt(rows, yrgrp, sid)
+    data_summary = _format_data_for_chatgpt(rows, yrgrp, sid, student_name)
     
     # Call OpenAI API
     try:
@@ -1883,7 +1892,8 @@ def api_interpret_performance():
             "interpretation": interpretation,
             "data_summary": data_summary,
             "student_id": sid if sid else None,
-            "yrgrp": yrgrp if yrgrp else None
+            "student_name": student_name,
+            "yrgrp": yrgrp if yrgrp else None,
         })
         
     except Exception as e:
@@ -1893,9 +1903,15 @@ def api_interpret_performance():
         }), 500
 
 
-def _format_data_for_chatgpt(rows, yrgrp=None, sid=None):
+def _format_data_for_chatgpt(rows, yrgrp=None, sid=None, student_name=None):
     """
     Format student performance data into a readable summary for ChatGPT.
+    
+    Args:
+        rows: InternalExam records to analyze
+        yrgrp: Year group (optional)
+        sid: Student ID (optional)
+        student_name: Full student name (optional, auto-fetched if not provided)
     """
     # Calculate aggregates
     eng_curr = [r.eng_currPct for r in rows if r.eng_currPct is not None]
@@ -1941,8 +1957,16 @@ def _format_data_for_chatgpt(rows, yrgrp=None, sid=None):
                 elif "Expected" in normalized:
                     prog_categories["Expected"] += 1
     
-    # Build summary text
-    context = f"Student ID {sid}" if sid else f"Year Group {yrgrp}" if yrgrp else "Cohort"
+    # Build summary text with appropriate context
+    if sid and student_name:
+        context = f"Student: {student_name} (ID: {sid})"
+    elif sid:
+        context = f"Student ID: {sid}"
+    elif yrgrp:
+        context = f"year group: {yrgrp}"
+    else:
+        context = "Cohort"
+    
     num_records = len(rows)
     
     summary = f"""Performance Analysis for {context} (n={num_records}):

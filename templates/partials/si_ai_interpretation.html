@@ -1,0 +1,25 @@
+<div class="bg-white border-0 rounded-3 shadow-sm p-3 mb-3">
+    <div class="card-header mb-3">
+        <h5 class="card-title mb-0 text-uppercase font-weight-bolder text-primary">
+            <i class="fas fa-robot"></i> AI Performance Insights
+        </h5>
+    </div>
+    <div class="card-body">
+        <button id="ai-interpret-btn" class="btn btn-primary">
+            <i class="fas fa-magic"></i> Generate AI Analysis
+        </button>
+        
+        <div id="ai-loading" class="mt-1" style="display:none;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <span class="ms-2 text-xs">Analyzing performance data...</span>
+        </div>
+        
+        <div id="ai-interpretation" class="mt-1" style="display:none;">
+            <!-- <div class="alert alert-info"> -->
+            <div class="rounded-3 p-3" style="background-color: #FFF7CD;">
+                <strong><i class="fas fa-lightbulb"></i> <span class="text-uppercase"> AI Analysis:</span></strong>
+                <p id="interpretation-text" class="mb-0 mt-2 lh-base text-xs text-justify"></p>
+            </div>
+        </div>
+    </div>
+</div>

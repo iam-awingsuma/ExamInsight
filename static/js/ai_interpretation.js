@@ -50,8 +50,8 @@ class AIPerformanceInterpreter {
 
         button.addEventListener('click', async () => {
             // Get current filter values from page
-            const studentId = document.getElementById('student-select')?.value;
-            const yrgrp = document.getElementById('year-select')?.value;
+            const studentId = document.getElementById('student')?.value;
+            const yrgrp = document.getElementById('yrgrp')?.value;
             
             const params = {};
             if (studentId) params.student_id = studentId;
@@ -71,8 +71,8 @@ class AIPerformanceInterpreter {
      * Auto-load interpretation when filters change
      */
     initAutoLoad() {
-        const studentSelect = document.getElementById('student-select');
-        const yearSelect = document.getElementById('year-select');
+        const studentSelect = document.getElementById('student');
+        const yearSelect = document.getElementById('yrgrp');
         
         const loadHandler = async () => {
             const studentId = studentSelect?.value;

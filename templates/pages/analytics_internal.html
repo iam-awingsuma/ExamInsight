@@ -80,6 +80,9 @@
       <!-- Student KPI cards -->
        {% include "partials/si_kpi.html" %}
 
+      <!-- AI Interpretation - Internal Assessment [Student Insights] -->
+      {% include "partials/si_ai_interpretation.html" %}
+
       <!-- Student Insights Charts -->
       {% include "partials/si_charts.html" %}
     </div>
@@ -110,6 +113,8 @@
   <script src="{{ url_for('static', filename='js/charts/gender_att_prog.js') }}?v=1"></script>
   <script src="{{ url_for('static', filename='js/student_insights.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/charts/yrgrp_analytics.js') }}"></script>
+  <!-- AI Interpretation - Internal Assessment [Student Insights] -->
+  <script src="{{ url_for('static', filename='js/ai_interpretation.js') }}"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
