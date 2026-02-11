@@ -62,7 +62,10 @@
 
                   <div class="col-sm-6">
                     <div class="form-group">
-                      {{ form.designation(placeholder="Designation", class="form-control") }}
+                      <!-- {{ form.designation(placeholder="Designation", class="form-control") }} -->
+                      {{ form.designation(placeholder="Designation / Class access (e.g., 2-A or 2-A,2-B)", class="form-control") }}
+                      <small class="text-muted text-sm fw-lighter">For non-admin users, enter class code(s) to control Student Insights access 
+                      (e.g., <code>2-A</code> or <code>2-A, 2-B</code>).</small>
                     </div>
                   </div>
 

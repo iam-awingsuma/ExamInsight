@@ -41,7 +41,9 @@
                           <div class="form-group">
                             <label for="add">Designation</label>
                             <input type="text" name="designation" class="form-control" id="designation" 
-                                    value="{{ current_user.designation or '' }}" placeholder="Designation here">
+                                    value="{{ current_user.designation or '' }}" placeholder="Designation / Class access (e.g., 2-A or 2-A,2-B)">
+                                    <small class="text-muted text-sm fw-lighter">If this is a non-admin account, class code(s) here control access 
+                                      in Student Insights year-group dropdown. Class access (e.g., 2-A or 2-A,2-B)</small>
                           </div>
                         </div>
                         <div class="col-sm-12">

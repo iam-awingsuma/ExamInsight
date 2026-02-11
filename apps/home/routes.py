@@ -35,6 +35,46 @@ from apps.authentication.models import Users
 from apps.authentication.routes import admin_required
 
 
+def _normalize_class_code(value):
+    """Normalize year-group/class codes for consistent matching (e.g., '2-a' -> '2-A')."""
+    return (value or "").strip().upper()
+
+
+def _allowed_year_groups_for_user():
+    """
+    Return allowed year-group/class codes for the current user.
+
+    - `None` => unrestricted access (admin)
+    - `set(...)` => restricted access (non-admin); an empty set means no class access
+    """
+    if not current_user.is_authenticated:
+        return set()
+
+    if current_user.is_admin:
+        return None
+
+    raw_designation = current_user.designation or ""
+    tokens = [
+        _normalize_class_code(token)
+        for chunk in raw_designation.replace(";", ",").split("\n")
+        for token in chunk.split(",")
+    ]
+    return {token for token in tokens if token}
+
+
+def _restrict_to_allowed_year_groups(query, class_col=Students.yrgrp):
+    """Apply year-group/class restrictions for non-admin users to a SQLAlchemy query."""
+    allowed = _allowed_year_groups_for_user()
+    if allowed is None:
+        return query
+
+    if not allowed:
+        return query.filter(False)
+
+    lowered = [code.lower() for code in allowed]
+    return query.filter(func.lower(func.trim(class_col)).in_(lowered))
+
+
 @blueprint.route('/')
 @blueprint.route('/index')
 @login_required
@@ -1045,21 +1085,25 @@ def get_segment(request):
 #*** Performance Analytics Routes - Cohort Insights ***#
 #*******************************************************
 @blueprint.route("/analytics", methods=["GET"])
+@login_required
 def analytics_internal():
     # Year groups from Students (since InternalExam doesn’t store yrgrp)
-    year_groups = [yg for (yg,) in db.session.query(Students.yrgrp) # selects distinct year groups from Students
-                   .filter(Students.yrgrp.isnot(None)) # does not include Null values
-                   .distinct() # only distinct values
-                   .order_by(Students.yrgrp).all()] # order by year group ascending and fetch all rows
-    
+    year_groups_q = (
+        db.session.query(Students.yrgrp)  # selects distinct year groups from Students
+        .filter(Students.yrgrp.isnot(None))  # does not include Null values
+        .distinct()  # only distinct values
+    )
+    year_groups_q = _restrict_to_allowed_year_groups(year_groups_q)
+    year_groups = [yg for (yg,) in year_groups_q.order_by(Students.yrgrp).all()] # order by year group ascending and fetch all rows
+
     # count students per year group (excluding NULLs), ordered ascending
-    rc_yrgrp = (
+    rc_yrgrp_q = (
         db.session.query(Students.yrgrp, func.count(Students.id))
         .filter(Students.yrgrp.isnot(None))
         .group_by(Students.yrgrp)
-        .order_by(Students.yrgrp)
-        .all()
     )
+    rc_yrgrp_q = _restrict_to_allowed_year_groups(rc_yrgrp_q)
+    rc_yrgrp = rc_yrgrp_q.order_by(Students.yrgrp).all()
 
     # if you want a dict {yrgrp: count}
     counts_by_yrgrp = dict(rc_yrgrp)
@@ -1338,8 +1382,13 @@ def analytics_internal():
 #*********************************************************************
 # --- Student dropdown for analytics page :: Student Insights page ---
 @blueprint.route("/api/students_by_year", methods=["GET"])
+@login_required
 def api_students_by_year():
     yrgrp = request.args.get("yrgrp", "").strip()
+    allowed = _allowed_year_groups_for_user()
+    if allowed is not None and _normalize_class_code(yrgrp) not in allowed:
+        return jsonify({"students": []})
+    
     if not yrgrp:
         return jsonify({"students": []})
 
@@ -1356,16 +1405,22 @@ def api_students_by_year():
     
 # --- Main analytics payload (cards + charts + tables) :: Year Group & Student Insights (Internal Assessment Analytics) ---
 @blueprint.route("/api/analytics", methods=["GET"])
+@login_required
 def api_analytics():
     # Get 'yrgrp' and 'student_id' from the request's query parameters
     # (default to empty string) and remove extra spaces
     yrgrp = request.args.get("yrgrp", "").strip()
     sid   = request.args.get("student_id", "").strip()
+    allowed = _allowed_year_groups_for_user()
+
+    if allowed is not None and yrgrp and _normalize_class_code(yrgrp) not in allowed:
+        return jsonify({"error": "forbidden"}), 403
 
     # Filter InternalExam via Students for yrgrp when provided
     base_q = db.session.query(InternalExam).join(Students, Students.student_id == InternalExam.student_id)
     if yrgrp:
         base_q = base_q.filter(Students.yrgrp == yrgrp)
+    base_q = _restrict_to_allowed_year_groups(base_q)
     if sid:
         base_q = base_q.filter(InternalExam.student_id == int(sid))
 
