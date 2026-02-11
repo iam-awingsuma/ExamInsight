@@ -1824,7 +1824,7 @@ def api_interpret_performance():
     Accepts: student_id or yrgrp as query parameters
     Returns: JSON with interpretation (max 5 sentences)
     """
-    # Get parameters
+    # Get parameters and remove extra-spaces
     yrgrp = request.args.get("yrgrp", "").strip()
     sid = request.args.get("student_id", "").strip()
     
@@ -1963,7 +1963,7 @@ def _format_data_for_chatgpt(rows, yrgrp=None, sid=None, student_name=None):
     elif sid:
         context = f"Student ID: {sid}"
     elif yrgrp:
-        context = f"year group: {yrgrp}"
+        context = f"year group: {yrgrp}".strip().upper()
     else:
         context = "Cohort"
     
