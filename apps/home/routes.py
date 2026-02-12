@@ -946,6 +946,8 @@ def display_intlexam():
 #*** Student Management Routes ***#
 #**********************************
 @blueprint.route("/student_management", methods=["GET"])
+@login_required
+@admin_required
 def student_management():
     # Fetch all entries from Students table
     student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
@@ -999,6 +1001,54 @@ def student_management():
         filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
         combined_data=combined_data,
     )
+
+
+@blueprint.route('/student_management/<int:student_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_student(student_id):
+    student = Students.query.filter_by(student_id=student_id).first_or_404()
+
+    if request.method == 'POST':
+        updated_student_id = request.form.get('student_id', type=int)
+        forename = (request.form.get('forename') or '').strip()
+        surname = (request.form.get('surname') or '').strip()
+        gender = (request.form.get('gender') or '').strip()
+        date_of_birth = (request.form.get('date_of_birth') or '').strip()
+        yrgrp = (request.form.get('yrgrp') or '').strip()
+        sped = (request.form.get('sped') or '').strip() or 'No'
+        nationality = (request.form.get('nationality') or '').strip()
+        status = (request.form.get('status') or '').strip() or 'Active'
+
+        if not all([updated_student_id, forename, surname, gender, date_of_birth, yrgrp, nationality]):
+            flash('Please complete all required student fields.', 'error')
+            return render_template('pages/student-edit.html', student=student, segment='student management', parent='studentMgt')
+
+        if updated_student_id != student.student_id:
+            existing = Students.query.filter_by(student_id=updated_student_id).first()
+            if existing:
+                flash(f'Student ID {updated_student_id} already exists.', 'error')
+                return render_template('pages/student-edit.html', student=student, segment='student management', parent='studentMgt')
+
+        student.student_id = updated_student_id
+        student.forename = forename
+        student.surname = surname
+        student.gender = gender
+        student.date_of_birth = date_of_birth
+        student.yrgrp = yrgrp
+        student.sped = sped
+        student.nationality = nationality
+        student.status = status
+
+        try:
+            db.session.commit()
+            flash('Student record updated successfully.', 'success')
+            return redirect(url_for('home_blueprint.student_management'))
+        except Exception:
+            db.session.rollback()
+            flash('Unable to update student information right now.', 'error')
+
+    return render_template('pages/student-edit.html', student=student, segment='student management', parent='studentMgt')
 
 #*******************************
 #*** User Management Routes ***#

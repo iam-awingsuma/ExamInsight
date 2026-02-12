@@ -1,0 +1,84 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h5 class="mb-0">Edit Student Information</h5>
+                    <p class="text-sm mb-0">Update student profile details.</p>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="text-sm pt-2 pb-2 alert alert-{{ 'danger' if category == 'error' else category }} text-white" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="post" action="{{ url_for('home_blueprint.edit_student', student_id=student.student_id) }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="student_id" class="form-label">Student ID *</label>
+                                <input id="student_id" name="student_id" type="number" class="form-control" value="{{ student.student_id }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="yrgrp" class="form-label">Year Group <span class="text-muted fw-light">[ 2-A, 2-B, 2-C, 2-D, 2-E, 2-F ] *</label>
+                                <input id="yrgrp" name="yrgrp" type="text" class="form-control text-uppercase" value="{{ student.yrgrp }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="forename" class="form-label">Forename *</label>
+                                <input id="forename" name="forename" type="text" class="form-control" value="{{ student.forename }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="surname" class="form-label">Surname *</label>
+                                <input id="surname" name="surname" type="text" class="form-control" value="{{ student.surname }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="gender" class="form-label">Gender <span class="text-muted fw-light">[ Male | Female ] *</label>
+                                <input id="gender" name="gender" type="text" class="form-control" value="{{ student.gender }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="date_of_birth" class="form-label">Date of Birth <span class="text-muted fw-light">[ DD-MM-YYYY ]</span> *</label>
+                                <input id="date_of_birth" name="date_of_birth" type="text" class="form-control" value="{{ student.date_of_birth }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nationality" class="form-label">Nationality *</label>
+                                <input id="nationality" name="nationality" type="text" class="form-control" value="{{ student.nationality }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Status <span class="text-muted fw-light">[ New Student | Re-registered ]</span></label>
+                                <input id="status" name="status" type="text" class="form-control" value="{{ student.status or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sped" class="form-label">SEN/SPED <span class="text-muted fw-light">[ No | Specific Diagnosis ]</span></label>
+                            <input id="sped" name="sped" type="text" class="form-control" value="{{ student.sped or '' }}">
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-primary shadow-2 mb-0">Save Changes</button>
+                            <a href="{{ url_for('home_blueprint.student_management') }}" class="btn btn-outline-secondary mb-0">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include "includes/footer.html" %}
+</div>
+{% endblock content %}
