@@ -35,6 +35,7 @@ Having the VENV active, we can proceed and install the project dependencies:
 or you can use the following option:<br/><br/>
 <code>export FLASK_APP=run.py</code><br/>
 <code>export FLASK_ENV=development</code>
+<code>export FLASK_DEBUG=1</code>
 
 <h4>RUNNING THE APP</h4>
 Windows:
