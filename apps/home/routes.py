@@ -1015,7 +1015,7 @@ def edit_student(student_id):
         surname = (request.form.get('surname') or '').strip()
         gender = (request.form.get('gender') or '').strip()
         date_of_birth = (request.form.get('date_of_birth') or '').strip()
-        yrgrp = (request.form.get('yrgrp') or '').strip()
+        yrgrp = (request.form.get('yrgrp') or '').strip().lower()
         sped = (request.form.get('sped') or '').strip() or 'No'
         nationality = (request.form.get('nationality') or '').strip()
         status = (request.form.get('status') or '').strip() or 'Active'
@@ -1981,10 +1981,26 @@ def api_interpret_performance():
                 {
                     "role": "system",
                     "content": "You are an educational data analyst specializing in student performance interpretation. Provide concise, actionable insights in exactly 5 sentences or fewer. Focus on key patterns, strengths, areas for improvement, and forecasts."
+                    # "content": "You are an educational data analyst specializing in student performance interpretation. Provide concise, actionable insights in exactly 5 to 8 sentences. Focus on key trends and patterns in student attainment and progress, highlighting strengths, areas for improvement, and potential forecasts based on the data provided. Offer formative feedback to address knowledge gaps, areas to improve, support resources needed and learning strategies to adapt, as well as offer actionable insights for teachers. Use clear language suitable for educators and avoid technical jargon."
+                    # "content": (
+                    #     "You are an educational data analyst specializing in student performance interpretation. "
+                    #     "Provide concise, actionable insights in exactly 5 to 10 sentences. Focus on key trends and patterns "
+                    #     "in student attainment and progress, highlighting strengths, areas for improvement, and potential forecasts based on the data provided. "
+                    #     "Offer formative feedback to address knowledge gaps, areas to improve, support resources needed and learning strategies to adapt, "
+                    #     "as well as offer actionable insights for teachers. Use clear language suitable for educators and avoid technical jargon."
+                    # )
                 },
                 {
                     "role": "user",
                     "content": f"Analyze this student performance data and provide a comprehensive interpretation and forecast:\n\n{data_summary}\n\nProvide your analysis in maximum 5 sentences."
+                    # "content": (
+                    #     f"Analyze this student performance data and provide a comprehensive interpretation and forecast:\n\n{data_summary}\n\n"
+                    #     "Provide concise, actionable insights in exactly 5 to 10 sentences. Focus on key trends and patterns "
+                    #     "in student attainment and progress, highlighting strengths, areas for improvement, and potential forecasts based on the data provided. "
+                    #     "Offer formative feedback to address knowledge gaps, areas to improve, support resources needed and learning strategies to adapt, "
+                    #     "as well as offer actionable insights for teachers. Use clear language suitable for educators and avoid technical jargon."
+                    #     "Provide your analysis in maximum 5 sentences."
+                    # )
                 }
             ],
             max_tokens=300,
