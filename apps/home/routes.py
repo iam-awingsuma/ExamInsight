@@ -946,8 +946,8 @@ def display_intlexam():
 #*** Student Management Routes ***#
 #**********************************
 @blueprint.route("/student_management", methods=["GET"])
-@login_required
-@admin_required
+# @login_required
+# @admin_required
 def student_management():
     # Fetch all entries from Students table
     student_data = Students.query.order_by(Students.yrgrp, Students.forename).all()
