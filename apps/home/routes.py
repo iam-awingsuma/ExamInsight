@@ -189,12 +189,14 @@ def profile():
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         designation = request.form.get('designation')
+        email = request.form.get('email')
         address = request.form.get('address')
 
         # Update user details
         current_user.first_name = first_name
         current_user.last_name = last_name
         current_user.designation = designation
+        current_user.email = email
         current_user.address = address
 
         # Check if a file was uploaded
@@ -1103,7 +1105,7 @@ def make_admin(user_id):
     user = Users.query.get_or_404(user_id)
     user.is_admin = True
     db.session.commit()
-    flash(f'User {user.username} is granted admin rights.', 'success')
+    flash(f'User {user.first_name} {user.last_name} is granted admin rights.', 'success')
     return redirect(url_for('home_blueprint.allusers'))
 
 # Remove admin rights route for users
@@ -1123,14 +1125,13 @@ def remove_admin(user_id):
         else:
             user.is_admin = False
             db.session.commit()
-            flash(f'Admin rights removed from {user.username}.', 'success')
+            flash(f'Admin rights removed from {user.first_name} {user.last_name}.', 'success')
     return redirect(url_for('home_blueprint.allusers'))
 
 @blueprint.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def edit_user(user_id):
-    # student = Students.query.filter_by(student_id=student_id).first_or_404()
     user = Users.query.get_or_404(user_id)
 
     if request.method == 'POST':
@@ -1140,8 +1141,6 @@ def edit_user(user_id):
         address = (request.form.get('address') or '').strip()
         designation = (request.form.get('designation') or '').strip()
         email = (request.form.get('email') or '').strip()
-        # password = request.form.get('password', '').strip()
-        # profile_image = request.form.get('profile_image', '').strip()
 
         if not all([first_name, last_name, address, designation, email]):
             flash('Please complete all required fields.', 'error')
