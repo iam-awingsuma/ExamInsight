@@ -1126,6 +1126,42 @@ def remove_admin(user_id):
             flash(f'Admin rights removed from {user.username}.', 'success')
     return redirect(url_for('home_blueprint.allusers'))
 
+@blueprint.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_user(user_id):
+    # student = Students.query.filter_by(student_id=student_id).first_or_404()
+    user = Users.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        username = (request.form.get('username') or '').strip()
+        first_name = (request.form.get('first_name') or '').strip()
+        last_name = (request.form.get('last_name') or '').strip()
+        address = (request.form.get('address') or '').strip()
+        designation = (request.form.get('designation') or '').strip()
+        email = (request.form.get('email') or '').strip()
+        # password = request.form.get('password', '').strip()
+        # profile_image = request.form.get('profile_image', '').strip()
+
+        if not all([first_name, last_name, address, designation, email]):
+            flash('Please complete all required fields.', 'error')
+            return render_template('pages/user-edit.html', user=user, segment='all users', parent='userMgt')
+
+        user.first_name = first_name
+        user.last_name = last_name
+        user.address = address
+        user.designation = designation
+        user.email = email
+        
+        try:
+            db.session.commit()
+            flash('User information updated successfully.', 'success')
+            return redirect(url_for('home_blueprint.allusers'))
+        except Exception:
+            db.session.rollback()
+            flash('Unable to update user information right now.', 'error')
+
+    return render_template('pages/user-edit.html', user=user, segment='all users', parent='userMgt')
 
 # Delete User Route for Admins
 @blueprint.route('/delete_user/<int:user_id>', methods=['POST'])
@@ -1155,7 +1191,7 @@ def delete_user(user_id):
     
     flash(f'User {deleted_user} has been deleted successfully.', 'success')
     messages = get_flashed_messages()
-    print(messages)  # Check if messages exist in the backend
+    # print(messages)  # Check if messages exist in the backend
     return redirect(url_for('home_blueprint.allusers'))
 
 
