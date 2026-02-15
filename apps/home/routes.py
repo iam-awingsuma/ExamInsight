@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, case, func, String, and_, or_
 
 from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
+from apps.authentication.util import verify_pass, hash_pass
 
 from apps.home import make_list_context, _build_predicates
 
@@ -184,6 +185,7 @@ def addusers():
 @login_required
 def profile():
     if request.method == 'POST':
+        # Extract form data
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         designation = request.form.get('designation')
@@ -217,6 +219,46 @@ def profile():
             flash("Error updating profile!", "danger")
 
         return redirect(url_for('home_blueprint.profile'))
+
+    return render_template('pages/profile.html', segment='profile')
+
+@blueprint.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        # Extract password fields
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        # Change password only if password fields are filled
+        if not (current_password and new_password and confirm_password):
+                flash("Please fill in all password fields to change your password.", "warning")
+                return redirect(url_for('home_blueprint.change_password'))
+        
+        if current_password or new_password or confirm_password:           
+            if not verify_pass(current_password, current_user.password):
+                    flash("Current password is incorrect!", "danger")
+                    return redirect(url_for('home_blueprint.change_password'))
+
+            if new_password != confirm_password:
+                flash("New password and confirmation do not match!", "danger")
+                return redirect(url_for('home_blueprint.change_password'))
+
+            if verify_pass(new_password, current_user.password):
+                flash("New password must be different from current password.", "warning")
+                return redirect(url_for('home_blueprint.change_password'))
+
+            current_user.password = hash_pass(new_password)
+
+        try:
+            db.session.commit()
+            flash("Password changed successfully!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error updating password!", "danger")
+
+        return redirect(url_for('home_blueprint.change_password'))
 
     return render_template('pages/profile.html', segment='profile')
 
