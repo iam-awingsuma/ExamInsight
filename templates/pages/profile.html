@@ -10,11 +10,13 @@
 <div class="container-fluid py-2">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ 'danger' if category == 'error' else category }} text-white text-sm fw-bold py-2" role="alert">
-          {{ message }}
-        </div>
-      {% endfor %}
+      <div class="px-3 pt-2">
+          {% for category, message in messages %}
+          <div class="text-sm pt-2 pb-2 alert alert-{{ 'danger' if category == 'error' else category }} text-white" role="alert">
+              {{ message }}
+          </div>
+          {% endfor %}
+      </div>
     {% endif %}
   {% endwith %}
   <div class="row">
@@ -23,7 +25,7 @@
       <div class="col-sm-8">
         <div class="card">
           <div class="card-header">
-              <h5>Edit User Info</h5>
+              <h5>Edit User Information</h5>
           </div>
           <div class="card-block px-4">
             <div class="row">
@@ -31,21 +33,21 @@
               <div class="form-group">
                   <label for="fn">First Name</label>
                   <input type="text" name="first_name" class="form-control" id="fn" 
-                          value="{{ current_user.first_name or '' }}" placeholder="Your name">
+                          value="{{ current_user.first_name or '' }}" placeholder="Your name" required>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="form-group">
                   <label for="ln">Last Name</label>
                   <input type="text" name="last_name" class="form-control" id="ln" 
-                          value="{{ current_user.last_name or '' }}" placeholder="Your last name">
+                          value="{{ current_user.last_name or '' }}" placeholder="Your last name" required>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="form-group">
                 <label {% if not current_user.email %} class="text-danger" {% endif %} for="exampleInputEmail1">E-mail address</label>
-                <input type="email" class="form-control" id="exampleInputEmail1" readonly 
-                        value="{{ current_user.email }}" aria-describedby="emailHelp" placeholder="Enter email">
+                <input type="email" class="form-control" id="exampleInputEmail1" name="email" 
+                        value="{{ current_user.email }}" aria-describedby="emailHelp" placeholder="Enter email" required>
               </div>
             </div>
             <div class="col-sm-6">
@@ -53,7 +55,7 @@
                 <label for="add">Designation</label>
                 {% if current_user.is_admin %}
                 <input type="text" name="designation" class="form-control" id="designation" 
-                        value="{{ current_user.designation or '' }}" placeholder="Designation / Class code if teacher (e.g., 2-A or 2-A,2-B)">
+                        value="{{ current_user.designation or '' }}" placeholder="Designation / Class code if teacher (e.g., 2-A or 2-A,2-B)" required>
                 {% else %}
                 <input type="text" name="designation" class="form-control" id="designation" 
                         value="{{ current_user.designation or '' }}" placeholder="Designation / Class Code" disabled>
@@ -66,7 +68,7 @@
               <div class="form-group">
                   <label for="add">Address</label>
                   <input type="text" name="address" class="form-control" id="add" 
-                          value="{{ current_user.address or '' }}" placeholder="Full address here">
+                          value="{{ current_user.address or '' }}" placeholder="Full address here" required>
               </div>
             </div>
             <div class="col-sm-12 mb-2">
