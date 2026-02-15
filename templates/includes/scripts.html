@@ -13,5 +13,19 @@
         Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
     }
 </script>
-<!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
+<!-- Control Center for Soft Dashboard: parallax effects, etc -->
 <script src="{{ url_for('static', filename='assets/js/soft-ui-dashboard.min.js') }}?v=1.1.0"></script>
+
+<!-- JS script to hide flash message page alert after 3 seconds -->
+<script>
+  // Select all elements with the class 'alert'
+  var alertList = document.querySelectorAll('.alert');
+  alertList.forEach(function(alert) {
+    // Automatically dismiss after 3 seconds (3000 milliseconds)
+    setTimeout(function() {
+      // Use Bootstrap's built-in alert dismiss function
+      var bsAlert = new bootstrap.Alert(alert);
+      bsAlert.close();
+    }, 3000); 
+  });
+</script>
