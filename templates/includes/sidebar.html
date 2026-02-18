@@ -70,14 +70,14 @@
                 <li class="nav-item {% if 'analytics' in segment %}active{% endif %}">
                   <a class="nav-link {% if 'analytics-intl' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_internal') }}">
                     <span class="sidenav-mini-icon"> Analytics-Intl </span>
-                    <span class="sidenav-normal"> Internal Assessments </span>
+                    <span class="sidenav-normal">📊 Internal Assessments </span>
                   </a>
                 </li>
 
                 <li class="nav-item {% if 'analytics' in segment %}active{% endif %}">
-                  <a class="nav-link {% if 'analytics-extl' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_internal') }}">
+                  <a class="nav-link {% if 'analytics-extl' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_external') }}">
                     <span class="sidenav-mini-icon"> Analytics-Extl </span>
-                    <span class="sidenav-normal"> External Assessments </span>
+                    <span class="sidenav-normal">📈 External Assessments </span>
                   </a>
                 </li>
               </ul>

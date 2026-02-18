@@ -1208,9 +1208,9 @@ def get_segment(request):
     except:
         return None
 
-#*******************************************************
-#*** Performance Analytics Routes - Cohort Insights ***#
-#*******************************************************
+#******************************************************************
+#*** Performance Analytics Routes - Internal (Cohort Insights) ***#
+#******************************************************************
 @blueprint.route("/analytics", methods=["GET"])
 @login_required
 def analytics_internal():
@@ -1502,6 +1502,18 @@ def analytics_internal():
         attainment_table=attainment_table,
         counts_by_yrgrp=counts_by_yrgrp,
         yrgrp_payload=yrgrp_payload,
+    )
+
+#*************************************************
+#*** Performance Analytics Routes - External  ***#
+#*************************************************
+@blueprint.route("/analytics_external", methods=["GET"])
+@login_required
+def analytics_external():
+    return render_template(
+        "pages/analytics_external.html",
+        segment="analytics",
+        parent="analytics",
     )
 
 #*********************************************************************
