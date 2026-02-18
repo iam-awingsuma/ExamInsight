@@ -164,15 +164,16 @@ def addusers():
 
         # else we can create the user
         user = Users(**request.form)
-        db.session.add(user)
-        db.session.commit()
 
-        return render_template('pages/users-add.html',
-                               segment='add users',
-                               parent='userMgt',
-                               msg='User created successfully.',
-                               success=True,
-                               form=create_account_form)
+        try:
+            db.session.add(user)
+            db.session.commit()
+            flash("New user added successfully!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error adding new user!", "danger")
+
+        return redirect(url_for('home_blueprint.allusers'))
 
     else:
         return render_template('pages/users-add.html', segment='add users', parent='userMgt', form=create_account_form)
