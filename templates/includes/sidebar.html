@@ -67,18 +67,40 @@
             
             <div class="collapse {% if 'analytics' in parent %}show{% endif %}" id="analytics-dropdown">
               <ul class="nav ms-4 ps-3">
-                <li class="nav-item {% if 'analytics' in segment %}active{% endif %}">
-                  <a class="nav-link {% if 'analytics-intl' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_internal') }}">
+                <li class="nav-item {% if 'analytics - internal' in segment %}active{% endif %}">
+                  <a class="nav-link {% if 'analytics - internal' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_internal') }}">
                     <span class="sidenav-mini-icon"> Analytics-Intl </span>
                     <span class="sidenav-normal">📊 Internal Assessments </span>
                   </a>
                 </li>
-
-                <li class="nav-item {% if 'analytics' in segment %}active{% endif %}">
-                  <a class="nav-link {% if 'analytics-extl' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_external') }}">
+                
+                <li class="nav-item {% if 'analytics - external' in segment %}active{% endif %}">
+                  <a data-bs-toggle="collapse" href="#analytics-extl-dropdown" class="nav-link {% if 'analytics-external' in segment %}active{% endif %}" aria-controls="analytics-extl-dropdown" role="button" aria-expanded="false">
                     <span class="sidenav-mini-icon"> Analytics-Extl </span>
                     <span class="sidenav-normal">📈 External Assessments </span>
                   </a>
+                  <div class="collapse {% if 'analytics - external' in segment %}show{% endif %}" id="analytics-extl-dropdown">
+                    <ul class="nav ms-4 ps-3">
+                      <li class="nav-item {% if 'analytics - external' in segment %}active{% endif %}">
+                        <a class="nav-link {% if 'analytics - external' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_extl_ngrt_a') }}">
+                          <span class="sidenav-mini-icon"> Analytics-Extl-NGRT-A </span>
+                          <span class="sidenav-normal">📈 NGRT-A </span>
+                        </a>
+                      </li>
+                      <li class="nav-item {% if 'analytics - external' in segment %}active{% endif %}">
+                        <a class="nav-link {% if 'analytics - external' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_extl_ngrt_b') }}">
+                          <span class="sidenav-mini-icon"> Analytics-Extl-NGRT-B </span>
+                          <span class="sidenav-normal">📈 NGRT-B </span>
+                        </a>
+                      </li>
+                      <li class="nav-item {% if 'analytics - external' in segment %}active{% endif %}">
+                        <a class="nav-link {% if 'analytics - external' in segment %}active{% endif %}" href="{{ url_for('home_blueprint.analytics_extl_ngrt_c') }}">
+                          <span class="sidenav-mini-icon"> Analytics-Extl-NGRT-C </span>
+                          <span class="sidenav-normal">📈 NGRT-C </span>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
                 </li>
               </ul>
             </div>

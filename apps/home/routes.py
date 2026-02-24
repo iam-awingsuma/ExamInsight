@@ -1490,7 +1490,7 @@ def analytics_internal():
 
     return render_template(
         "pages/analytics_internal.html",
-        segment="analytics",
+        segment="analytics - internal",
         parent="analytics",
         year_groups=year_groups, count_intake=count_intake,
         avg_eng=curr_avg_eng, avg_maths=curr_avg_maths, avg_sci=curr_avg_sci,
@@ -1508,12 +1508,30 @@ def analytics_internal():
 #*************************************************
 #*** Performance Analytics Routes - External  ***#
 #*************************************************
-@blueprint.route("/analytics_external", methods=["GET"])
+@blueprint.route("/analytics_extl_ngrt_a", methods=["GET"])
 @login_required
-def analytics_external():
+def analytics_extl_ngrt_a():
     return render_template(
-        "pages/analytics_external.html",
-        segment="analytics",
+        "pages/extl_analytics_a.html",
+        segment="analytics - external",
+        parent="analytics",
+    )
+
+@blueprint.route("/analytics_extl_ngrt_b", methods=["GET"])
+@login_required
+def analytics_extl_ngrt_b():
+    return render_template(
+        "pages/extl_analytics_b.html",
+        segment="analytics - external",
+        parent="analytics",
+    )
+
+@blueprint.route("/analytics_extl_ngrt_c", methods=["GET"])
+@login_required
+def analytics_extl_ngrt_c():
+    return render_template(
+        "pages/extl_analytics_c.html",
+        segment="analytics - external",
         parent="analytics",
     )
 
@@ -2009,6 +2027,8 @@ def api_yeargroup_attainment_by_class():
     return jsonify(yrgrp_payload)
 
 
+
+
 #*************************************************************
 #*** ChatGPT Interpretation API - Student Performance ***#
 #*************************************************************
@@ -2199,3 +2219,4 @@ Key Metrics:
 """
     
     return summary
+
