@@ -10,6 +10,42 @@
   </div>
 
   <!-- Accordion for cohort, year group, and student insights -->
+  <div class="accordion" id="accorCohort">
+  <!-- Tab buttons in one row -->
+  {% include "partials/btns_insights.html" %}
+
+    <!-- Collapsible contents -->
+    <!-- Accordion 1: Cohort Insights -->
+    <div id="c1" class="accordion-collapse collapse show" data-bs-parent="#accorCohort">
+      <div class="container-fluid px-0 mb-3">
+        <div class="row g-0">
+          {% include "partials/extl_ci_analytics_a_att.html" %}
+        </div>
+      </div>
+    </div>
+    <!-- End of Accordion 1 -->
+
+    <!-- Collapsible contents -->
+    <!-- Accordion 2: Year Group Insights -->
+    <div id="c2" class="accordion-collapse collapse" data-bs-parent="#accorCohort">
+      <div class="container-fluid px-0 mb-3">
+        <div class="row g-0">
+          <p>This is accordion 2 content - Year Group Insights</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Collapsible contents -->
+    <!-- Accordion 3: Student Insights -->
+    <div id="c3" class="accordion-collapse collapse" data-bs-parent="#accorCohort">
+      <div class="container-fluid px-0 mb-3">
+        <div class="row g-0">
+          <p>This is accordion 3 content - Student Insights</p>
+        </div>
+      </div>
+    </div>
+    <!-- End of Accordion 3 -->
+  </div>
 </main>
 {% endblock content %}
 
