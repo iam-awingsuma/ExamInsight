@@ -1513,7 +1513,7 @@ def analytics_internal():
 def analytics_extl_ngrt_a():
     return render_template(
         "pages/extl_analytics_a.html",
-        segment="analytics - external",
+        segment="analytics - external_a",
         parent="analytics",
     )
 
@@ -1522,7 +1522,7 @@ def analytics_extl_ngrt_a():
 def analytics_extl_ngrt_b():
     return render_template(
         "pages/extl_analytics_b.html",
-        segment="analytics - external",
+        segment="analytics - external_b",
         parent="analytics",
     )
 
@@ -1531,7 +1531,7 @@ def analytics_extl_ngrt_b():
 def analytics_extl_ngrt_c():
     return render_template(
         "pages/extl_analytics_c.html",
-        segment="analytics - external",
+        segment="analytics - external_c",
         parent="analytics",
     )
 

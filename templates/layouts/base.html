@@ -3,7 +3,15 @@
 
 <head>
   {% include "includes/head.html" %}
-  {% block extrastyle %}{% endblock extrastyle %}
+  {% block extrastyle %}
+  <style>
+    /* Remove Soft UI default collapse arrow and replace it with down arrow */
+    .navbar-vertical .nav-link[data-bs-toggle="collapse"]::after {
+      content: "" !important;
+      display: none !important;
+    }
+  </style>
+  {% endblock extrastyle %}
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
