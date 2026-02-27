@@ -6,6 +6,9 @@ Default admin password: <b><i>Pristine@2024</i></b>
 <hr />
 <h3>MANUAL BUILD</h3>
 
+<b>Prerequisite:</b>
+The Python version required for this build to avoid issues is <b>python 3.12</b>
+
 It’s best to use a Python Virtual Environment for installing the project dependencies. You can use the following code to create the virtual environment
 
 <code>virtualenv env</code>
@@ -44,4 +47,8 @@ or
 <code>flask --app run.py --debug run</code><br/>
 to run the app with automatic reload when file changes<br/>
 or use the most common and recommended way to enable auto-reloading 
-<code>flask --app run.py --debug run</code>
+<code>flask --app run.py --debug run</code><br/><br/>
+
+Alternatively, use the following if you encounter issues when running the app:<br/>
+<code>python -m flask --app run run</code><br/>
+to avoid PATH issues.
