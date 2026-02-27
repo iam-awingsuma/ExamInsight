@@ -122,6 +122,17 @@ class NGRTA(db.Model, UserMixin):
     reading_age = db.Column(db.String(64), nullable=True)
     profile_desc = db.Column(db.String(150), nullable=True)
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'student_id': self.student_id,
+            'ngrt_level': self.ngrt_level,
+            'sas': self.sas,
+            'stanine': self.stanine,
+            'reading_age': self.reading_age,
+            'profile_desc': self.profile_desc
+        }
+
     def __repr__(self):
         return str(self.student_id)
     

@@ -35,19 +35,14 @@ from apps.authentication.forms import CreateAccountForm
 from apps.authentication.models import Users
 from apps.authentication.routes import admin_required
 
-
+# Normalize year-group/class codes for consistent matching (e.g., '2-a' -> '2-A')
 def _normalize_class_code(value):
-    """Normalize year-group/class codes for consistent matching (e.g., '2-a' -> '2-A')."""
     return (value or "").strip().upper()
 
-
+# Return allowed year-group/class codes for the current user.
+# - `None` => unrestricted access (admin)
+# - `set(...)` => restricted access (non-admin); an empty set means no class access
 def _allowed_year_groups_for_user():
-    """
-    Return allowed year-group/class codes for the current user.
-
-    - `None` => unrestricted access (admin)
-    - `set(...)` => restricted access (non-admin); an empty set means no class access
-    """
     if not current_user.is_authenticated:
         return set()
 
@@ -62,9 +57,8 @@ def _allowed_year_groups_for_user():
     ]
     return {token for token in tokens if token}
 
-
+# Apply year-group/class restrictions for non-admin users to a SQLAlchemy query
 def _restrict_to_allowed_year_groups(query, class_col=Students.yrgrp):
-    """Apply year-group/class restrictions for non-admin users to a SQLAlchemy query."""
     allowed = _allowed_year_groups_for_user()
     if allowed is None:
         return query
@@ -74,7 +68,6 @@ def _restrict_to_allowed_year_groups(query, class_col=Students.yrgrp):
 
     lowered = [code.lower() for code in allowed]
     return query.filter(func.lower(func.trim(class_col)).in_(lowered))
-
 
 @blueprint.route('/')
 @blueprint.route('/index')
@@ -1508,6 +1501,42 @@ def analytics_internal():
 #*************************************************
 #*** Performance Analytics Routes - External  ***#
 #*************************************************
+@blueprint.route("/api/anlyt_extl_ngrt", methods=["GET"])
+@login_required
+def api_analytics_external():
+    # dbase query to fetch all NGRTA entries, ordered by year group and forename
+    ngrta_data = (
+        db.session.query(Students, NGRTA)
+        .join(NGRTA, NGRTA.student_id == Students.student_id)
+        .order_by(Students.yrgrp, Students.forename).all()
+    )
+
+    formatted_ngrta = [
+        {**ngrta.to_dict(), "forename": student.forename, "surname": student.surname, "gender": student.gender, "yrgrp": student.yrgrp}
+        for student, ngrta in ngrta_data
+    ]
+
+    # dbase query to fetch all NGRTB entries, ordered by year group and forename
+    # ngrtb_data = (
+    #     db.session.query(Students, NGRTB)
+    #     .join(NGRTB, NGRTB.student_id == Students.student_id)
+    #     .order_by(Students.yrgrp, Students.forename).all()
+    # )
+
+    # dbase query to fetch all NGRTC entries, ordered by year group and forename
+    # ngrtc_data = (
+    #     db.session.query(Students, NGRTC)
+    #     .join(NGRTC, NGRTC.student_id == Students.student_id)
+    #     .order_by(Students.yrgrp, Students.forename).all()
+    # )
+    
+    # Return the data as JSON
+    return jsonify({
+        "ngrta": formatted_ngrta,
+        # "ngrtb": ngrtb_data,
+        # "ngrtc": ngrtc_data
+    })
+
 @blueprint.route("/analytics_extl_ngrt_a", methods=["GET"])
 @login_required
 def analytics_extl_ngrt_a():
