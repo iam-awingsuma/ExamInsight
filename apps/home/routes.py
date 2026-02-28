@@ -13,11 +13,13 @@ from apps import db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, case, func, String, and_, or_
 
+
 from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
 from apps.authentication.util import verify_pass, hash_pass
 
 from apps.home import make_list_context, _build_predicates
 
+from apps.helpers import fetch_extl_asst_payload
 from apps.helpers import per_class_metrics, cohort_progress, class_progress
 
 from urllib.parse import urlencode
@@ -1501,51 +1503,11 @@ def analytics_internal():
 #*************************************************
 #*** Performance Analytics Routes - External  ***#
 #*************************************************
-@blueprint.route("/api/anlyt_extl_ngrt", methods=["GET"])
+@blueprint.route("/api/analytics_extl_ngrt", methods=["GET"])
 @login_required
 def api_analytics_external():
-    # dbase query to fetch all NGRTA entries, ordered by year group and forename
-    ngrta_data = (
-        db.session.query(Students, NGRTA)
-        .join(NGRTA, NGRTA.student_id == Students.student_id)
-        .order_by(Students.yrgrp, Students.forename).all()
-    )
-
-    formatted_ngrta = [
-        {**ngrta.to_dict(), "forename": student.forename, "surname": student.surname, "gender": student.gender, "yrgrp": student.yrgrp}
-        for student, ngrta in ngrta_data
-    ]
-
-    # dbase query to fetch all NGRTB entries, ordered by year group and forename
-    ngrtb_data = (
-        db.session.query(Students, NGRTB)
-        .join(NGRTB, NGRTB.student_id == Students.student_id)
-        .order_by(Students.yrgrp, Students.forename).all()
-    )
-
-    formatted_ngrtb = [
-        {**ngrtb.to_dict(), "forename": student.forename, "surname": student.surname, "gender": student.gender, "yrgrp": student.yrgrp}
-        for student, ngrtb in ngrtb_data
-    ]
-
-    # dbase query to fetch all NGRTC entries, ordered by year group and forename
-    ngrtc_data = (
-        db.session.query(Students, NGRTC)
-        .join(NGRTC, NGRTC.student_id == Students.student_id)
-        .order_by(Students.yrgrp, Students.forename).all()
-    )
-
-    formatted_ngrtc = [
-        {**ngrtc.to_dict(), "forename": student.forename, "surname": student.surname, "gender": student.gender, "yrgrp": student.yrgrp}
-        for student, ngrtc in ngrtc_data
-    ]
-
-    # Return the data as JSON
-    return jsonify({
-        "ngrta": formatted_ngrta,
-        "ngrtb": formatted_ngrtb,
-        "ngrtc": formatted_ngrtc
-    })
+    ngrt_payload = fetch_extl_asst_payload(db, Students, NGRTA, NGRTB, NGRTC)
+    return jsonify(ngrt_payload)
 
 @blueprint.route("/analytics_extl_ngrt_a", methods=["GET"])
 @login_required

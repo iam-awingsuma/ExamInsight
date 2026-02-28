@@ -303,3 +303,38 @@ def class_progress(col, class_col):
         result[str(klass).strip().lower()] = (total, cnt_exp_above, cnt_above_only, pct_exp_above, pct_above_only)
 
     return result
+
+# Modular function to fetch NGRT assessment data for a given model (A/B/C) and combine with student info, ready for JSON output
+def fetch_ngrt_asst_json(db, Students, asst_model):
+    """
+    Returns a list[dict] combining Students + an NGRT assessment model row,
+    ordered by yrgrp then forename, JSON-ready.
+    """
+    rows = (
+        db.session.query(Students, asst_model)
+        .join(asst_model, asst_model.student_id == Students.student_id)
+        .order_by(Students.yrgrp, Students.forename)
+        .all()
+    )
+
+    return [
+        {
+            **asst.to_dict(),
+            "forename": student.forename,
+            "surname": student.surname,
+            "gender": student.gender,
+            "yrgrp": student.yrgrp,
+        }
+        for student, asst in rows
+    ]
+
+# Modular function to fetch all 3 NGRT assessments and combine into a single payload dict for the external analytics endpoint
+def fetch_extl_asst_payload(db, Students, NGRTA, NGRTB, NGRTC):
+    """
+    Returns the full payload dict for external analytics endpoint.
+    """
+    return {
+        "ngrta": fetch_ngrt_asst_json(db, Students, NGRTA),
+        "ngrtb": fetch_ngrt_asst_json(db, Students, NGRTB),
+        "ngrtc": fetch_ngrt_asst_json(db, Students, NGRTC),
+    }
