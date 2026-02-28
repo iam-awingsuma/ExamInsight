@@ -6,27 +6,37 @@
                 <div class="card-body d-flex flex-column">
                     <div class="container ps-0 pe-3">
                         <div class="row">
-                            <div class="col-md-8 chart-title d-flex align-items-start gap-2 mb-2">
+                            <div class="col-md-12 chart-title d-flex align-items-start gap-2 mb-2">
                                 <i class="fa-solid fa-chart-column fa-lg text-primary"></i>
                                 <h5 class="text-body mb-0 lh-1">
                                 <span class="text-uppercase text-primary font-weight-bolder">Attainment Distribution</span><br/>
                                 <span class="text-muted text-xs"><span class="text-info font-weight-bolder">COHORT DATA ANALYSIS | NGRT-A ASSESSMENT DATA</span>
                                 </h5>
                             </div>
-                            <div class="col-md-4 card card-kpi
-                                bg-gradient-info text-white text-xs text-uppercase text-center
-                                fw-bold d-flex justify-content-center align-items-center py-2">
-                                ％ of students at/above<br/>
-                                <span class="fs-5 font-weight-bolder text-white">Curriculum Standard</span>
-                                <span class="text-xs fw-lighter text-capitalize">(Stanine 5 & above)</span>
-                            </div>
                         </div>
-                        <div class="chart-body row mt-3">
-                            <div id="pie-st5-extl-ngrta" class="col-md-6" style="height:360px; border:1px solid;">
-                                <!-- Pie Chart: External Assessment - Cohort Attainment Distribution (NGRT-A) St5&above -->
+                        <div class="row mt-3">
+                            <div class="chart-body col-md-6">
+                                <div class="card card-kpi
+                                    bg-gradient-info text-white text-xs text-uppercase text-center
+                                    fw-bold d-flex justify-content-center align-items-center py-2">
+                                    ％ of students at/above<br/>
+                                    <span class="fs-5 font-weight-bolder text-white">Curriculum Standard</span>
+                                    <span class="text-xs fw-lighter text-capitalize">(Stanine 5 & above)</span>
+                                </div>
+                                <div id="pie-st5-extl-ngrta" style="height:360px;">
+                                    <!-- Pie Chart: External Assessment - Cohort Attainment Distribution (NGRT-A) St5&above -->
+                                </div>
                             </div>
-                            <div id="pie-st6-extl-ngrta" class="col-md-6" style="height:360px; border:1px solid;">
-                                <!-- Pie Chart: External Assessment - Cohort Attainment Distribution (NGRT-A) St6&above -->
+                            <div class="chart-body col-md-6">
+                                <div class="card card-kpi
+                                    bg-gradient-success text-white text-xs text-uppercase text-center
+                                    fw-bold d-flex justify-content-center align-items-center py-2">
+                                    ％ of students attaining at least level above<br/><span class="fs-5 font-weight-bolder text-white">Curriculum Standard</span>
+                                    <span class="text-xs fw-lighter text-capitalize">(Stanine 6 & above)</span>
+                                </div>
+                                <div id="pie-st6-extl-ngrta" style="height:360px;">
+                                    <!-- Pie Chart: External Assessment - Cohort Attainment Distribution (NGRT-A) St6&above -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -66,5 +76,9 @@
 </div>
 
 {% block extra_js %}
+    <!-- Plotly required for the charts -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
+    <!-- external chart logic -->
+    <script src="{{ url_for('static', filename='js/charts/extl_analytics_ngrta.js') }}?v=3"></script>
 {% endblock %}
