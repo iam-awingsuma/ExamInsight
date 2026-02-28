@@ -106,7 +106,7 @@
   <script id="gender-prog-exp-above" type="application/json">{{ gender_prog_exp_above | default([]) | tojson | safe }}</script>
   <script id="gender-prog-above-data" type="application/json">{{ gender_prog_above_data | default([]) | tojson | safe }}</script>
 
-  <!-- Your chart globals -->
+  <!-- chart globals -->
   <script src="{{ url_for('static', filename='js/charts/perf_over_time.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_attainment.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_progress.js') }}?v=3"></script>
