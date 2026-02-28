@@ -1517,24 +1517,34 @@ def api_analytics_external():
     ]
 
     # dbase query to fetch all NGRTB entries, ordered by year group and forename
-    # ngrtb_data = (
-    #     db.session.query(Students, NGRTB)
-    #     .join(NGRTB, NGRTB.student_id == Students.student_id)
-    #     .order_by(Students.yrgrp, Students.forename).all()
-    # )
+    ngrtb_data = (
+        db.session.query(Students, NGRTB)
+        .join(NGRTB, NGRTB.student_id == Students.student_id)
+        .order_by(Students.yrgrp, Students.forename).all()
+    )
+
+    formatted_ngrtb = [
+        {**ngrtb.to_dict(), "forename": student.forename, "surname": student.surname, "gender": student.gender, "yrgrp": student.yrgrp}
+        for student, ngrtb in ngrtb_data
+    ]
 
     # dbase query to fetch all NGRTC entries, ordered by year group and forename
-    # ngrtc_data = (
-    #     db.session.query(Students, NGRTC)
-    #     .join(NGRTC, NGRTC.student_id == Students.student_id)
-    #     .order_by(Students.yrgrp, Students.forename).all()
-    # )
-    
+    ngrtc_data = (
+        db.session.query(Students, NGRTC)
+        .join(NGRTC, NGRTC.student_id == Students.student_id)
+        .order_by(Students.yrgrp, Students.forename).all()
+    )
+
+    formatted_ngrtc = [
+        {**ngrtc.to_dict(), "forename": student.forename, "surname": student.surname, "gender": student.gender, "yrgrp": student.yrgrp}
+        for student, ngrtc in ngrtc_data
+    ]
+
     # Return the data as JSON
     return jsonify({
         "ngrta": formatted_ngrta,
-        # "ngrtb": ngrtb_data,
-        # "ngrtc": ngrtc_data
+        "ngrtb": formatted_ngrtb,
+        "ngrtc": formatted_ngrtc
     })
 
 @blueprint.route("/analytics_extl_ngrt_a", methods=["GET"])
