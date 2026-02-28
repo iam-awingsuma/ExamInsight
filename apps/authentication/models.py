@@ -122,6 +122,7 @@ class NGRTA(db.Model, UserMixin):
     reading_age = db.Column(db.String(64), nullable=True)
     profile_desc = db.Column(db.String(150), nullable=True)
 
+    # Clean architecture method to convert the NGRTA object to a dictionary for easier data handling
     def to_dict(self):
         return {
             'id': self.id,
@@ -154,6 +155,23 @@ class NGRTB(db.Model, UserMixin):
     reader_profile = db.Column(db.String(100), nullable=True)
     profile_desc = db.Column(db.String(150), nullable=True)
 
+    # Clean architectural approach: method to convert NGRTB object to dictionary for easier data handling in views/templates
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'student_id': self.student_id,
+            'ngrt_level': self.ngrt_level,
+            'sas': self.sas,
+            'stanine': self.stanine,
+            'reading_age': self.reading_age,
+            'prev_test_name': self.prev_test_name,
+            'prev_sas': self.prev_sas,
+            'prev_stanine': self.prev_stanine,
+            'progress_category': self.progress_category,
+            'reader_profile': self.reader_profile,
+            'profile_desc': self.profile_desc
+        }
+
     def __repr__(self):
         return str(self.student_id)
     
@@ -174,6 +192,23 @@ class NGRTC(db.Model, UserMixin):
     progress_category = db.Column(db.String(64), nullable=True)
     reader_profile = db.Column(db.String(100), nullable=True)
     profile_desc = db.Column(db.String(150), nullable=True)
+
+    # Clean architecture for serialization of NGRT-C data to dictionary format for API responses or other uses
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'student_id': self.student_id,
+            'ngrt_level': self.ngrt_level,
+            'sas': self.sas,
+            'stanine': self.stanine,
+            'reading_age': self.reading_age,
+            'prev_test_name': self.prev_test_name,
+            'prev_sas': self.prev_sas,
+            'prev_stanine': self.prev_stanine,
+            'progress_category': self.progress_category,
+            'reader_profile': self.reader_profile,
+            'profile_desc': self.profile_desc
+        }
 
     def __repr__(self):
         return str(self.student_id)
