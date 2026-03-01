@@ -86,9 +86,10 @@
         type: "pie",
         labels: [`Stanine ${threshold} and above`, `Stanine ${threshold - 1} and below`],
         values: [above, below],
+        hole: 0.3,
         textinfo: "label+percent",
         marker: {
-            colors: ['#A7E399', '#0BA6DF'] // Custom colors for better distinction
+            colors: ['#239BA7', '#F5F1DC'] // Custom colors for better distinction
         },
         hovertemplate:
             "<b>%{label}</b><br>" +
