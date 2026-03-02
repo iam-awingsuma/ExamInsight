@@ -89,7 +89,7 @@
         hole: 0.3,
         textinfo: "label+percent",
         marker: {
-            colors: ['#239BA7', '#F5F1DC'] // Custom colors for better distinction
+            colors: ['#134E83', '#F5F1DC'] // Custom colors for better distinction
         },
         hovertemplate:
             "<b>%{label}</b><br>" +
