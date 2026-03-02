@@ -30,15 +30,15 @@
   }
 
   function setLoading(elId) {
-    return setMessage(elId, `<p class="text-muted text-sm fst-italic p-2 mb-0">Loading...</p>`);
+    return setMessage(elId, `<p class="text-muted text-xs fst-italic p-2 mb-0">Loading...</p>`);
   }
 
   function setError(elId, msg = "Failed to load data.") {
-    return setMessage(elId, `<p class="text-danger text-sm p-2 mb-0">${msg}</p>`);
+    return setMessage(elId, `<p class="text-danger text-xs p-2 mb-0">${msg}</p>`);
   }
 
   function setEmpty(elId, msg = "No data available.") {
-    return setMessage(elId, `<p class="text-muted text-sm fst-italic p-2 mb-0">${msg}</p>`);
+    return setMessage(elId, `<p class="text-muted text-xs fst-italic p-2 mb-0">${msg}</p>`);
   }
 
   // -----------------------------
@@ -89,7 +89,7 @@
         hole: 0.3,
         textinfo: "label+percent",
         marker: {
-            colors: ['#134E83', '#F5F1DC'] // Custom colors for better distinction
+            colors: ['#4B9DA9', '#F5F1DC'] // Custom colors for better distinction
         },
         hovertemplate:
             "<b>%{label}</b><br>" +
