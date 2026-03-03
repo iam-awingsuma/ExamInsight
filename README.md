@@ -2,7 +2,7 @@
 Attainment and Progress Tracking in Year 2 Internal Assessments and External Benchmark Tests at Pristine Private School.
 <hr />
 Default admin username: <b><i>awingsuma</i></b><br />
-Default admin password: <b><i>Pristine@2024</i></b>
+Default admin password: <b><i>Pristine@2024***</i></b>
 <hr />
 <h3>MANUAL BUILD</h3>
 
