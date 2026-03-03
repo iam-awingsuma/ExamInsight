@@ -89,7 +89,7 @@
         hole: 0.3,
         textinfo: "label+percent",
         marker: {
-            colors: ['#4B9DA9', '#F5F1DC'] // Custom colors for better distinction
+            colors: ['#03AED2', '#F5F1DC'] // Custom colors for better distinction
         },
         hovertemplate:
             "<b>%{label}</b><br>" +
@@ -110,100 +110,6 @@
     }
   }
 
-// ---------------------------------------------------
-// Gender bar chart: counts of >= threshold by gender
-// ---------------------------------------------------
-// async function renderGenderStanineThresholdBar({
-//   elId,
-//   datasetKey = "ngrta",
-//   stanineKey = "stanine",
-//   genderKey = "gender",
-//   threshold = 5
-// }) {
-//   // if container missing, silently exit
-//   const container = document.getElementById(elId);
-//   if (!container) return;
-
-//   // loading placeholder
-//   setLoading(elId);
-
-//   try {
-//     const payload = await getExtNgrtPayload();
-//     const rows = payload?.[datasetKey] || [];
-
-//     if (!Array.isArray(rows) || rows.length === 0) {
-//       setEmpty(elId);
-//       return;
-//     }
-
-//     // Count students >= threshold by gender
-//     let male = 0;
-//     let female = 0;
-
-//     for (const row of rows) {
-//       const s = Number(row?.[stanineKey]);
-//       if (!Number.isFinite(s)) continue;
-//       if (s < threshold) continue;
-
-//       const gRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
-
-//       // mapping gender values male and female
-//       if (gRaw === "m" || gRaw === "male") male++;
-//       else if (gRaw === "f" || gRaw === "female") female++;
-//     }
-
-//     // If nothing qualifies
-//     if (male === 0 && female === 0) {
-//       setEmpty(elId, `No students found with stanine ${threshold}+.`);
-//       return;
-//     }
-
-//     // const labels ["Male", "Female"];
-//     const labels = ["Male", "Female"];
-//     const values = [male, female];
-
-//     const percentValues = values.map((v, i) => 
-//       totals[i] ? (v / totals[i]) * 100 : 0
-//     );
-
-//     const trace = {
-//       type: "bar",
-//       x: labels,
-//       y: percentValues,
-//       text: percentValues.map(v => `${v.toFixed(1)}%`),
-//       textposition: "outside",
-//       // y: values,
-//       // text: values,
-//       // textposition: "auto",
-//       hovermode: "x unified",
-//       hovertemplate:
-//         "<b>%{x}</b><br>" +
-//         `Stanine ${threshold}+ Students: %{y}` +
-//         "<extra></extra>",
-//       marker: {
-//         color: ["#FDEB9E", "#FCB53B"]      
-//       }
-//     };
-
-//     const layout = {
-//       // title: {
-//       //   text: `Stanine ${threshold}+ by Gender (NGRT-A)`,
-//       //   font: { size: 14 }
-//       // },
-//       margin: { t: 40, r: 10, b: 40, l: 40 },
-//       // yaxis: { title: "Number of Students", rangemode: "tozero" },
-//       yaxis: { title: "Percent", ticksuffix: "%", range: [0, 100] },
-//       xaxis: { title: "" },
-//       showlegend: true,
-//       legend:{ orientation:"h" },
-//     };
-
-//     Plotly.newPlot(elId, [trace], layout, { displayModebar: false, responsive: true });
-//   } catch (err) {
-//     console.error("Gender bar error:", err);
-//     setError(elId);
-//   }
-// }
 async function renderGenderStanineThresholdBar({
   elId,
   datasetKey = "ngrta",
@@ -266,27 +172,51 @@ async function renderGenderStanineThresholdBar({
       `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
     );
 
-    const trace = {
-      type: "bar",
-      x: labels,
-      y: percentValues,
-      text: percentValues.map(v => `${v.toFixed(1)}%`),
-      textposition: "outside",
-      hoverinfo: "text",
-      hovertext: hoverText,
-      marker: { color: ["#FDEB9E", "#FCB53B"] }
-    };
+    // const trace = {
+    //   type: "bar",
+    //   x: labels,
+    //   y: percentValues,
+    //   text: percentValues.map(v => `${v.toFixed(1)}%`),
+    //   textposition: "outside",
+    //   hoverinfo: "text",
+    //   hovertext: hoverText,
+    //   marker: { color: ["#FDEB9E", "#FCB53B"] }
+    // };
+    const traces = [
+      {
+        type: "bar",
+        x: ["Male"],
+        y: [percentValues[0]],
+        name: "Male",
+        text: [`${percentValues[0].toFixed(1)}%`],
+        textposition: "outside",
+        hoverinfo: "text",
+        hovertext: [hoverText[0]],
+        marker: { color: "#FDEB9E" }
+      },
+      {
+        type: "bar",
+        x: ["Female"],
+        y: [percentValues[1]],
+        name: "Female",
+        text: [`${percentValues[1].toFixed(1)}%`],
+        textposition: "outside",
+        hoverinfo: "text",
+        hovertext: [hoverText[1]],
+        marker: { color: "#FCB53B" }
+      }
+    ];
 
     const layout = {
-      margin: { t: 40, r: 10, b: 40, l: 40 },
-      yaxis: { title: "Percent", ticksuffix: "%", range: [0, 100], rangemode: "tozero" },
+      margin: { t: 20, r: 20, b: 60, l: 60 },
+      yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 100], rangemode: "tozero" },
       xaxis: { title: "" },
-      showlegend: false,
+      showlegend: true,
       hovermode: "x unified",
-      legend: { orientation: "h" }
+      legend: { orientation: "h" },
     };
 
-    Plotly.newPlot(elId, [trace], layout, { displayModeBar: false, responsive: true });
+    Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true });
   } catch (err) {
     console.error("Gender bar error:", err);
     setError(elId);
