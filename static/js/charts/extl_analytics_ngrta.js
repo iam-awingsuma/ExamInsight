@@ -110,108 +110,111 @@
     }
   }
 
-async function renderGenderStanineThresholdBar({
-  elId,
-  datasetKey = "ngrta",
-  stanineKey = "stanine",
-  genderKey = "gender",
-  threshold = 5
-}) {
-  const container = document.getElementById(elId);
-  if (!container) return;
+  // ---------------------------------------------
+  // Generic gender stanine bar renderer
+  // ---------------------------------------------
+  async function renderGenderStanineThresholdBar({
+    elId,
+    datasetKey = "ngrta",
+    stanineKey = "stanine",
+    genderKey = "gender",
+    threshold = 5
+  }) {
+    const container = document.getElementById(elId);
+    if (!container) return;
 
-  setLoading(elId);
+    setLoading(elId);
 
-  try {
-    const payload = await getExtNgrtPayload();
-    const rows = payload?.[datasetKey] || [];
+    try {
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
 
-    if (!Array.isArray(rows) || rows.length === 0) {
-      setEmpty(elId);
-      return;
-    }
-
-    // Denominators (all students by gender)
-    let maleTotal = 0;
-    let femaleTotal = 0;
-
-    // Numerators (students >= threshold by gender)
-    let maleMeet = 0;
-    let femaleMeet = 0;
-
-    for (const row of rows) {
-      const gRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
-      const isMale = (gRaw === "m" || gRaw === "male");
-      const isFemale = (gRaw === "f" || gRaw === "female");
-      if (!isMale && !isFemale) continue;
-
-      if (isMale) maleTotal++;
-      if (isFemale) femaleTotal++;
-
-      const s = Number(row?.[stanineKey]);
-      if (!Number.isFinite(s)) continue;
-
-      if (s >= threshold) {
-        if (isMale) maleMeet++;
-        if (isFemale) femaleMeet++;
+      if (!Array.isArray(rows) || rows.length === 0) {
+        setEmpty(elId);
+        return;
       }
-    }
 
-    if (maleTotal === 0 && femaleTotal === 0) {
-      setEmpty(elId, "No valid gender values found.");
-      return;
-    }
+      // Denominators (all students by gender)
+      let maleTotal = 0;
+      let femaleTotal = 0;
 
-    const labels = ["Male", "Female"];
-    const totals = [maleTotal, femaleTotal];
-    const meets = [maleMeet, femaleMeet];
+      // Numerators (students >= threshold by gender)
+      let maleMeet = 0;
+      let femaleMeet = 0;
 
-    const percentValues = meets.map((v, i) => (totals[i] ? (v / totals[i]) * 100 : 0));
+      for (const row of rows) {
+        const gRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
+        const isMale = (gRaw === "m" || gRaw === "male");
+        const isFemale = (gRaw === "f" || gRaw === "female");
+        if (!isMale && !isFemale) continue;
 
-    const hoverText = labels.map((lbl, i) =>
-      `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
-    );
+        if (isMale) maleTotal++;
+        if (isFemale) femaleTotal++;
 
-    const traces = [
-      {
-        type: "bar",
-        x: ["Male"],
-        y: [percentValues[0]],
-        name: "Male",
-        text: [`${percentValues[0].toFixed(1)}%`],
-        textposition: "outside",
-        hoverinfo: "text",
-        hovertext: [hoverText[0]],
-        marker: { color: "#FDEB9E" }
-      },
-      {
-        type: "bar",
-        x: ["Female"],
-        y: [percentValues[1]],
-        name: "Female",
-        text: [`${percentValues[1].toFixed(1)}%`],
-        textposition: "outside",
-        hoverinfo: "text",
-        hovertext: [hoverText[1]],
-        marker: { color: "#FCB53B" }
+        const s = Number(row?.[stanineKey]);
+        if (!Number.isFinite(s)) continue;
+
+        if (s >= threshold) {
+          if (isMale) maleMeet++;
+          if (isFemale) femaleMeet++;
+        }
       }
-    ];
 
-    const layout = {
-      margin: { t: 20, r: 20, b: 60, l: 60 },
-      yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 100], rangemode: "tozero" },
-      xaxis: { title: "" },
-      showlegend: true,
-      hovermode: "x unified",
-      legend: { orientation: "h" },
-    };
+      if (maleTotal === 0 && femaleTotal === 0) {
+        setEmpty(elId, "No valid gender values found.");
+        return;
+      }
 
-    Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true });
-  } catch (err) {
-    console.error("Gender bar error:", err);
-    setError(elId);
+      const labels = ["Male", "Female"];
+      const totals = [maleTotal, femaleTotal];
+      const meets = [maleMeet, femaleMeet];
+
+      const percentValues = meets.map((v, i) => (totals[i] ? (v / totals[i]) * 100 : 0));
+
+      const hoverText = labels.map((lbl, i) =>
+        `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
+      );
+
+      const traces = [
+        {
+          type: "bar",
+          x: ["Male"],
+          y: [percentValues[0]],
+          name: "Male",
+          text: [`${percentValues[0].toFixed(1)}%`],
+          textposition: "outside",
+          hoverinfo: "text",
+          hovertext: [hoverText[0]],
+          marker: { color: "#FDEB9E" }
+        },
+        {
+          type: "bar",
+          x: ["Female"],
+          y: [percentValues[1]],
+          name: "Female",
+          text: [`${percentValues[1].toFixed(1)}%`],
+          textposition: "outside",
+          hoverinfo: "text",
+          hovertext: [hoverText[1]],
+          marker: { color: "#FCB53B" }
+        }
+      ];
+
+      const layout = {
+        margin: { t: 20, r: 20, b: 60, l: 60 },
+        yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 100], rangemode: "tozero" },
+        xaxis: { title: "" },
+        showlegend: true,
+        hovermode: "x unified",
+        legend: { orientation: "h" },
+      };
+
+      Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true });
+    } catch (err) {
+      console.error("Gender bar error:", err);
+      setError(elId);
+    }
   }
-}
 
   // -----------------------------
   // Public functions (window.*)
@@ -301,15 +304,6 @@ async function renderGenderStanineThresholdBar({
     }
   });
 }
-  // function wireResize() {
-  //   window.addEventListener("resize", () => {
-  //     const el5 = document.getElementById("pie-st5-extl-ngrta");
-  //     const el6 = document.getElementById("pie-st6-extl-ngrta");
-
-  //     if (el5) Plotly.Plots.resize(el5);
-  //     if (el6) Plotly.Plots.resize(el6);
-  //   });
-  // }
 
   // Init
   document.addEventListener("DOMContentLoaded", () => {
