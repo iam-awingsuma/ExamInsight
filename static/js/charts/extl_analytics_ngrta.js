@@ -172,16 +172,6 @@ async function renderGenderStanineThresholdBar({
       `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
     );
 
-    // const trace = {
-    //   type: "bar",
-    //   x: labels,
-    //   y: percentValues,
-    //   text: percentValues.map(v => `${v.toFixed(1)}%`),
-    //   textposition: "outside",
-    //   hoverinfo: "text",
-    //   hovertext: hoverText,
-    //   marker: { color: ["#FDEB9E", "#FCB53B"] }
-    // };
     const traces = [
       {
         type: "bar",
