@@ -207,13 +207,11 @@
             <td style="width: 1%;">
               <div>
                 <div>
-                  {% if entry.progress_category == 'Much higher' %}
+                  {% if entry.progress_category.lower() == 'better than expected' %}
                     <h6 class="badge bg-gradient-success text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
-                  {% elif entry.progress_category == 'Higher' %}
-                    <h6 class="badge bg-gradient-info text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
-                  {% elif entry.progress_category == 'Expected' %}
+                  {% elif entry.progress_category.lower() == 'expected' %}
                     <h6 class="badge bg-gradient-warning text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
-                  {% elif entry.progress_category == 'Lower' %}
+                  {% elif entry.progress_category.lower() == 'lower than expected' %}
                     <h6 class="badge bg-gradient-danger text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
                   {% else %}
                     <h6 class="badge bg-gradient-secondary text-xs mb-0 d-inline-block">{{entry.progress_category}}</h6>
