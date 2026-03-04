@@ -110,6 +110,112 @@
     }
   }
 
+  // ---------------------------------------------
+  // Generic gender stanine bar renderer
+  // ---------------------------------------------
+  async function renderGenderStanineThresholdBar({
+    elId,
+    datasetKey = "ngrtb",
+    stanineKey = "stanine",
+    genderKey = "gender",
+    threshold = 5
+  }) {
+    const container = document.getElementById(elId);
+    if (!container) return;
+
+    setLoading(elId);
+
+    try {
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        setEmpty(elId);
+        return;
+      }
+
+      // Denominators (all students by gender)
+      let maleTotal = 0;
+      let femaleTotal = 0;
+
+      // Numerators (students >= threshold by gender)
+      let maleMeet = 0;
+      let femaleMeet = 0;
+
+      for (const row of rows) {
+        const gRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
+        const isMale = (gRaw === "m" || gRaw === "male");
+        const isFemale = (gRaw === "f" || gRaw === "female");
+        if (!isMale && !isFemale) continue;
+
+        if (isMale) maleTotal++;
+        if (isFemale) femaleTotal++;
+
+        const s = Number(row?.[stanineKey]);
+        if (!Number.isFinite(s)) continue;
+
+        if (s >= threshold) {
+          if (isMale) maleMeet++;
+          if (isFemale) femaleMeet++;
+        }
+      }
+
+      if (maleTotal === 0 && femaleTotal === 0) {
+        setEmpty(elId, "No valid gender values found.");
+        return;
+      }
+
+      const labels = ["Male", "Female"];
+      const totals = [maleTotal, femaleTotal];
+      const meets = [maleMeet, femaleMeet];
+
+      const percentValues = meets.map((v, i) => (totals[i] ? (v / totals[i]) * 100 : 0));
+
+      const hoverText = labels.map((lbl, i) =>
+        `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
+      );
+
+      const traces = [
+        {
+          type: "bar",
+          x: ["Male"],
+          y: [percentValues[0]],
+          name: "Male",
+          text: [`${percentValues[0].toFixed(1)}%`],
+          textposition: "outside",
+          hoverinfo: "text",
+          hovertext: [hoverText[0]],
+          marker: { color: "#FDEB9E" }
+        },
+        {
+          type: "bar",
+          x: ["Female"],
+          y: [percentValues[1]],
+          name: "Female",
+          text: [`${percentValues[1].toFixed(1)}%`],
+          textposition: "outside",
+          hoverinfo: "text",
+          hovertext: [hoverText[1]],
+          marker: { color: "#FCB53B" }
+        }
+      ];
+
+      const layout = {
+        margin: { t: 20, r: 20, b: 60, l: 60 },
+        yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 110], rangemode: "tozero" },
+        xaxis: { title: "" },
+        showlegend: true,
+        hovermode: "x unified",
+        legend: { orientation: "h" },
+      };
+
+      Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true });
+    } catch (err) {
+      console.error("Gender bar error:", err);
+      setError(elId);
+    }
+  }
+
   // -----------------------------
   // Public functions (window.*)
   // -----------------------------
@@ -131,10 +237,34 @@
     });
   };
 
-  // Optional: one function to render BOTH pies
+  window.renderGenderStanine5Bar = function (elId = "bar-gender-st5-extl-ngrtb") {
+    return renderGenderStanineThresholdBar({
+      elId,
+      datasetKey: "ngrtb",
+      stanineKey: "stanine",
+      genderKey: "gender",
+      threshold: 5
+    });
+  };
+
+  window.renderGenderStanine6Bar = function (elId = "bar-gender-st6-extl-ngrtb") {
+    return renderGenderStanineThresholdBar({
+      elId,
+      datasetKey: "ngrtb",
+      stanineKey: "stanine",
+      genderKey: "gender",
+      threshold: 6
+    });
+  };
+
+  // one function to render BOTH pies
   window.renderExternalNgrtAttainmentPies = function () {
     window.renderStanine5Pie("pie-st5-extl-ngrtb");
     window.renderStanine6Pie("pie-st6-extl-ngrtb");
+  
+    // Gender-specific bars
+    window.renderGenderStanine5Bar("bar-gender-st5-extl-ngrtb");
+    window.renderGenderStanine6Bar("bar-gender-st6-extl-ngrtb");
   };
 
   // ---------------------------------------------
@@ -159,14 +289,20 @@
   // Resize handling
   // -----------------------------
   function wireResize() {
-    window.addEventListener("resize", () => {
-      const el5 = document.getElementById("pie-st5-extl-ngrtb");
-      const el6 = document.getElementById("pie-st6-extl-ngrtb");
+  window.addEventListener("resize", () => {
+    const ids = [
+      "pie-st5-extl-ngrtb",
+      "pie-st6-extl-ngrtb",
+      "bar-gender-st5-extl-ngrtb",
+      "bar-gender-st6-extl-ngrtb"
+    ];
 
-      if (el5) Plotly.Plots.resize(el5);
-      if (el6) Plotly.Plots.resize(el6);
-    });
-  }
+    for (const id of ids) {
+      const el = document.getElementById(id);
+      if (el) Plotly.Plots.resize(el);
+    }
+  });
+}
 
   // Init
   document.addEventListener("DOMContentLoaded", () => {

@@ -1,7 +1,8 @@
 <div class="accordion" id="coh-att_extl">
 {% include "partials/btns_ext_att_prog.html" %}
     <div id="btn_extl_att" class="accordion-collapse collapse show mb-2" data-bs-parent="#coh-att_extl">
-        <div class="col-12 px-0 h-100 d-flex flex-column">
+        <!-- Cohort Analysis -->
+        <div class="col-12 px-0 h-100 d-flex flex-column mb-3">
             <div class="card h-100 chart-card">
                 <div class="card-body d-flex flex-column">
                     <div class="container ps-0 pe-3">
@@ -41,6 +42,44 @@
                                     <!-- Pie Chart: External Assessment - Cohort Attainment Distribution (NGRT-A) St6&above -->
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <!-- Gender-specific Attainment chart St5&above -->
+            <div class="col-6">
+                <div class="card h-100 chart-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="chart-title d-flex align-items-start gap-2">
+                            <i data-lucide="bar-chart-3" class="text-primary"></i>
+                            <h5 class="text-body mb-0 lh-1">
+                            <span class="text-uppercase text-primary font-weight-bolder">Gender-specific Attainment Analysis</span><br/>
+                            <span class="p-1 bg-gradient-info text-white text-xs">％ of Students at/above Curriculum Standard (St5 & above)</span><br/>
+                            </h5>
+                        </div>
+                        <div class="chart-body mt-1">
+                            <div id="bar-gender-st5-extl-ngrtb" class="w-100" style="height:360px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gender-specific Attainment chart St6&above -->
+            <div class="col-6">
+                <div class="card h-100 chart-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="chart-title d-flex align-items-start gap-2">
+                            <i data-lucide="bar-chart-3" class="text-primary"></i>
+                            <h5 class="text-body mb-0 lh-1">
+                            <span class="text-uppercase text-primary font-weight-bolder">Gender-specific Attainment Analysis</span><br/>
+                            <span class="p-1 bg-gradient-success text-white text-xs">％ of Students attaining at least level above Curriculum Standard (St6 & above)</span><br/>
+                            </h5>
+                        </div>
+                        <div class="chart-body mt-1">
+                            <div id="bar-gender-st6-extl-ngrtb" class="w-100" style="height:360px;"></div>
                         </div>
                     </div>
                 </div>
