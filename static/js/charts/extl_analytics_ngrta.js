@@ -89,7 +89,7 @@
         hole: 0.3,
         textinfo: "label+percent",
         marker: {
-            colors: ['#86B6F6', '#F5F1DC'] // Custom colors for better distinction
+            colors: ['#67C6E3', '#F5F1DC'] // Custom colors for better distinction
         },
         hovertemplate:
             "<b>%{label}</b><br>" +
@@ -99,8 +99,16 @@
       };
 
       const layout = {
-        margin: { t: 10, r: 10, b: 10, l: 10 },
-        showlegend: true
+        margin: { t: 30, r: 10, b: 60, l: 10 },
+        showlegend: true,
+        autosize: true,
+        legend: {
+          orientation: "h",
+          y: -0.1,
+          x: 0.5,
+          xanchor: "center",
+          yanchor: "top"
+        }
       };
 
       Plotly.newPlot(elId, [trace], layout, { responsive: true });
@@ -201,7 +209,7 @@
       ];
 
       const layout = {
-        margin: { t: 20, r: 20, b: 60, l: 60 },
+        margin: { t: 30, r: 20, b: 60, l: 60 },
         yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 110], rangemode: "tozero" },
         xaxis: { title: "" },
         showlegend: true,

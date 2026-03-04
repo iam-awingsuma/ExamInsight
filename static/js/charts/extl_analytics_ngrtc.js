@@ -42,7 +42,7 @@
   }
 
   // -----------------------------
-  // Generic stanine pie renderer
+  // Stanine pie renderer
   // -----------------------------
   async function renderStanineThresholdPie({
     elId,
@@ -89,7 +89,7 @@
         hole: 0.3,
         textinfo: "label+percent",
         marker: {
-            colors: ['#E06B80', '#FFDEB9'] // Custom colors for better distinction
+            colors: ['#FE9191', '#FFDEB9'] // Custom colors for better distinction
         },
         hovertemplate:
             "<b>%{label}</b><br>" +
@@ -99,8 +99,16 @@
       };
 
       const layout = {
-        margin: { t: 10, r: 10, b: 10, l: 10 },
-        showlegend: true
+        margin: { t: 30, r: 10, b: 60, l: 10 },
+        showlegend: true,
+        autosize: true,
+        legend: {
+          orientation: "h",
+          y: -0.1,
+          x: 0.5,
+          xanchor: "center",
+          yanchor: "top"
+        }
       };
 
       Plotly.newPlot(elId, [trace], layout, { responsive: true });
@@ -111,7 +119,7 @@
   }
 
   // ---------------------------------------------
-  // Generic gender stanine bar renderer
+  // Gender stanine bar renderer
   // ---------------------------------------------
   async function renderGenderStanineThresholdBar({
     elId,
@@ -201,7 +209,7 @@
       ];
 
       const layout = {
-        margin: { t: 20, r: 20, b: 60, l: 60 },
+        margin: { t: 30, r: 20, b: 60, l: 60 },
         yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 110], rangemode: "tozero" },
         xaxis: { title: "" },
         showlegend: true,
@@ -212,6 +220,105 @@
       Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true });
     } catch (err) {
       console.error("Gender bar error:", err);
+      setError(elId);
+    }
+  }
+
+  // -----------------------------
+  // Progress pie renderer
+  // -----------------------------
+  async function renderProgressCategoryPie({
+    elId,
+    datasetKey = "ngrtc",
+    categoryKey = "progress_category",
+    mode = "expected_plus" // "expected_plus" or "better_only"
+  }) {
+    // If container missing, silently exit
+    const container = document.getElementById(elId);
+    if (!container) return;
+    
+    // loading placeholder
+    setLoading(elId);
+
+    try {
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        setEmpty(elId);
+        return;
+      }
+
+      let better = 0;
+      let expected = 0;
+      let lower = 0;
+
+      for (const row of rows) {
+        const raw = String(row?.[categoryKey] ?? "").trim();
+
+        // Exclude any value containing '-' from ALL computations
+        if (!raw || raw.includes("-")) continue;
+
+        const cat = raw.toLowerCase();
+
+        if (cat === "better than expected") better++;
+        else if (cat === "expected") expected++;
+        else if (cat === "lower than expected") lower++;
+        // ignore anything else silently
+      }
+
+      // If nothing valid after filtering, show empty
+      const totalValid = better + expected + lower;
+      if (totalValid === 0) {
+        setEmpty(elId, "No valid progress category values found.");
+        return;
+      }
+
+      let labels, values;
+
+      if (mode === "expected_plus") {
+        labels = ["Expected & Better Progress", "Lower than Expected"];
+        values = [expected + better, lower];
+      } else if (mode === "better_only") {
+        labels = ["Better Progress", "Expected & Lower than Expected"];
+        values = [better, expected + lower];
+      } else {
+        setError(elId, "Invalid pie mode.");
+        return;
+      }
+
+      const trace = {
+        type: "pie",
+        labels,
+        values,
+        hole: 0.3,
+        textinfo: "label+percent",
+        marker: { colors: ["#FE9191", "#FFDEB9"] },
+        hovertemplate:
+          "<b>%{label}</b><br>" +
+          "Students: %{value}<br>" +
+          "Percentage: %{percent}" +
+          "<extra></extra>"
+      };
+
+      const layout = {
+        autosize: true,
+        height: 360,
+        margin: { t: 30, r: 10, b: 60, l: 10 },
+        showlegend: true,
+        legend: {
+          orientation: "h",
+          x: 0.5,
+          xanchor: "center",
+          y: -0.15,
+          yanchor: "top"
+        }
+      };
+
+      Plotly.newPlot(elId, [trace], layout, {displayModeBar: false, responsive: true });
+
+    } catch (err) {
+      console.error("Progress category pie error:", err);
       setError(elId);
     }
   }
@@ -257,6 +364,22 @@
     });
   };
 
+  window.renderProgressExpectedPlusPie = function (elId = "pie-prog-exp-plus-extl-ngrtc") {
+    return renderProgressCategoryPie({
+      elId,
+      datasetKey: "ngrtc",
+      mode: "expected_plus"
+    });
+  };
+
+  window.renderProgressBetterOnlyPie = function (elId = "pie-prog-better-extl-ngrtc") {
+    return renderProgressCategoryPie({
+      elId,
+      datasetKey: "ngrtc",
+      mode: "better_only"
+    });
+  };
+
   // one function to render BOTH pies
   window.renderExternalNgrtAttainmentPies = function () {
     // Cohort pies
@@ -266,6 +389,10 @@
     // Gender-specific bars
     window.renderGenderStanine5Bar("bar-gender-st5-extl-ngrtc");
     window.renderGenderStanine6Bar("bar-gender-st6-extl-ngrtc");
+
+    // Progress pies - cohort
+    window.renderProgressExpectedPlusPie("pie-prog-exp-plus-extl-ngrtc");
+    window.renderProgressBetterOnlyPie("pie-prog-better-extl-ngrtc");
   };
 
   // ---------------------------------------------
@@ -295,7 +422,9 @@
       "pie-st5-extl-ngrtc",
       "pie-st6-extl-ngrtc",
       "bar-gender-st5-extl-ngrtc",
-      "bar-gender-st6-extl-ngrtc"
+      "bar-gender-st6-extl-ngrtc",
+      "pie-prog-exp-plus-extl-ngrtc",
+      "pie-prog-better-extl-ngrtc",
     ];
 
     for (const id of ids) {

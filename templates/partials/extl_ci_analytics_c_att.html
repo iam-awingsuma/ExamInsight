@@ -16,7 +16,7 @@
                                 </h5>
                             </div>
                             <div class="col-md-4 d-flex justify-content-end align-items-start">
-                                <span class="badge text-md-center fs-6" style="background-color: #CD2C58;">NGRT-C ASSESSMENT DATA</span>
+                                <span class="badge text-md-center fs-6" style="background-color: #D06573;">NGRT-C ASSESSMENT DATA</span>
                             </div>
                         </div>
                         <div class="row mt-3">
@@ -24,7 +24,7 @@
                                 <div class="card card-kpi
                                     text-white text-xs text-uppercase text-center
                                     fw-bold d-flex justify-content-center align-items-center py-2"
-                                    style="background-color: #CD2C58;">
+                                    style="background-color: #D06573;">
                                     ％ of students at/above<br/>
                                     <span class="fs-5 font-weight-bolder text-white">Curriculum Standard</span>
                                     <span class="text-xs fw-lighter text-capitalize">(Stanine 5 & above)</span>
@@ -37,7 +37,7 @@
                                 <div class="card card-kpi
                                     text-white text-xs text-uppercase text-center
                                     fw-bold d-flex justify-content-center align-items-center py-2"
-                                    style="background-color: #CD2C58;">
+                                    style="background-color: #D06573;">
                                     ％ of students attaining at least level above<br/><span class="fs-5 font-weight-bolder text-white">Curriculum Standard</span>
                                     <span class="text-xs fw-lighter text-capitalize">(Stanine 6 & above)</span>
                                 </div>
@@ -92,20 +92,51 @@
 
     <!-- Accordion item for Progress Over Time -->
     <div id="btn_extl_prog" class="accordion-collapse collapse" data-bs-parent="#coh-att_extl">
-        <div class="col-12 px-0 h-100 d-flex flex-column">
+        <!-- Cohort Analysis -->
+        <div class="col-12 px-0 h-100 d-flex flex-column mb-3">
             <div class="card h-100 chart-card">
                 <div class="card-body d-flex flex-column">
                     <div class="container ps-0 pe-3">
                         <div class="row">
                             <div class="col-md-8 chart-title d-flex align-items-start gap-2 mb-2">
-                                <i class="fa-solid fa-chart-line fa-lg text-primary"></i>
+                                <i class="fa-solid fa-chart-column fa-lg text-primary"></i>
                                 <h5 class="text-body mb-0 lh-1">
                                 <span class="text-uppercase text-primary font-weight-bolder">Progress Over Time</span><br/>
-                                <span class="text-muted text-xs"><span class="text-info font-weight-bolder">COHORT DATA ANALYSIS | NGRT-C ASSESSMENT DATA</span>
+                                <span class="text-muted text-sm"><span class="text-info font-weight-bolder">COHORT DATA ANALYSIS</span>
                                 </h5>
                             </div>
-                            <div>
-                                <p class="text-md text-muted fst-italic">No data available for NGRT-A cohort data analysis - progress over time.</p>
+                            <div class="col-md-4 d-flex justify-content-end align-items-start">
+                                <span class="badge text-md-center fs-6" style="background-color: #D06573;">NGRT-C ASSESSMENT DATA</span>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="chart-body col-md-6">
+                                <div class="card card-kpi
+                                    text-white text-xs text-uppercase text-center
+                                    fw-bold d-flex justify-content-center align-items-center py-2"
+                                    style="background-color: #D06573;">
+                                    ％ of students that made<br/>
+                                    <span class="fs-5 font-weight-bolder text-white">Expected/Better Progress</span>
+                                    <span class="text-xs fw-lighter text-capitalize">(Expected/Better than Expected)</span>
+                                </div>
+                                <div class="mt-3 w-100 d-flex justify-content-center align-items-center" id="pie-prog-exp-plus-extl-ngrtc" 
+                                style="height:360px; max-width: 100%; overflow: hidden;">
+                                    <!-- Pie Chart: External Assessment - Cohort Progress Over Time (NGRT-C) Expected+Better -->
+                                </div>
+                            </div>
+                            <div class="chart-body col-md-6">
+                                <div class="card card-kpi
+                                    text-white text-xs text-uppercase text-center
+                                    fw-bold d-flex justify-content-center align-items-center py-2"
+                                    style="background-color: #D06573;">
+                                    ％ of students that made<br/>
+                                    <span class="fs-5 font-weight-bolder text-white">Better Progress</span>
+                                    <span class="text-xs fw-lighter text-capitalize">(Better than Expected)</span>
+                                </div>
+                                <div class="mt-3 w-100 d-flex justify-content-center align-items-center" id="pie-prog-better-extl-ngrtc" 
+                                style="height:360px; max-width: 100%; overflow: hidden;">
+                                    <!-- Pie Chart: External Assessment - Cohort Progress Over Time (NGRT-C) Better Progress -->
+                                </div>
                             </div>
                         </div>
                     </div>
