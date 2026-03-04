@@ -1,159 +1,159 @@
 student_id,forename,surname,gender,date_of_birth,yrgrp,sped,nationality,status,ngrt_level,sas,stanine,reading_age,prev_test_name,prev_sas,prev_stanine,progress_category,reader_profile,profile_desc
-6531,Eidi,Aisha,Female,16-06-18,2-a,No,Indian,Re-registered,NGRT-B,101,5,6:07,NGRT-A,71,1,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6819,Alia Ahmed,Ajetunmobi,Female,11-04-17,2-a,No,American,Re-registered,NGRT-B,125,8,12:07,NGRT-A,127,9,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6531,Eidi,Aisha,Female,16-06-18,2-a,No,Indian,Re-registered,NGRT-B,101,5,6:07,NGRT-A,71,1,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6819,Alia Ahmed,Ajetunmobi,Female,11-04-17,2-a,No,American,Re-registered,NGRT-B,125,8,12:07,NGRT-A,127,9,Lower than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 6614,Muhammad Ahmad,Alam,Male,14-08-17,2-a,No,Pakistani,Re-registered,NGRT-B,107,6,8:04,NGRT-A,111,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6541,Insiyah,Ali,Female,23-05-18,2-a,No,Pakistani,Re-registered,NGRT-B,116,7,8:08,NGRT-A,113,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6424,Syed Musa,Ali,Male,01-04-18,2-a,No,Pakistani,Re-registered,NGRT-B,114,7,8:08,NGRT-A,109,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6424,Syed Musa,Ali,Male,01-04-18,2-a,No,Pakistani,Re-registered,NGRT-B,114,7,8:08,NGRT-A,109,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 7190,Abdul Rehman Bin,Ammar,Male,20-10-17,2-a,No,Pakistani,Re-registered,NGRT-B,118,7,10:03,NGRT-A,122,8,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 6498,Elisha Isabelle,Anuevo,Female,04-06-17,2-a,No,Filipino,Re-registered,NGRT-B,98,5,7:05,NGRT-A,100,5,Expected,Dependent Reader,Reading within the expected range. Balanced profile
-6386,Izma,Asim,Female,14-12-17,2-a,No,Pakistani,Re-registered,NGRT-B,117,7,9:07,NGRT-A,107,6,Higher,Independent Reader,Reading at or above expectations. Balanced profile
+6386,Izma,Asim,Female,14-12-17,2-a,No,Pakistani,Re-registered,NGRT-B,117,7,9:07,NGRT-A,107,6,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 6474,Martina Ellie,Batino,Female,09-09-17,2-a,No,Filipino,Re-registered,NGRT-B,116,7,9:10,NGRT-A,115,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6394,Mikayla Alexine,Bugarin,Female,22-12-17,2-a,No,Filipino,Re-registered,NGRT-B,112,7,8:08,NGRT-A,116,7,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
-6510,Fredrich Rolan,Fortaliza,Male,30-12-17,2-a,No,Filipino,Re-registered,NGRT-B,130,9,12:07,NGRT-A,126,8,Higher,Independent Reader,Reading at or above expectations. Balanced profile
+6510,Fredrich Rolan,Fortaliza,Male,30-12-17,2-a,No,Filipino,Re-registered,NGRT-B,130,9,12:07,NGRT-A,126,8,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 7634,Taha,Hemmatzadehdastgerdi,Male,27-11-16,2-a,No,Iranian,Re-registered,NGRT-B,100,5,8:02,NGRT-A,95,4,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6447,Muhammad Irtiza,Imran,Male,19-01-18,2-a,No,Pakistani,Re-registered,NGRT-B,81,2,5:03,NGRT-A,76,2,Expected,Transitioning Reader,Word reading and comprehension below age expectation
 6638,Rumaisa,Imran Ali,Female,13-07-17,2-a,No,Pakistani,Re-registered,NGRT-B,107,6,8:08,NGRT-A,111,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6434,Ishaanvi Shyam,Iyer,Female,29-03-18,2-a,No,Indian,Re-registered,NGRT-B,132,9,12:11,NGRT-A,130,9,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6434,Ishaanvi Shyam,Iyer,Female,29-03-18,2-a,No,Indian,Re-registered,NGRT-B,132,9,12:11,NGRT-A,130,9,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 6594,Muhammad Hashim Fahad,Malik,Male,19-07-17,2-a,No,Pakistani,Re-registered,NGRT-B,114,7,9:10,NGRT-A,113,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6497,Aala,Mohamed Nazafi,Female,03-02-18,2-a,No,Sri Lankan,Re-registered,NGRT-B,123,8,10:05,NGRT-A,101,5,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-7393,Muhammed Uzair,Mohamed Safan,Male,20-05-17,2-a,No,Sri Lankan,Re-registered,NGRT-B,114,7,9:10,NGRT-A,108,6,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6497,Aala,Mohamed Nazafi,Female,03-02-18,2-a,No,Sri Lankan,Re-registered,NGRT-B,123,8,10:05,NGRT-A,101,5,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+7393,Muhammed Uzair,Mohamed Safan,Male,20-05-17,2-a,No,Sri Lankan,Re-registered,NGRT-B,114,7,9:10,NGRT-A,108,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 8203,Mohammad,Murtaza,Male,27-10-17,2-a,No,Pakistani,New Student,NGRT-B,107,6,8:00,-,0,0,-,Growing Independent Reader,Reading at or above expectations. Balanced profile
 7948,Kaya Zaina,Paguia,Female,13-02-18,2-a,No,Filipino,New Student,NGRT-B,118,7,9:05,NGRT-A,117,7,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6442,Sarvan,Priyadharshini Kaushik,Male,22-08-18,2-a,No,Indian,Re-registered,NGRT-B,132,9,11:10,NGRT-A,126,8,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-7977,Aneira Yash,Shahapurkar,Female,19-09-17,2-a,No,Indian,New Student,NGRT-B,114,7,9:05,NGRT-A,111,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-7967,Kabeer,Shaikh,Male,03-06-18,2-a,No,Indian,New Student,NGRT-B,108,6,7:05,NGRT-A,112,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6445,Bahram Rasool,Soomro,Male,06-07-17,2-a,Other Difficulties,Pakistani,Re-registered,NGRT-B,110,6,9:00,NGRT-A,99,5,Higher,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
-7982,Theron,Supe,Male,27-11-17,2-a,No,Filipino,New Student,NGRT-B,138,9,15:06,NGRT-A,124,8,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-5929,Satya,Vinesh,Male,19-07-17,2-a,No,Indian,Re-registered,NGRT-B,121,8,11:02,NGRT-A,112,7,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6494,Fathima Yaqeena,Ashraq Rahumathulla,Female,08-12-17,2-b,No,Sri Lankan,Re-registered,NGRT-B,102,5,7:04,NGRT-A,94,4,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-7217,Inaya,Asim,Female,17-02-18,2-b,No,Pakistani,Re-registered,NGRT-B,112,7,8:04,NGRT-A,104,6,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-7970,Khawlah Salim,Bamusa,Female,14-11-16,2-b,No,Kenyan,New Student,NGRT-B,109,6,9:07,NGRT-A,97,5,Higher,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
-7933,Ibrahim,Boite,Male,20-09-17,2-b,No,Malian,New Student,NGRT-B,127,9,12:01,NGRT-A,112,7,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
+6442,Sarvan,Priyadharshini Kaushik,Male,22-08-18,2-a,No,Indian,Re-registered,NGRT-B,132,9,11:10,NGRT-A,126,8,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+7977,Aneira Yash,Shahapurkar,Female,19-09-17,2-a,No,Indian,New Student,NGRT-B,114,7,9:05,NGRT-A,111,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+7967,Kabeer,Shaikh,Male,03-06-18,2-a,No,Indian,New Student,NGRT-B,108,6,7:05,NGRT-A,112,7,Lower than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6445,Bahram Rasool,Soomro,Male,06-07-17,2-a,Other Difficulties & Yes,Pakistani,Re-registered,NGRT-B,110,6,9:00,NGRT-A,99,5,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+7982,Theron,Supe,Male,27-11-17,2-a,No,Filipino,New Student,NGRT-B,138,9,15:06,NGRT-A,124,8,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+5929,Satya,Vinesh,Male,19-07-17,2-a,No,Indian,Re-registered,NGRT-B,121,8,11:02,NGRT-A,112,7,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6494,Fathima Yaqeena,Ashraq Rahumathulla,Female,08-12-17,2-b,No,Sri Lankan,Re-registered,NGRT-B,102,5,7:04,NGRT-A,94,4,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+7217,Inaya,Asim,Female,17-02-18,2-b,No,Pakistani,Re-registered,NGRT-B,112,7,8:04,NGRT-A,104,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+7970,Khawlah Salim,Bamusa,Female,14-11-16,2-b,No,Kenyan,New Student,NGRT-B,109,6,9:07,NGRT-A,97,5,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+7933,Ibrahim,Boite,Male,20-09-17,2-b,No,Malian,New Student,NGRT-B,127,9,12:01,NGRT-A,112,7,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 7629,Gamini Senadhirage Sahas Damyuru,Dissanayaka,Male,11-09-17,2-b,No,Sri Lankan,Re-registered,NGRT-B,103,5,7:09,NGRT-A,104,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6607,Momina,Faisal,Female,21-09-17,2-b,No,Pakistani,Re-registered,NGRT-B,104,6,7:10,NGRT-A,102,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 7204,Aima,Faizan,Female,19-09-17,2-b,No,Pakistani,Re-registered,NGRT-B,111,6,8:10,NGRT-A,108,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6373,Syeda Fatima,Gilani,Female,09-09-17,2-b,No,Pakistani,Re-registered,NGRT-B,100,5,7:05,NGRT-A,98,5,Expected,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
 7505,Afnan Saeid,Hali,Female,08-10-17,2-b,No,Australian,Re-registered,NGRT-B,100,5,7:05,NGRT-A,96,4,Expected,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
-6431,Khawaja Humaid,Hussain,Male,04-11-17,2-b,No,Pakistani,Re-registered,NGRT-B,112,7,8:08,NGRT-A,105,6,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6747,Amna,Karim,Female,22-03-18,2-b,No,Pakistani,Re-registered,NGRT-B,117,7,9:03,NGRT-A,106,6,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6517,Nabaha Shahab,Khan,Female,02-07-18,2-b,ADHD,Pakistani,Re-registered,NGRT-B,100,5,6:06,NGRT-A,98,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6431,Khawaja Humaid,Hussain,Male,04-11-17,2-b,No,Pakistani,Re-registered,NGRT-B,112,7,8:08,NGRT-A,105,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6747,Amna,Karim,Female,22-03-18,2-b,No,Pakistani,Re-registered,NGRT-B,117,7,9:03,NGRT-A,106,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6517,Nabaha Shahab,Khan,Female,02-07-18,2-b,Yes & ADHD,Pakistani,Re-registered,NGRT-B,100,5,6:06,NGRT-A,98,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6722,Zoraiz,Khan,Male,11-10-17,2-b,No,Indian,Re-registered,NGRT-B,99,5,7:02,NGRT-A,100,5,Expected,Dependent Reader,Reading within the expected range. Balanced profile
 7922,Kaung Khant,Kyaw,Male,02-10-17,2-b,No,Burmese,New Student,NGRT-B,105,6,8:00,NGRT-A,99,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6475,Mohammed Hamad,Mohamed Najmi,Male,16-03-18,2-b,No,Sri Lankan,Re-registered,NGRT-B,124,8,10:08,NGRT-A,117,7,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6687,Rayden Yonah,Perera,Male,25-06-17,2-b,No,Sri Lankan,New Student,NGRT-B,106,6,8:06,NGRT-A,97,5,Higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+6475,Mohammed Hamad,Mohamed Najmi,Male,16-03-18,2-b,No,Sri Lankan,Re-registered,NGRT-B,124,8,10:08,NGRT-A,117,7,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6687,Rayden Yonah,Perera,Male,25-06-17,2-b,No,Sri Lankan,New Student,NGRT-B,106,6,8:06,NGRT-A,97,5,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 6643,Mohamed Musa,Raheel,Male,30-11-17,2-b,No,Pakistani,Re-registered,NGRT-B,108,6,8:02,NGRT-A,111,6,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
 7937,Yumna,Saqib,Female,02-11-17,2-b,No,Pakistani,New Student,NGRT-B,103,5,7:05,NGRT-A,102,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6823,Danniel Kamilla,Soledad,Female,01-02-18,2-b,No,Filipino,Re-registered,NGRT-B,118,7,9:05,NGRT-A,114,7,Expected,Independent Reader,Reading at or above expectations. Balanced profile
-6384,Mohammad Rayyan,Sumair,Male,10-01-18,2-b,No,Pakistani,Re-registered,NGRT-B,120,8,10:03,NGRT-A,106,6,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-6368,Fatima,Talha,Female,26-09-17,2-b,No,Pakistani,Re-registered,NGRT-B,107,6,8:04,NGRT-A,96,4,Higher,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+6384,Mohammad Rayyan,Sumair,Male,10-01-18,2-b,No,Pakistani,Re-registered,NGRT-B,120,8,10:03,NGRT-A,106,6,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6368,Fatima,Talha,Female,26-09-17,2-b,No,Pakistani,Re-registered,NGRT-B,107,6,8:04,NGRT-A,96,4,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
 6560,Aliyah Jade,Tamang,Female,03-11-17,2-b,No,Filipino,Re-registered,NGRT-B,118,7,9:10,NGRT-A,119,8,Expected,Independent Reader,Reading at or above expectations. Balanced profile
 7917,Joann Clair,Tanner,Female,21-10-16,2-b,No,Sri Lankan,New Student,NGRT-B,92,4,7:05,NGRT-A,93,4,Expected,Dependent Reader,Reading within the expected range. Balanced profile
 7878,Phone Shin,Than,Male,15-06-17,2-b,No,Burmese,New Student,NGRT-B,107,6,8:08,NGRT-A,107,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6689,Ghanawi Hitenkumar,Vaghera,Female,30-01-18,2-b,No,Indian,Re-registered,NGRT-B,111,6,8:02,NGRT-A,110,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 7914,Mohamed,Zidan,Male,23-09-17,2-b,No,Pakistani,New Student,NGRT-B,100,5,7:05,NGRT-A,93,4,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6651,Fatima,Abiha,Female,07-09-17,2-c,Specific learning difficulties,Pakistani,Re-registered,NGRT-B,95,4,6:10,NGRT-A,77,2,Much higher,Dependent Reader,"Reading is limited by poor vocabulary, syntax and grammar knowledge"
-7699,Yoel Samuel,Adhanom,Male,02-05-18,2-c,No,Eritrean,Re-registered,NGRT-B,106,6,7:02,NGRT-A,98,5,Higher,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
-6370,Ayeza,Ali,Female,14-05-18,2-c,No,Indian,Re-registered,NGRT-B,115,7,8:06,NGRT-A,109,6,Higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+6651,Fatima,Abiha,Female,07-09-17,2-c,Specific learning difficulties & Yes,Pakistani,Re-registered,NGRT-B,95,4,6:10,NGRT-A,77,2,Better than Expected,Dependent Reader,"Reading is limited by poor vocabulary, syntax and grammar knowledge"
+7699,Yoel Samuel,Adhanom,Male,02-05-18,2-c,No,Eritrean,Re-registered,NGRT-B,106,6,7:02,NGRT-A,98,5,Expected,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
+6370,Ayeza,Ali,Female,14-05-18,2-c,No,Indian,Re-registered,NGRT-B,115,7,8:06,NGRT-A,109,6,Better than Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 8002,Raied,Ammar Mohamedtahir Ahmed,Male,02-10-17,2-c,No,Sudanese,New Student,NGRT-B,102,5,7:07,NGRT-A,101,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6489,Khadijah,Arsalan,Female,02-10-17,2-c,No,Pakistani,Re-registered,NGRT-B,118,7,10:03,NGRT-A,122,8,Expected,Independent Reader,Reading at or above expectations. Balanced profile
-7413,Khaled,Ayman Alrifaee,Male,02-11-17,2-c,No,Jordanian,Re-registered,NGRT-B,114,7,9:00,NGRT-A,100,5,Much higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-7591,Raeesah Mariel,Baladiang,Female,08-03-18,2-c,No,Filipino,Re-registered,NGRT-B,120,8,9:10,NGRT-A,113,7,Higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+7413,Khaled,Ayman Alrifaee,Male,02-11-17,2-c,No,Jordanian,Re-registered,NGRT-B,114,7,9:00,NGRT-A,100,5,Better than Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+7591,Raeesah Mariel,Baladiang,Female,08-03-18,2-c,No,Filipino,Re-registered,NGRT-B,120,8,9:10,NGRT-A,113,7,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 6724,Djamel Tima,Djilo Djimmo,Male,07-07-18,2-c,No,Cameroonian,Re-registered,NGRT-B,121,8,9:07,NGRT-A,120,8,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-7921,Jwan,Elsharif,Female,06-07-18,2-c,No,American,New Student,NGRT-B,100,5,6:06,NGRT-A,110,6,Lower,Growing Independent Reader,Reading at or above expectations. Balanced profile
+7921,Jwan,Elsharif,Female,06-07-18,2-c,No,American,New Student,NGRT-B,100,5,6:06,NGRT-A,110,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 7133,Ayra,Fahim,Female,01-03-17,2-c,No,Indian,Re-registered,NGRT-B,93,4,7:01,NGRT-A,94,4,Expected,Dependent Reader,Reading within the expected range. Balanced profile
 6914,Raphael Luis,Flores,Male,26-09-17,2-c,No,Filipino,Re-registered,NGRT-B,105,6,8:00,NGRT-A,108,6,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 6466,Zayed,Hadil Haneef,Male,04-04-18,2-c,No,Indian,Re-registered,NGRT-B,118,7,9:05,NGRT-A,115,7,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-7687,Muhammad Mahd,Hakim,Male,04-09-16,2-c,No,Pakistani,Re-registered,NGRT-B,104,6,9:00,NGRT-A,94,4,Higher,Dependent Reader,Reading at or above expected level but skill limited by weaker comprehension
+7687,Muhammad Mahd,Hakim,Male,04-09-16,2-c,No,Pakistani,Re-registered,NGRT-B,104,6,9:00,NGRT-A,94,4,Expected,Dependent Reader,Reading at or above expected level but skill limited by weaker comprehension
 6524,Muhammad,Hashir,Male,05-06-17,2-c,No,Pakistani,Re-registered,NGRT-B,98,5,7:05,NGRT-A,95,4,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-7929,Hamza,Hossam Magdy Mohamed Ibrahim Bazazou,Male,05-05-18,2-c,No,Egyptian,New Student,NGRT-B,74,2,5:00,NGRT-A,73,1,Expected,Early Emerging Reader,NGRT reveals potential phonics gaps
-7667,Amal,Ishtiaq,Female,13-01-18,2-c,No,Pakistani,Re-registered,NGRT-B,102,5,7:04,NGRT-A,94,4,Higher,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
-7723,Areeb Ahmed,Khan,Male,14-09-16,2-c,No,Indian,Re-registered,NGRT-B,115,7,10:11,NGRT-A,92,4,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
+7929,Hamza,Hossam Magdy Mohamed Ibrahim Bazazou,Male,05-05-18,2-c,No,Egyptian,New Student,NGRT-B,74,2,5:00,NGRT-A,73,1,Better than Expected,Early Emerging Reader,NGRT reveals potential phonics gaps
+7667,Amal,Ishtiaq,Female,13-01-18,2-c,No,Pakistani,Re-registered,NGRT-B,102,5,7:04,NGRT-A,94,4,Expected,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
+7723,Areeb Ahmed,Khan,Male,14-09-16,2-c,No,Indian,Re-registered,NGRT-B,115,7,10:11,NGRT-A,92,4,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6551,Sofia,Khan,Female,24-04-17,2-c,No,Moroccan,Re-registered,NGRT-B,100,5,7:09,NGRT-A,95,4,Expected,Dependent Reader,Reading at or above expected level but skill limited by weaker comprehension
-6519,Idris,Khatkhatay,Male,27-07-17,2-c,No,Indian,Re-registered,NGRT-B,125,8,12:01,NGRT-A,119,8,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6677,Aqsa,Mariam,Female,09-02-17,2-c,No,Indian,Re-registered,NGRT-B,111,6,9:07,NGRT-A,103,5,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6515,Younes,Mohamed Abdelsalam Abdelhady Abdelrahman,Male,05-07-18,2-c,No,Egyptian,Re-registered,NGRT-B,115,7,8:06,NGRT-A,104,6,Higher,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+6519,Idris,Khatkhatay,Male,27-07-17,2-c,No,Indian,Re-registered,NGRT-B,125,8,12:01,NGRT-A,119,8,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6677,Aqsa,Mariam,Female,09-02-17,2-c,No,Indian,Re-registered,NGRT-B,111,6,9:07,NGRT-A,103,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6515,Younes,Mohamed Abdelsalam Abdelhady Abdelrahman,Male,05-07-18,2-c,No,Egyptian,Re-registered,NGRT-B,115,7,8:06,NGRT-A,104,6,Better than Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
 6432,Omer,Mohammed Yousif Ahmed,Male,21-10-17,2-c,No,Sudanese,Re-registered,NGRT-B,117,7,9:07,NGRT-A,113,7,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
 6706,Leon Mbugua,Munji,Male,20-06-17,2-c,No,Kenyan,Re-registered,NGRT-B,116,7,10:03,NGRT-A,116,7,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
-6673,Carmela Czalvey,Pasilaban,Female,11-07-17,2-c,No,Filipino,Re-registered,NGRT-B,121,8,11:02,NGRT-A,116,7,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6451,Hoorain,Rahat,Female,20-08-17,2-c,No,Pakistani,Re-registered,NGRT-B,106,6,8:02,NGRT-A,97,5,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6937,Vinayak,Shanker,Male,09-03-18,2-c,No,Pakistani,Re-registered,NGRT-B,99,5,6:08,NGRT-A,80,2,Much higher,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
+6673,Carmela Czalvey,Pasilaban,Female,11-07-17,2-c,No,Filipino,Re-registered,NGRT-B,121,8,11:02,NGRT-A,116,7,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6451,Hoorain,Rahat,Female,20-08-17,2-c,No,Pakistani,Re-registered,NGRT-B,106,6,8:02,NGRT-A,97,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6937,Vinayak,Shanker,Male,09-03-18,2-c,No,Pakistani,Re-registered,NGRT-B,99,5,6:08,NGRT-A,80,2,Better than Expected,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
 6420,Bahisht,Shehroze,Female,17-10-17,2-c,No,Pakistani,Re-registered,NGRT-B,100,5,7:05,NGRT-A,97,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-7163,Shanaya,Abdullah,Female,16-08-17,2-d,No,Pakistani,Re-registered,NGRT-B,121,8,10:08,NGRT-A,113,7,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-7722,Aizah,Ahmad,Female,23-06-18,2-d,No,Pakistani,Re-registered,NGRT-B,112,7,8:00,NGRT-A,92,4,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
+7163,Shanaya,Abdullah,Female,16-08-17,2-d,No,Pakistani,Re-registered,NGRT-B,121,8,10:08,NGRT-A,113,7,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+7722,Aizah,Ahmad,Female,23-06-18,2-d,No,Pakistani,Re-registered,NGRT-B,112,7,8:00,NGRT-A,92,4,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6810,Solara Gabrielle,Belardo,Female,01-04-17,2-d,No,Filipino,Re-registered,NGRT-B,126,8,12:11,NGRT-A,125,8,Expected,Independent Reader,Reading at or above expectations. Balanced profile
 6827,Sherie Johnna,Cabalo,Female,28-10-17,2-d,No,Filipino,Re-registered,NGRT-B,105,6,7:09,NGRT-A,105,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6788,Hailey Grace,Cruz,Female,28-08-17,2-d,No,Filipino,Re-registered,NGRT-B,116,7,9:10,NGRT-A,117,7,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 7098,Solomon Fikadu,Debesay,Male,13-02-17,2-d,No,Eritrean,Re-registered,NGRT-B,115,7,10:03,NGRT-A,112,7,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6894,Rebecca Li,Dsouza,Female,11-10-17,2-d,No,American,Re-registered,NGRT-B,107,6,8:04,NGRT-A,116,7,Lower,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-7004,Hurain,Fahim Ullah,Female,08-08-17,2-d,No,Pakistani,Re-registered,NGRT-B,121,8,10:08,NGRT-A,108,6,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-6981,Hoorain,Fatima,Female,05-09-17,2-d,No,Pakistani,Re-registered,NGRT-B,102,5,7:07,NGRT-A,79,2,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6894,Rebecca Li,Dsouza,Female,11-10-17,2-d,No,American,Re-registered,NGRT-B,107,6,8:04,NGRT-A,116,7,Lower than Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+7004,Hurain,Fahim Ullah,Female,08-08-17,2-d,No,Pakistani,Re-registered,NGRT-B,121,8,10:08,NGRT-A,108,6,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6981,Hoorain,Fatima,Female,05-09-17,2-d,No,Pakistani,Re-registered,NGRT-B,102,5,7:07,NGRT-A,79,2,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6843,Eren Nathaniel,Gamponia,Male,26-05-18,2-d,No,Filipino,Re-registered,NGRT-B,121,8,9:07,NGRT-A,117,7,Expected,Independent Reader,Reading at or above expectations. Balanced profile
 7035,Abik Jung,Gurung,Male,13-01-18,2-d,No,Nepalese,Re-registered,NGRT-B,123,8,10:08,NGRT-A,120,8,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-7182,Eshaal,Ikhlaq,Female,02-11-16,2-d,No,Pakistani,Re-registered,NGRT-B,87,3,6:06,NGRT-A,101,5,Much lower,Transitioning Reader,Word reading and comprehension below age expectation
-6919,Muhammad Abdullah,Irfan,Male,24-08-18,2-d,No,Pakistani,Re-registered,NGRT-B,132,9,11:10,NGRT-A,118,7,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
+7182,Eshaal,Ikhlaq,Female,02-11-16,2-d,No,Pakistani,Re-registered,NGRT-B,87,3,6:06,NGRT-A,101,5,Lower than Expected,Transitioning Reader,Word reading and comprehension below age expectation
+6919,Muhammad Abdullah,Irfan,Male,24-08-18,2-d,No,Pakistani,Re-registered,NGRT-B,132,9,11:10,NGRT-A,118,7,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 7216,Menaal,Jawad,Female,10-02-18,2-d,No,Pakistani,Re-registered,NGRT-B,115,7,8:10,NGRT-A,113,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6851,Abdullah,Muayyad,Male,18-03-17,2-d,No,Pakistani,Re-registered,NGRT-B,105,6,8:08,NGRT-A,100,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 7167,Rahma,Muhammad Mobeen Khwar Durani,Female,27-03-17,2-d,No,Pakistani,Re-registered,NGRT-B,109,6,9:03,NGRT-A,103,5,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
-6884,Jianna Micaiah,Punsalan,Female,23-01-18,2-d,No,Filipino,Re-registered,NGRT-B,120,8,9:10,NGRT-A,114,7,Higher,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
-6973,Ali John,Rizvi,Male,08-03-18,2-d,Other Difficulties,Pakistani,Re-registered,NGRT-B,124,8,10:08,NGRT-A,117,7,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6904,Shailja Shantiraj,Sharma,Female,12-05-17,2-d,No,Indian,Re-registered,NGRT-B,104,6,8:02,NGRT-A,111,6,Lower,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+6884,Jianna Micaiah,Punsalan,Female,23-01-18,2-d,No,Filipino,Re-registered,NGRT-B,120,8,9:10,NGRT-A,114,7,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+6973,Ali John,Rizvi,Male,08-03-18,2-d,Other Difficulties & Yes,Pakistani,Re-registered,NGRT-B,124,8,10:08,NGRT-A,117,7,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6904,Shailja Shantiraj,Sharma,Female,12-05-17,2-d,No,Indian,Re-registered,NGRT-B,104,6,8:02,NGRT-A,111,6,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 6824,Nikolas Alfonso,Soledad,Male,01-02-18,2-d,No,Filipino,Re-registered,NGRT-B,101,5,6:11,NGRT-A,104,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6998,Yanet  Teklit,Tesfalidet,Female,10-06-17,2-d,No,Eritrean,Re-registered,NGRT-B,98,5,7:05,NGRT-A,93,4,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6999,Yonael Teklit,Tesfalidet,Male,05-06-18,2-d,No,Eritrean,Re-registered,NGRT-B,121,8,9:07,NGRT-A,124,8,Expected,Independent Reader,Reading at or above expectations. Balanced profile
-7069,Jeremy Joen,Tomagan,Male,18-12-17,2-d,No,Filipino,Re-registered,NGRT-B,129,9,12:04,NGRT-A,107,6,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-6882,Simon Theo,Tumlos,Male,29-09-17,2-d,No,Filipino,Re-registered,NGRT-B,106,6,8:02,NGRT-A,113,7,Lower,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+7069,Jeremy Joen,Tomagan,Male,18-12-17,2-d,No,Filipino,Re-registered,NGRT-B,129,9,12:04,NGRT-A,107,6,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6882,Simon Theo,Tumlos,Male,29-09-17,2-d,No,Filipino,Re-registered,NGRT-B,106,6,8:02,NGRT-A,113,7,Lower than Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
 8206,Ellie Sansa,Wilathgamuwage Dona,Female,13-08-18,2-d,No,Sri Lankan,New Student,NGRT-B,116,7,8:04,-,0,0,-,Growing Independent Reader,Reading at or above expectations. Balanced profile
-7125,Aiza,Adil,Female,18-10-16,2-e,No,Pakistani,Re-registered,NGRT-B,85,3,6:07,NGRT-A,71,1,Higher,Dependent Reader,"Reading is limited by poor vocabulary, syntax and grammar knowledge"
+7125,Aiza,Adil,Female,18-10-16,2-e,No,Pakistani,Re-registered,NGRT-B,85,3,6:07,NGRT-A,71,1,Better than Expected,Dependent Reader,"Reading is limited by poor vocabulary, syntax and grammar knowledge"
 6678,Ngayo Liam,Alungnao,Male,27-06-18,2-e,No,Indian,Re-registered,NGRT-B,120,8,9:05,NGRT-A,122,8,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 6495,Ethan,Anthony,Male,09-07-17,2-e,No,Ghanaian,Re-registered,NGRT-B,119,8,10:08,NGRT-A,123,8,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-7366,Margaux Eve Mirielle,Atizado,Female,12-12-17,2-e,No,Filipino,Re-registered,NGRT-B,126,8,11:07,NGRT-A,119,8,Higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6563,Kenneth Nathanael,Balan,Male,04-01-18,2-e,ADHD,Sri Lankan,Re-registered,NGRT-B,116,7,9:05,NGRT-A,113,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6415,Giana Bethanee,Cruz,Female,13-01-18,2-e,No,Filipino,Re-registered,NGRT-B,117,7,9:07,NGRT-A,106,6,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6379,Ethan,Daniel,Male,10-04-18,2-e,No,Indian,Re-registered,NGRT-B,137,9,14:07,NGRT-A,131,9,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6484,Parsa Baby,Das,Female,12-01-18,2-e,No,Bangladeshi,Re-registered,NGRT-B,124,8,11:02,NGRT-A,101,5,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-7093,Fatimah,Durrani,Female,17-04-17,2-e,No,Pakistani,Re-registered,NGRT-B,105,6,8:08,NGRT-A,96,4,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6556,Syeda Manha,Fahad,Female,23-12-17,2-e,No,Pakistani,Re-registered,NGRT-B,120,8,10:03,NGRT-A,111,6,Higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6400,Liam Skyler,Fernando,Male,12-02-18,2-e,No,Sri Lankan,Re-registered,NGRT-B,121,8,10:00,NGRT-A,113,7,Higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-8017,Emaan,Hirani,Female,30-10-17,2-e,No,Pakistani,New Student,NGRT-B,103,5,7:05,NGRT-A,78,2,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
+7366,Margaux Eve Mirielle,Atizado,Female,12-12-17,2-e,No,Filipino,Re-registered,NGRT-B,126,8,11:07,NGRT-A,119,8,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+6563,Kenneth Nathanael,Balan,Male,04-01-18,2-e,Yes & ADHD,Sri Lankan,Re-registered,NGRT-B,116,7,9:05,NGRT-A,113,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6415,Giana Bethanee,Cruz,Female,13-01-18,2-e,No,Filipino,Re-registered,NGRT-B,117,7,9:07,NGRT-A,106,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6379,Ethan,Daniel,Male,10-04-18,2-e,No,Indian,Re-registered,NGRT-B,137,9,14:07,NGRT-A,131,9,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6484,Parsa Baby,Das,Female,12-01-18,2-e,No,Bangladeshi,Re-registered,NGRT-B,124,8,11:02,NGRT-A,101,5,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+7093,Fatimah,Durrani,Female,17-04-17,2-e,No,Pakistani,Re-registered,NGRT-B,105,6,8:08,NGRT-A,96,4,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6556,Syeda Manha,Fahad,Female,23-12-17,2-e,No,Pakistani,Re-registered,NGRT-B,120,8,10:03,NGRT-A,111,6,Better than Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+6400,Liam Skyler,Fernando,Male,12-02-18,2-e,No,Sri Lankan,Re-registered,NGRT-B,121,8,10:00,NGRT-A,113,7,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+8017,Emaan,Hirani,Female,30-10-17,2-e,No,Pakistani,New Student,NGRT-B,103,5,7:05,NGRT-A,78,2,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6418,Bareerah Ovais,Khan,Female,06-08-17,2-e,No,Pakistani,Re-registered,NGRT-B,114,7,9:05,NGRT-A,114,7,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-8027,Aniruddha,Kumar,Male,13-05-18,2-e,No,Indian,New Student,NGRT-B,99,5,6:05,NGRT-A,82,3,Much higher,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
+8027,Aniruddha,Kumar,Male,13-05-18,2-e,No,Indian,New Student,NGRT-B,99,5,6:05,NGRT-A,82,3,Better than Expected,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
 6595,Muhammad Haroon Fahad,Malik,Male,19-07-17,2-e,No,Pakistani,Re-registered,NGRT-B,125,8,12:01,NGRT-A,124,8,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6369,Hamdan Shafi,Mansoor,Male,09-04-17,2-e,No,Pakistani,Re-registered,NGRT-B,128,9,13:05,NGRT-A,112,7,Much higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6453,Cassandra Phoebe,Miranda,Female,30-08-17,2-e,No,Filipino,Re-registered,NGRT-B,128,9,12:07,NGRT-A,124,8,Higher,Independent Reader,Reading at or above expectations. Balanced profile
+6369,Hamdan Shafi,Mansoor,Male,09-04-17,2-e,No,Pakistani,Re-registered,NGRT-B,128,9,13:05,NGRT-A,112,7,Better than Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+6453,Cassandra Phoebe,Miranda,Female,30-08-17,2-e,No,Filipino,Re-registered,NGRT-B,128,9,12:07,NGRT-A,124,8,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 6670,Yumna,Mubeen,Female,12-07-17,2-e,No,Pakistani,Re-registered,NGRT-B,106,6,8:06,NGRT-A,99,5,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6487,Sharon Carmel,Pinto,Female,20-12-17,2-e,No,Indian,Re-registered,NGRT-B,133,9,13:08,NGRT-A,120,8,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
+6487,Sharon Carmel,Pinto,Female,20-12-17,2-e,No,Indian,Re-registered,NGRT-B,133,9,13:08,NGRT-A,120,8,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 6632,Jan Kali,Santos,Female,31-07-17,2-e,No,Filipino,Re-registered,NGRT-B,122,8,10:11,NGRT-A,118,7,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6557,Khadeeja Kiah,Sharief,Female,13-11-17,2-e,No,Indian,Re-registered,NGRT-B,107,6,8:00,NGRT-A,93,4,Much higher,Dependent Reader,Reading at or above expected level but skill limited by weaker comprehension
-6390,Haniya,Sharif,Female,10-11-17,2-e,Other Difficulties,Pakistani,Re-registered,NGRT-B,123,8,10:11,NGRT-A,118,7,Higher,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
-6774,Muhammad Moosa Rehan,Sheikh,Male,23-02-17,2-e,No,Pakistani,Re-registered,NGRT-B,108,6,9:00,NGRT-A,99,5,Higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-5957,Aaiden Kurian,Titto,Male,16-05-17,2-e,No,Indian,New Student,NGRT-B,93,4,6:10,NGRT-A,86,3,Expected,Dependent Reader,"Reading is limited by poor vocabulary, syntax and grammar knowledge"
-6427,Zekiah Lucas,Trinio,Male,12-10-17,2-e,No,Filipino,Re-registered,NGRT-B,132,9,14:00,NGRT-A,119,8,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-6414,Vini,Vinod,Female,07-11-17,2-e,No,Indian,Re-registered,NGRT-B,107,6,8:00,NGRT-A,96,4,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6557,Khadeeja Kiah,Sharief,Female,13-11-17,2-e,No,Indian,Re-registered,NGRT-B,107,6,8:00,NGRT-A,93,4,Expected,Dependent Reader,Reading at or above expected level but skill limited by weaker comprehension
+6390,Haniya,Sharif,Female,10-11-17,2-e,Other Difficulties & Yes,Pakistani,Re-registered,NGRT-B,123,8,10:11,NGRT-A,118,7,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+6774,Muhammad Moosa Rehan,Sheikh,Male,23-02-17,2-e,No,Pakistani,Re-registered,NGRT-B,108,6,9:00,NGRT-A,99,5,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+5957,Aaiden Kurian,Titto,Male,16-05-17,2-e,No,Indian,New Student,NGRT-B,93,4,6:10,NGRT-A,86,3,Better than Expected,Dependent Reader,"Reading is limited by poor vocabulary, syntax and grammar knowledge"
+6427,Zekiah Lucas,Trinio,Male,12-10-17,2-e,No,Filipino,Re-registered,NGRT-B,132,9,14:00,NGRT-A,119,8,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6414,Vini,Vinod,Female,07-11-17,2-e,No,Indian,Re-registered,NGRT-B,107,6,8:00,NGRT-A,96,4,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6553,Izza,Adeel,Female,07-08-17,2-f,No,Pakistani,Re-registered,NGRT-B,121,8,10:08,NGRT-A,126,8,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6380,Hana,Ahmed Ossama Hussein Shoukry Abdelmaksoud,Female,28-12-17,2-f,No,Egyptian,Re-registered,NGRT-B,116,7,9:05,NGRT-A,107,6,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6570,Sidra,Ajami,Female,06-01-18,2-f,No,Syrian,Re-registered,NGRT-B,123,8,10:08,NGRT-A,108,6,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-6799,Daneen,Arshaad,Female,10-08-17,2-f,No,Sri Lankan,Re-registered,NGRT-B,127,9,12:01,NGRT-A,121,8,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6532,Ruqaiya Abbas Ali,Bohra,Female,29-01-18,2-f,No,Indian,Re-registered,NGRT-B,128,9,11:07,NGRT-A,119,8,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6478,Radhika,Chohan,Female,05-03-18,2-f,No,Pakistani,Re-registered,NGRT-B,105,6,7:05,NGRT-A,75,2,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-8101,Zayn,El Khoder,Male,16-08-18,2-f,No,Tunisian,New Student,NGRT-B,100,5,6:03,NGRT-A,81,2,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6542,Mohammad Ibrahim,Farhan,Male,24-11-16,2-f,No,Pakistani,Re-registered,NGRT-B,107,6,9:03,NGRT-A,91,4,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6408,Haya Hafza,Hafis,Female,31-03-17,2-f,No,Indian,Re-registered,NGRT-B,110,6,9:05,NGRT-A,121,8,Lower,Growing Independent Reader,Reading at or above expectations. Balanced profile
-7728,Jinan,Hawazin,Female,12-08-18,2-f,No,Sudanese,Re-registered,NGRT-B,113,7,7:10,NGRT-A,107,6,Higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6444,Taksh Vijay,Karamchandani,Male,26-05-18,2-f,No,Indian,Re-registered,NGRT-B,111,6,7:10,NGRT-A,95,4,Much higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
-6580,Rooha,Khan,Female,06-10-17,2-f,No,Pakistani,Re-registered,NGRT-B,110,6,8:08,NGRT-A,115,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6399,Salaar Ahmad,Khan,Male,15-09-17,2-f,No,Pakistani,Re-registered,NGRT-B,118,7,10:03,NGRT-A,108,6,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6367,Thenuka Diyon,Kothalawalage Don,Male,14-09-17,2-f,No,Sri Lankan,Re-registered,NGRT-B,119,8,10:05,NGRT-A,104,6,Much higher,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+6380,Hana,Ahmed Ossama Hussein Shoukry Abdelmaksoud,Female,28-12-17,2-f,No,Egyptian,Re-registered,NGRT-B,116,7,9:05,NGRT-A,107,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6570,Sidra,Ajami,Female,06-01-18,2-f,No,Syrian,Re-registered,NGRT-B,123,8,10:08,NGRT-A,108,6,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6799,Daneen,Arshaad,Female,10-08-17,2-f,No,Sri Lankan,Re-registered,NGRT-B,127,9,12:01,NGRT-A,121,8,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6532,Ruqaiya Abbas Ali,Bohra,Female,29-01-18,2-f,No,Indian,Re-registered,NGRT-B,128,9,11:07,NGRT-A,119,8,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6478,Radhika,Chohan,Female,05-03-18,2-f,No,Pakistani,Re-registered,NGRT-B,105,6,7:05,NGRT-A,75,2,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+8101,Zayn,El Khoder,Male,16-08-18,2-f,No,Tunisian,New Student,NGRT-B,100,5,6:03,NGRT-A,81,2,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6542,Mohammad Ibrahim,Farhan,Male,24-11-16,2-f,No,Pakistani,Re-registered,NGRT-B,107,6,9:03,NGRT-A,91,4,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6408,Haya Hafza,Hafis,Female,31-03-17,2-f,No,Indian,Re-registered,NGRT-B,110,6,9:05,NGRT-A,121,8,Lower than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+7728,Jinan,Hawazin,Female,12-08-18,2-f,No,Sudanese,Re-registered,NGRT-B,113,7,7:10,NGRT-A,107,6,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6444,Taksh Vijay,Karamchandani,Male,26-05-18,2-f,No,Indian,Re-registered,NGRT-B,111,6,7:10,NGRT-A,95,4,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
+6580,Rooha,Khan,Female,06-10-17,2-f,No,Pakistani,Re-registered,NGRT-B,110,6,8:08,NGRT-A,115,7,Lower than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6399,Salaar Ahmad,Khan,Male,15-09-17,2-f,No,Pakistani,Re-registered,NGRT-B,118,7,10:03,NGRT-A,108,6,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6367,Thenuka Diyon,Kothalawalage Don,Male,14-09-17,2-f,No,Sri Lankan,Re-registered,NGRT-B,119,8,10:05,NGRT-A,104,6,Better than Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 6574,Shreya Aditri,Krishnakanth,Female,06-06-18,2-f,No,Sri Lankan,Re-registered,NGRT-B,109,6,7:07,NGRT-A,109,6,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6376,Ax'l Cody,Maguad,Male,04-01-18,2-f,No,Filipino,Re-registered,NGRT-B,126,8,11:07,NGRT-A,111,6,Much higher,Independent Reader,Reading at or above expectations. Balanced profile
-7893,Hour,Mahmoud Ibrahim Elsheshtawy Ghalab,Female,25-07-17,2-f,No,Egyptian,New Student,NGRT-B,95,4,6:10,NGRT-A,88,3,Expected,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
-7677,Hozaifa,Mohamed Abdelazim Mohamed Shebiro,Male,15-04-17,2-f,No,Egyptian,Re-registered,NGRT-B,97,5,7:07,NGRT-A,86,3,Higher,Dependent Reader,"Reading is limited by poor vocabulary, syntax and grammar knowledge"
+6376,Ax'l Cody,Maguad,Male,04-01-18,2-f,No,Filipino,Re-registered,NGRT-B,126,8,11:07,NGRT-A,111,6,Better than Expected,Independent Reader,Reading at or above expectations. Balanced profile
+7893,Hour,Mahmoud Ibrahim Elsheshtawy Ghalab,Female,25-07-17,2-f,No,Egyptian,New Student,NGRT-B,95,4,6:10,NGRT-A,88,3,Better than Expected,Growing Independent Reader,Reading at expected level but skill limited by weaker vocabulary
+7677,Hozaifa,Mohamed Abdelazim Mohamed Shebiro,Male,15-04-17,2-f,No,Egyptian,Re-registered,NGRT-B,97,5,7:07,NGRT-A,86,3,Better than Expected,Dependent Reader,"Reading is limited by poor vocabulary, syntax and grammar knowledge"
 7643,Karam,Mohamed Almostafa Elkhalifa,Male,19-03-17,2-f,No,Sudanese,Re-registered,NGRT-B,110,6,9:05,NGRT-A,104,6,Expected,Growing Independent Reader,Reading at or above expected range but skill limited by comprehension
 7885,Samar,Osama Gafar Taha,Female,07-04-18,2-f,No,Sudanese,New Student,NGRT-B,113,7,8:06,NGRT-A,112,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6533,Burhanuddin Hozefa,Patanwala,Male,01-02-18,2-f,No,Indian,Re-registered,NGRT-B,122,8,10:03,NGRT-A,110,6,Much higher,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
-6385,Sofia,Peter Nabil Kaliny Wasif,Female,24-09-17,2-f,No,Egyptian,Re-registered,NGRT-B,113,7,9:03,NGRT-A,101,5,Much higher,Growing Independent Reader,Reading at or above expectations. Balanced profile
-6406,Zara,Rizwan,Female,31-08-17,2-f,No,Pakistani,Re-registered,NGRT-B,123,8,11:02,NGRT-A,116,7,Higher,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+6533,Burhanuddin Hozefa,Patanwala,Male,01-02-18,2-f,No,Indian,Re-registered,NGRT-B,122,8,10:03,NGRT-A,110,6,Better than Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
+6385,Sofia,Peter Nabil Kaliny Wasif,Female,24-09-17,2-f,No,Egyptian,Re-registered,NGRT-B,113,7,9:03,NGRT-A,101,5,Better than Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
+6406,Zara,Rizwan,Female,31-08-17,2-f,No,Pakistani,Re-registered,NGRT-B,123,8,11:02,NGRT-A,116,7,Expected,Growing Independent Reader,Reading at or above the expected range but skill limited by vocabulary range
 7592,Rochelle,Roger,Female,07-12-17,2-f,No,Pakistani,Re-registered,NGRT-B,104,6,7:07,NGRT-A,102,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
 6577,Rumaysa,Saif,Female,17-10-17,2-f,No,Indian,Re-registered,NGRT-B,116,7,9:10,NGRT-A,116,7,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
-7117,Shriya Mahesh,Shetty,Female,06-06-18,2-f,No,Indian,Re-registered,NGRT-B,124,8,10:03,NGRT-A,115,7,Higher,Independent Reader,Reading at or above expectations. Balanced profile
-6401,Erin,Tolentino,Female,18-10-17,2-f,No,Filipino,Re-registered,NGRT-B,124,8,11:04,NGRT-A,127,9,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+7117,Shriya Mahesh,Shetty,Female,06-06-18,2-f,No,Indian,Re-registered,NGRT-B,124,8,10:03,NGRT-A,115,7,Expected,Independent Reader,Reading at or above expectations. Balanced profile
+6401,Erin,Tolentino,Female,18-10-17,2-f,No,Filipino,Re-registered,NGRT-B,124,8,11:04,NGRT-A,127,9,Lower than Expected,Independent Reader,Reading at or above expectations. Balanced profile
 6421,Zafreen,Zara,Female,05-09-17,2-f,No,Bangladeshi,Re-registered,NGRT-B,105,6,8:00,NGRT-A,98,5,Expected,Growing Independent Reader,Reading at or above expectations. Balanced profile
