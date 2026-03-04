@@ -202,7 +202,7 @@
 
       const layout = {
         margin: { t: 20, r: 20, b: 60, l: 60 },
-        yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 100], rangemode: "tozero" },
+        yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 110], rangemode: "tozero" },
         xaxis: { title: "" },
         showlegend: true,
         hovermode: "x unified",
@@ -257,7 +257,7 @@
     });
   };
 
-  // Optional: one function to render BOTH pies
+  // one function to render BOTH pies
   window.renderExternalNgrtAttainmentPies = function () {
     // Cohort pies
     window.renderStanine5Pie("pie-st5-extl-ngrta");
