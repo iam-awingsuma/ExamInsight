@@ -193,7 +193,8 @@
           textposition: "outside",
           hoverinfo: "text",
           hovertext: [hoverText[0]],
-          marker: { color: "#FDEB9E" }
+          marker: { color: "#FDEB9E" },
+          width: 0.6,
         },
         {
           type: "bar",
@@ -204,7 +205,8 @@
           textposition: "outside",
           hoverinfo: "text",
           hovertext: [hoverText[1]],
-          marker: { color: "#FCB53B" }
+          marker: { color: "#FCB53B" },
+          width: 0.6,
         }
       ];
 
