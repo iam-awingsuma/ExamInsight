@@ -111,7 +111,12 @@
         }
       };
 
-      Plotly.newPlot(elId, [trace], layout, { responsive: true });
+      Plotly.newPlot(elId, [trace], layout, { responsive: true })
+      .then(() => {
+        const gd = document.getElementById(elId);
+        Plotly.Plots.resize(gd);
+        setTimeout(() => Plotly.Plots.resize(gd), 150);
+      });
     } catch (err) {
       console.error("Stanine pie error:", err);
       setError(elId);
@@ -292,6 +297,12 @@
         return;
       }
 
+      const el = document.getElementById(elId);
+      if (!el) return;
+
+      // clear "Loading..." or any placeholder HTML
+      el.innerHTML = "";
+
       const trace = {
         type: "pie",
         labels,
@@ -320,7 +331,12 @@
         }
       };
 
-      Plotly.newPlot(elId, [trace], layout, {displayModeBar: false, responsive: true });
+      Plotly.newPlot(elId, [trace], layout, {displayModeBar: false, responsive: true })
+      .then(() => {
+        const gd = document.getElementById(elId);
+        Plotly.Plots.resize(gd);
+        setTimeout(() => Plotly.Plots.resize(gd), 150);
+      });
 
     } catch (err) {
       console.error("Progress category pie error:", err);
@@ -414,6 +430,12 @@
       }
 
       function buildBar(elId, title, maleCount, femaleCount) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+
+        // clear "Loading..." or any placeholder HTML
+        el.innerHTML = "";
+
         const totals = [maleTotal, femaleTotal];
         const counts = [maleCount, femaleCount];
         const labels = ["Male", "Female"];
@@ -432,6 +454,7 @@
             name: "Male",
             text: [`${pct[0].toFixed(1)}%`],
             textposition: "outside",
+            cliponxaxis: false,
             hoverinfo: "text",
             hovertext: [hoverText[0]],
             marker: { color: "#FDEB9E" },
@@ -444,6 +467,7 @@
             name: "Female",
             text: [`${pct[1].toFixed(1)}%`],
             textposition: "outside",
+            cliponxaxis: false,
             hoverinfo: "text",
             hovertext: [hoverText[1]],
             marker: { color: "#FCB53B" },
@@ -453,14 +477,16 @@
 
         const layout = {
           autosize: true,
-          margin: { t: 20, r: 20, b: 60, l: 60 },
+          height: 360,
+          margin: { t: 30, r: 10, b: 60, l: 10 },
           yaxis: {
             title: "Percent of Gender Total",
             ticksuffix: "%",
             range: [0, 110],
-            rangemode: "tozero"
+            rangemode: "tozero",
+            automargin: true,
           },
-          xaxis: { title: "" },
+          xaxis: { title: "", automargin: true },
           showlegend: true,
           hovermode: "x unified",
           legend: {
@@ -472,8 +498,12 @@
           },
         };
 
-        Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true });
-        Plotly.Plots.resize(document.getElementById(elId));
+        Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true })
+        .then(() => {
+          const gd = document.getElementById(elId);
+          Plotly.Plots.resize(gd);
+          setTimeout(() => Plotly.Plots.resize(gd), 150);
+        });
       }
 
       // Graph 1: Expected + Better
@@ -517,6 +547,23 @@
       datasetKey
     });
   };
+
+  // ---------------------------------------------------
+  // Resize Plotly charts when Bootstrap tabs/collapse open
+  // ---------------------------------------------------
+  document.addEventListener("shown.bs.tab", function () {
+    ["bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb"].forEach(function(id){
+      const gd = document.getElementById(id);
+      if (gd) Plotly.Plots.resize(gd);
+    });
+  });
+
+  document.addEventListener("shown.bs.collapse", function () {
+    ["bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb"].forEach(function(id){
+      const gd = document.getElementById(id);
+      if (gd) Plotly.Plots.resize(gd);
+    });
+  });
 
   // -----------------------------
   // Public functions (window.*)

@@ -219,7 +219,12 @@
         legend: { orientation: "h" },
       };
 
-      Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true });
+      Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true })
+      .then(() => {
+        const gd = document.getElementById(elId);
+        Plotly.Plots.resize(gd);
+        setTimeout(() => Plotly.Plots.resize(gd), 150);
+      });
     } catch (err) {
       console.error("Gender bar error:", err);
       setError(elId);

@@ -111,7 +111,12 @@
         }
       };
 
-      Plotly.newPlot(elId, [trace], layout, { responsive: true });
+      Plotly.newPlot(elId, [trace], layout, { responsive: true })
+      .then(() => {
+        const gd = document.getElementById(elId);
+        Plotly.Plots.resize(gd);
+        setTimeout(() => Plotly.Plots.resize(gd), 150);
+      });
     } catch (err) {
       console.error("Stanine pie error:", err);
       setError(elId);
