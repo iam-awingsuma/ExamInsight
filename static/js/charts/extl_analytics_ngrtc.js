@@ -111,7 +111,12 @@
         }
       };
 
-      Plotly.newPlot(elId, [trace], layout, { responsive: true });
+      Plotly.newPlot(elId, [trace], layout, { responsive: true })
+      .then(() => {
+        const gd = document.getElementById(elId);
+        Plotly.Plots.resize(gd);
+        setTimeout(() => Plotly.Plots.resize(gd), 150);
+      });
     } catch (err) {
       console.error("Stanine pie error:", err);
       setError(elId);
@@ -294,6 +299,12 @@
         return;
       }
 
+      const el = document.getElementById(elId);
+      if (!el) return;
+
+      // clear "Loading..." or any placeholder HTML
+      el.innerHTML = "";
+
       const trace = {
         type: "pie",
         labels,
@@ -322,13 +333,44 @@
         }
       };
 
-      Plotly.newPlot(elId, [trace], layout, {displayModeBar: false, responsive: true });
+      Plotly.newPlot(elId, [trace], layout, {displayModeBar: false, responsive: true })
+      .then(() => {
+        const gd = document.getElementById(elId);
+        Plotly.Plots.resize(gd);
+        setTimeout(() => Plotly.Plots.resize(gd), 150);
+      });
 
     } catch (err) {
       console.error("Progress category pie error:", err);
       setError(elId);
     }
   }
+
+  // ---------------------------------------------------
+  // Resize Plotly charts when Bootstrap tabs/collapse open
+  // ---------------------------------------------------
+  document.addEventListener("shown.bs.tab", function () {
+    [
+      "pie-st5-extl-ngrtc", "pie-st6-extl-ngrtc",
+      "bar-gender-st5-extl-ngrtc","bar-gender-st6-extl-ngrtc",
+      "pie-prog-exp-plus-extl-ngrtc", "pie-prog-better-extl-ngrtc",
+      "bar-gender-exp-plus-extl-ngrtc", "bar-gender-better-extl-ngrtc"
+    ].forEach(function(id){
+      const gd = document.getElementById(id);
+      if (gd) Plotly.Plots.resize(gd);
+    });
+  });
+
+  document.addEventListener("shown.bs.collapse", function () {
+    [
+      "pie-st5-extl-ngrtc", "pie-st6-extl-ngrtc",
+      "bar-gender-st5-extl-ngrtc","bar-gender-st6-extl-ngrtc",
+      "pie-prog-exp-plus-extl-ngrtc", "pie-prog-better-extl-ngrtc"
+    ].forEach(function(id){
+      const gd = document.getElementById(id);
+      if (gd) Plotly.Plots.resize(gd);
+    });
+  });
 
   // -----------------------------
   // Public functions (window.*)

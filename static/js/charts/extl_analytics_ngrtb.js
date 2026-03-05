@@ -227,7 +227,12 @@
         legend: { orientation: "h" },
       };
 
-      Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true });
+      Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true })
+      .then(() => {
+        const gd = document.getElementById(elId);
+        Plotly.Plots.resize(gd);
+        setTimeout(() => Plotly.Plots.resize(gd), 150);
+      });
     } catch (err) {
       console.error("Gender bar error:", err);
       setError(elId);
@@ -388,13 +393,13 @@
       let femaleExpectedPlus = 0;
 
       for (const row of rows) {
-        // ✅ PROGRESS FILTER (denominator rule)
+        // PROGRESS FILTER (denominator rule)
         const rawCat = String(row?.[categoryKey] ?? "").trim();
         if (!rawCat || rawCat === "-") continue; // ONLY exclude literal "-"
 
         const cat = rawCat.toLowerCase();
 
-        // ✅ GENDER
+        // GENDER
         const gRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
         const isMale = (gRaw === "m" || gRaw === "male");
         const isFemale = (gRaw === "f" || gRaw === "female");
@@ -552,14 +557,24 @@
   // Resize Plotly charts when Bootstrap tabs/collapse open
   // ---------------------------------------------------
   document.addEventListener("shown.bs.tab", function () {
-    ["bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb"].forEach(function(id){
+    [
+      "pie-st5-extl-ngrtb", "pie-st6-extl-ngrtb",
+      "bar-gender-st5-extl-ngrtb","bar-gender-st6-extl-ngrtb",
+      "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
+      "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb"
+    ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
     });
   });
 
   document.addEventListener("shown.bs.collapse", function () {
-    ["bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb"].forEach(function(id){
+    [
+      "pie-st5-extl-ngrtb", "pie-st6-extl-ngrtb",
+      "bar-gender-st5-extl-ngrtb","bar-gender-st6-extl-ngrtb",
+      "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
+      "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb"
+    ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
     });
@@ -615,6 +630,22 @@
   };
 
   window.renderProgressBetterOnlyPie = function (elId = "pie-prog-better-extl-ngrtb") {
+    return renderProgressCategoryPie({
+      elId,
+      datasetKey: "ngrtb",
+      mode: "better_only"
+    });
+  };
+
+  window.renderProgressExpectedPlusPie = function (elId = "bar-gender-exp-plus-extl-ngrtb") {
+    return renderProgressCategoryPie({
+      elId,
+      datasetKey: "ngrtb",
+      mode: "expected_plus"
+    });
+  };
+
+  window.renderProgressBetterOnlyPie = function (elId = "bar-gender-better-extl-ngrtb") {
     return renderProgressCategoryPie({
       elId,
       datasetKey: "ngrtb",

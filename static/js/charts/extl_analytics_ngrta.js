@@ -231,6 +231,29 @@
     }
   }
 
+  // ---------------------------------------------------
+  // Resize Plotly charts when Bootstrap tabs/collapse open
+  // ---------------------------------------------------
+  document.addEventListener("shown.bs.tab", function () {
+    [
+      "pie-st5-extl-ngrta", "pie-st6-extl-ngrta",
+      "bar-gender-st5-extl-ngrta","bar-gender-st6-extl-ngrta"
+    ].forEach(function(id){
+      const gd = document.getElementById(id);
+      if (gd) Plotly.Plots.resize(gd);
+    });
+  });
+
+  document.addEventListener("shown.bs.collapse", function () {
+    [
+      "pie-st5-extl-ngrta", "pie-st6-extl-ngrta",
+      "bar-gender-st5-extl-ngrta","bar-gender-st6-extl-ngrta"
+    ].forEach(function(id){
+      const gd = document.getElementById(id);
+      if (gd) Plotly.Plots.resize(gd);
+    });
+  });
+
   // -----------------------------
   // Public functions (window.*)
   // -----------------------------
