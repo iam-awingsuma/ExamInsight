@@ -38,7 +38,7 @@
   }
 
   function setEmpty(elId, msg = "No data available.") {
-    return setMessage(elId, `<p class="text-muted text-sm text-warning fst-italic p-2 mb-0">${msg}</p>`);
+    return setMessage(elId, `<p class="badge bg-danger">${msg}</p>`);
   }
 
   // -----------------------------
