@@ -350,7 +350,7 @@
   }
 
   // -------------------------------------------------------------
-  // Gender-specific progress bar renderer
+  // Bar renderer for gender-specific progress over time
   // Denominator counts ONLY rows with progress_category !== "-"
   // -------------------------------------------------------------
   async function renderGenderProgressBars({
