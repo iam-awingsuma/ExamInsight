@@ -327,6 +327,18 @@
 
       const percentValues = meets.map((v, i) => (totals[i] ? (v / totals[i]) * 100 : 0));
 
+      const tableBody = document.getElementById("tbl-yrgrp-st5-extl-ngrta");
+      if (tableBody) {
+        tableBody.innerHTML = labels.map((label, i) => `
+          <tr class="text-center">
+            <th scope="row">${label}</th>
+            <td class="table-light">${totals[i]}</td>
+            <td class="table-info">${meets[i]}</td>
+            <td class="table-success">${percentValues[i].toFixed(1)}%</td>
+          </tr>
+        `).join("");
+      }
+
       const hoverText = labels.map((lbl, i) =>
         `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
       );
