@@ -33,12 +33,12 @@
     return setMessage(elId, `<p class="text-muted text-sm fst-italic p-2 mb-0">Loading...</p>`);
   }
 
-  function setError(elId, msg = "Failed to load data.") {
-    return setMessage(elId, `<p class="text-danger text-sm fst-italic p-2 mb-0">${msg}</p>`);
+  function setError(elId, msg = "Failed to load data") {
+    return setMessage(elId, `<p class="badge bg-danger mt-1">${msg}</p>`);
   }
 
-  function setEmpty(elId, msg = "No data available.") {
-    return setMessage(elId, `<p class="badge bg-danger">${msg}</p>`);
+  function setEmpty(elId, msg = "No data available") {
+    return setMessage(elId, `<p class="badge bg-danger mt-1">${msg}</p>`);
   }
 
   // -----------------------------
