@@ -555,7 +555,7 @@
       }
 
     } catch (err) {
-      console.error("Gender progress bars error:", err);
+      console.error("Gender bars error:", err);
       if (c1) setError(elIdExpectedPlus);
       if (c2) setError(elIdBetterOnly);
     }
