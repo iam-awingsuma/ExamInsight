@@ -89,7 +89,7 @@
         hole: 0.3,
         textinfo: "label+percent",
         marker: {
-            colors: ['#FE9191', '#FFDEB9'] // Custom colors for better distinction
+            colors: ['#F75270', '#FFDEB9'] // Custom colors for better distinction
         },
         hovertemplate:
             "<b>%{label}</b><br>" +
@@ -124,7 +124,7 @@
   }
 
   // ---------------------------------------------
-  // Gender stanine bar renderer
+  // Bar renderer for gender-specific attainment
   // ---------------------------------------------
   async function renderGenderStanineThresholdBar({
     elId,
@@ -236,9 +236,9 @@
     }
   }
 
-  // -----------------------------
-  // Progress pie renderer
-  // -----------------------------
+  // ------------------------------------------
+  // Pie graph renderer for progress over time
+  // ------------------------------------------
   async function renderProgressCategoryPie({
     elId,
     datasetKey = "ngrtc",
@@ -311,7 +311,7 @@
         values,
         hole: 0.3,
         textinfo: "label+percent",
-        marker: { colors: ["#FE9191", "#FFDEB9"] },
+        marker: { colors: ["#F75270", "#FFDEB9"] },
         hovertemplate:
           "<b>%{label}</b><br>" +
           "Students: %{value}<br>" +
@@ -366,6 +366,237 @@
       "pie-st5-extl-ngrtc", "pie-st6-extl-ngrtc",
       "bar-gender-st5-extl-ngrtc","bar-gender-st6-extl-ngrtc",
       "pie-prog-exp-plus-extl-ngrtc", "pie-prog-better-extl-ngrtc"
+    ].forEach(function(id){
+      const gd = document.getElementById(id);
+      if (gd) Plotly.Plots.resize(gd);
+    });
+  });
+
+  // -------------------------------------------------------------
+  // Gender-specific progress bar renderer
+  // Denominator counts ONLY rows with progress_category !== "-"
+  // -------------------------------------------------------------
+  async function renderGenderProgressBars({
+    elIdExpectedPlus,
+    elIdBetterOnly,
+    datasetKey = "ngrtc",
+    categoryKey = "progress_category",
+    genderKey = "gender"
+  }) {
+    const c1 = elIdExpectedPlus ? document.getElementById(elIdExpectedPlus) : null;
+    const c2 = elIdBetterOnly ? document.getElementById(elIdBetterOnly) : null;
+    if (!c1 && !c2) return;
+
+    if (c1) setLoading(elIdExpectedPlus);
+    if (c2) setLoading(elIdBetterOnly);
+
+    try {
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        if (c1) setEmpty(elIdExpectedPlus);
+        if (c2) setEmpty(elIdBetterOnly);
+        return;
+      }
+
+      // ------------------------------------------------
+      // Denominators (ONLY valid progress_category != "-")
+      // ------------------------------------------------
+      let maleTotal = 0;
+      let femaleTotal = 0;
+
+      // ------------------------------------------------
+      // Numerators
+      // ------------------------------------------------
+      let maleBetter = 0;
+      let femaleBetter = 0;
+
+      let maleExpectedPlus = 0;
+      let femaleExpectedPlus = 0;
+
+      for (const row of rows) {
+        // PROGRESS FILTER (denominator rule)
+        const rawCat = String(row?.[categoryKey] ?? "").trim();
+        if (!rawCat || rawCat === "-") continue; // ONLY exclude literal "-"
+
+        const cat = rawCat.toLowerCase();
+
+        // GENDER
+        const gRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
+        const isMale = (gRaw === "m" || gRaw === "male");
+        const isFemale = (gRaw === "f" || gRaw === "female");
+        if (!isMale && !isFemale) continue;
+
+        // ----------------------------
+        // Denominator (valid progress only)
+        // ----------------------------
+        if (isMale) maleTotal++;
+        if (isFemale) femaleTotal++;
+
+        // ----------------------------
+        // Better than expected
+        // ----------------------------
+        if (cat === "better than expected") {
+          if (isMale) maleBetter++;
+          if (isFemale) femaleBetter++;
+        }
+
+        // ----------------------------
+        // Expected + Better
+        // ----------------------------
+        if (cat === "expected" || cat === "better than expected") {
+          if (isMale) maleExpectedPlus++;
+          if (isFemale) femaleExpectedPlus++;
+        }
+      }
+
+      if (maleTotal === 0 && femaleTotal === 0) {
+        if (c1) setEmpty(elIdExpectedPlus, "No valid gender rows with progress_category != '-' found.");
+        if (c2) setEmpty(elIdBetterOnly, "No valid gender rows with progress_category != '-' found.");
+        return;
+      }
+
+      function buildBar(elId, title, maleCount, femaleCount) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+
+        // clear "Loading..." or any placeholder HTML
+        el.innerHTML = "";
+
+        const totals = [maleTotal, femaleTotal];
+        const counts = [maleCount, femaleCount];
+        const labels = ["Male", "Female"];
+
+        const pct = counts.map((v, i) => (totals[i] ? (v / totals[i]) * 100 : 0));
+
+        const hoverText = labels.map((lbl, i) =>
+          `${lbl}: ${counts[i]}/${totals[i]} students (${pct[i].toFixed(1)}%)`
+        );
+
+        const traces = [
+          {
+            type: "bar",
+            x: ["Male"],
+            y: [pct[0]],
+            name: "Male",
+            text: [`${pct[0].toFixed(1)}%`],
+            textposition: "outside",
+            cliponxaxis: false,
+            hoverinfo: "text",
+            hovertext: [hoverText[0]],
+            marker: { color: "#FDEB9E" },
+            width: 0.6,
+          },
+          {
+            type: "bar",
+            x: ["Female"],
+            y: [pct[1]],
+            name: "Female",
+            text: [`${pct[1].toFixed(1)}%`],
+            textposition: "outside",
+            cliponxaxis: false,
+            hoverinfo: "text",
+            hovertext: [hoverText[1]],
+            marker: { color: "#FCB53B" },
+            width: 0.6,
+          }
+        ];
+
+        const layout = {
+          autosize: true,
+          height: 360,
+          margin: { t: 30, r: 10, b: 60, l: 10 },
+          yaxis: {
+            title: "Percent of Gender Total",
+            ticksuffix: "%",
+            range: [0, 110],
+            rangemode: "tozero",
+            automargin: true,
+          },
+          xaxis: { title: "", automargin: true },
+          showlegend: true,
+          hovermode: "x unified",
+          legend: {
+            orientation: "h",
+            x: 0.2,
+            xanchor: "center",
+            y: -0.15,
+            yanchor: "top"
+          },
+        };
+
+        Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true })
+        .then(() => {
+          const gd = document.getElementById(elId);
+          Plotly.Plots.resize(gd);
+          setTimeout(() => Plotly.Plots.resize(gd), 150);
+        });
+      }
+
+      // Graph 1: Expected + Better
+      if (c1) {
+        buildBar(
+          elIdExpectedPlus,
+          "Expected + Better Than Expected (by Gender)",
+          maleExpectedPlus,
+          femaleExpectedPlus
+        );
+      }
+
+      // Graph 2: Better Only
+      if (c2) {
+        buildBar(
+          elIdBetterOnly,
+          "Better Than Expected Only (by Gender)",
+          maleBetter,
+          femaleBetter
+        );
+      }
+
+    } catch (err) {
+      console.error("Gender progress bars error:", err);
+      if (c1) setError(elIdExpectedPlus);
+      if (c2) setError(elIdBetterOnly);
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Public functions (window)
+  // -------------------------------------------------------------
+  window.renderGenderProgressBars = function ({
+    elIdExpectedPlus = "bar-gender-exp-plus-extl-ngrtc",
+    elIdBetterOnly   = "bar-gender-better-extl-ngrtc",
+    datasetKey = "ngrtc"
+  } = {}) {
+    return renderGenderProgressBars({
+      elIdExpectedPlus,
+      elIdBetterOnly,
+      datasetKey
+    });
+  };
+
+  // ---------------------------------------------------
+  // Resize Plotly charts when Bootstrap tabs/collapse open
+  // ---------------------------------------------------
+  document.addEventListener("shown.bs.tab", function () {
+    [
+      "pie-st5-extl-ngrtc", "pie-st6-extl-ngrtc",
+      "bar-gender-st5-extl-ngrtc","bar-gender-st6-extl-ngrtc",
+      "pie-prog-exp-plus-extl-ngrtc", "pie-prog-better-extl-ngrtc",
+      "bar-gender-exp-plus-extl-ngrtc", "bar-gender-better-extl-ngrtc"
+    ].forEach(function(id){
+      const gd = document.getElementById(id);
+      if (gd) Plotly.Plots.resize(gd);
+    });
+  });
+
+  document.addEventListener("shown.bs.collapse", function () {
+    [
+      "pie-st5-extl-ngrtc", "pie-st6-extl-ngrtc",
+      "bar-gender-st5-extl-ngrtc","bar-gender-st6-extl-ngrtc",
+      "pie-prog-exp-plus-extl-ngrtc", "pie-prog-better-extl-ngrtc",
+      "bar-gender-exp-plus-extl-ngrtc", "bar-gender-better-extl-ngrtc"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -429,19 +660,44 @@
     });
   };
 
+  window.renderProgressExpectedPlusPie = function (elId = "bar-gender-exp-plus-extl-ngrtc") {
+    return renderProgressCategoryPie({
+      elId,
+      datasetKey: "ngrtc",
+      mode: "expected_plus"
+    });
+  };
+
+  window.renderProgressBetterOnlyPie = function (elId = "bar-gender-better-extl-ngrtc") {
+    return renderProgressCategoryPie({
+      elId,
+      datasetKey: "ngrtc",
+      mode: "better_only"
+    });
+  };
+
   // one function to render BOTH pies
   window.renderExternalNgrtAttainmentPies = function () {
     // Cohort pies
     window.renderStanine5Pie("pie-st5-extl-ngrtc");
     window.renderStanine6Pie("pie-st6-extl-ngrtc");
 
-    // Gender-specific bars
+    // Attainment bars - gender-specific
     window.renderGenderStanine5Bar("bar-gender-st5-extl-ngrtc");
     window.renderGenderStanine6Bar("bar-gender-st6-extl-ngrtc");
 
     // Progress pies - cohort
     window.renderProgressExpectedPlusPie("pie-prog-exp-plus-extl-ngrtc");
     window.renderProgressBetterOnlyPie("pie-prog-better-extl-ngrtc");
+
+    // --------------------------------
+    // Progress bars - gender-specific
+    // --------------------------------
+    window.renderGenderProgressBars({
+      elIdExpectedPlus: "bar-gender-exp-plus-extl-ngrtc",
+      elIdBetterOnly: "bar-gender-better-extl-ngrtc",
+      datasetKey: "ngrtc"
+    });
   };
 
   // ---------------------------------------------
@@ -474,6 +730,8 @@
       "bar-gender-st6-extl-ngrtc",
       "pie-prog-exp-plus-extl-ngrtc",
       "pie-prog-better-extl-ngrtc",
+       "bar-gender-exp-plus-extl-ngrtc",
+      "bar-gender-better-extl-ngrtc",
     ];
 
     for (const id of ids) {
