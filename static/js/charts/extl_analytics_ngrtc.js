@@ -89,7 +89,7 @@
         hole: 0.3,
         textinfo: "label+percent",
         marker: {
-            colors: ['#F75270', '#FFDEB9'] // Custom colors for better distinction
+            colors: ['#FFAAAA', '#FFDEB9'] // Custom colors for better distinction
         },
         hovertemplate:
             "<b>%{label}</b><br>" +
@@ -311,7 +311,7 @@
         values,
         hole: 0.3,
         textinfo: "label+percent",
-        marker: { colors: ["#F75270", "#FFDEB9"] },
+        marker: { colors: ["#FFAAAA", "#FFDEB9"] },
         hovertemplate:
           "<b>%{label}</b><br>" +
           "Students: %{value}<br>" +
