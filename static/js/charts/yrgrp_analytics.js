@@ -13,9 +13,9 @@ window.yrgrp_analytics = function (elId = "chart_yrgrp_analytics") {
 
       // Define a color for each class / trace name
       const colorMap = {
-        "2-A": "#9656a2", "2-B": "#369acc", "2-C": "#95cf92",
-        "2-D": "#f8e16f", "2-E": "#F8961e", "2-F": "#DC3C22",
-        "Cohort": "#065084" // default fallback
+        "2-A": "#F3A1B4", "2-B": "#C8DBAC", "2-C": "#FBE8AF",
+        "2-D": "#B8EAEF", "2-E": "#D2CBF6", "2-F": "#E6978B",
+        "Cohort": "#5DA3D4" // default fallback
       };
 
       // Create traces for Plotly (bars per class + cohort)
@@ -118,9 +118,9 @@ window.yrgrp_analytics60 = function (elId = "chart_yrgrp_analytics60") {
 
       // Define a color for each class / trace name
       const colorMap = {
-        "2-A": "#9656a2", "2-B": "#369acc", "2-C": "#95cf92",
-        "2-D": "#f8e16f", "2-E": "#F8961e", "2-F": "#DC3C22",
-        "Cohort": "#065084" // default fallback
+        "2-A": "#F3A1B4", "2-B": "#C8DBAC", "2-C": "#FBE8AF",
+        "2-D": "#B8EAEF", "2-E": "#D2CBF6", "2-F": "#E6978B",
+        "Cohort": "#5DA3D4" // default fallback
       };
 
       // Build traces from by_class (%≥60 per subject)
@@ -203,9 +203,9 @@ window.yrgrp_analytics70 = function (elId = "chart_yrgrp_analytics70") {
 
       // Define a color for each class / trace name
       const colorMap = {
-        "2-A": "#9656a2", "2-B": "#369acc", "2-C": "#95cf92",
-        "2-D": "#f8e16f", "2-E": "#F8961e", "2-F": "#DC3C22",
-        "Cohort": "#065084" // default fallback
+        "2-A": "#F3A1B4", "2-B": "#C8DBAC", "2-C": "#FBE8AF",
+        "2-D": "#B8EAEF", "2-E": "#D2CBF6", "2-F": "#E6978B",
+        "Cohort": "#5DA3D4" // default fallback
       };
 
       // Build traces from by_class (%≥60 per subject)
@@ -311,9 +311,9 @@ window.yrgrp_progressChart = function (
 
       // Colors (same idea as your chart)
       const colorMap = {
-        "2-A": "#9656a2", "2-B": "#369acc", "2-C": "#95cf92",
-        "2-D": "#f8e16f", "2-E": "#F8961e", "2-F": "#DC3C22",
-        "Cohort": "#065084" // default fallback
+        "2-A": "#F3A1B4", "2-B": "#C8DBAC", "2-C": "#FBE8AF",
+        "2-D": "#B8EAEF", "2-E": "#D2CBF6", "2-F": "#E6978B",
+        "Cohort": "#5DA3D4" // default fallback
       };
 
       // Build traces (one trace per class, grouped across subjects)
