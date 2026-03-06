@@ -42,8 +42,10 @@
   }
 
   // -----------------------------
-  // Generic stanine pie renderer
+  // Cohort Insights Graphs
   // -----------------------------
+
+  // Cohort stanine pie renderer
   async function renderStanineThresholdPie({
     elId,
     datasetKey = "ngrta",
@@ -81,6 +83,12 @@
         setEmpty(elId, "No valid stanine values found.");
         return;
       }
+
+      const el = document.getElementById(elId);
+      if (!el) return;
+
+      // clear "Loading..." or any placeholder HTML
+      el.innerHTML = "";
 
       const trace = {
         type: "pie",
@@ -123,9 +131,7 @@
     }
   }
 
-  // ---------------------------------------------
   // Generic gender stanine bar renderer
-  // ---------------------------------------------
   async function renderGenderStanineThresholdBar({
     elId,
     datasetKey = "ngrta",
@@ -188,6 +194,12 @@
         `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
       );
 
+      const el = document.getElementById(elId);
+      if (!el) return;
+
+      // clear "Loading..." or any placeholder HTML
+      el.innerHTML = "";
+
       const traces = [
         {
           type: "bar",
@@ -231,13 +243,142 @@
     }
   }
 
+  // -----------------------------
+  // Year Group Insights Graphs
+  // -----------------------------
+
+  // Bar graph renderer External NGRTA - Year Group Insights
+  async function renderYearGroupStanineThresholdBar({
+    elId,
+    datasetKey = "ngrta",
+    stanineKey = "stanine",
+    yrgrpKey = "yrgrp",
+    threshold = 5
+  }) {
+    const container = document.getElementById(elId);
+    if (!container) return;
+
+    setLoading(elId);
+
+    try {
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        setEmpty(elId);
+        return;
+      }
+
+      // Denominators (all students by year group)
+      let yr2ATotal = 0, yr2BTotal = 0, yr2CTotal = 0, yr2DTotal = 0, yr2ETotal = 0, yr2FTotal = 0;
+      let cohortTotal = 0;
+
+      // Numerators (students >= threshold by year group)
+      let yr2AMeet = 0, yr2BMeet = 0, yr2CMeet = 0, yr2DMeet = 0, yr2EMeet = 0, yr2FMeet = 0;
+      let cohortMeet = 0;
+
+      for (const row of rows) {
+        const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toLowerCase();
+        const is2A = (yrgrpRaw === "2-a"), is2B = (yrgrpRaw === "2-b"), is2C = (yrgrpRaw === "2-c"),
+              is2D = (yrgrpRaw === "2-d"), is2E = (yrgrpRaw === "2-e"), is2F = (yrgrpRaw === "2-f");
+        
+        if (!is2A && !is2B && !is2C && !is2D && !is2E && !is2F) continue;
+
+        // total counts for each year group
+        if (is2A) yr2ATotal++;
+        if (is2B) yr2BTotal++;
+        if (is2C) yr2CTotal++;
+        if (is2D) yr2DTotal++;
+        if (is2E) yr2ETotal++;
+        if (is2F) yr2FTotal++;
+
+        // total count for cohort (all year groups)
+        cohortTotal++;
+
+        const s = Number(row?.[stanineKey]);
+        if (!Number.isFinite(s)) continue;
+
+        if (s >= threshold) {
+          if (is2A) yr2AMeet++;
+          if (is2B) yr2BMeet++;
+          if (is2C) yr2CMeet++;
+          if (is2D) yr2DMeet++;
+          if (is2E) yr2EMeet++;
+          if (is2F) yr2FMeet++;
+
+          // cohort count for students meeting threshold
+          cohortMeet++;
+        }
+      }
+
+      if (yr2ATotal === 0 && yr2BTotal === 0 && yr2CTotal === 0 && yr2DTotal === 0 && yr2ETotal === 0 && yr2FTotal === 0) {
+        setEmpty(elId, "No valid year group values found");
+        return;
+      }
+
+      const labels = ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F", "Cohort"];
+      const colorMap = {
+        "2-A": "#F3A1B4", "2-B": "#C8DBAC", "2-C": "#FBE8AF",
+        "2-D": "#B8EAEF", "2-E": "#D2CBF6", "2-F": "#E6978B",
+        "Cohort": "#5DA3D4" // default fallback
+      };
+      const totals = [yr2ATotal, yr2BTotal, yr2CTotal, yr2DTotal, yr2ETotal, yr2FTotal, cohortTotal];
+      const meets = [yr2AMeet, yr2BMeet, yr2CMeet, yr2DMeet, yr2EMeet, yr2FMeet, cohortMeet];
+
+      const percentValues = meets.map((v, i) => (totals[i] ? (v / totals[i]) * 100 : 0));
+
+      const hoverText = labels.map((lbl, i) =>
+        `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
+      );
+
+      const el = document.getElementById(elId);
+      if (!el) return;
+
+      // clear "Loading..." or any placeholder HTML
+      el.innerHTML = "";
+
+      const traces = labels.map((label, i) => ({
+        type: "bar",
+        x: [label],
+        y: [percentValues[i]],
+        name: label,
+        text: [`${percentValues[i].toFixed(1)}%`],
+        textposition: "outside",
+        hoverinfo: "text",
+        hovertext: [hoverText[i]],
+        marker: { color: colorMap[label] },
+      }));
+
+      const layout = {
+        autosize:true, barmode:"group",
+        yaxis: { title: "Percent of Students", ticksuffix: "%", range: [0, 110], rangemode: "tozero" },
+        margin: { t: 30, r: 20, b: 60, l: 60 },
+        showlegend: true,
+        legend: { orientation: "h", y: -0.2},
+        hoverlabel:{ bgcolor:"#fff", bordercolor:"#ccc", align:"left" },
+        hovermode: "x unified",
+      };
+
+      Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true })
+      .then(() => {
+        const gd = document.getElementById(elId);
+        Plotly.Plots.resize(gd);
+        setTimeout(() => Plotly.Plots.resize(gd), 150);
+      });
+    } catch (err) {
+      console.error("Year Group bar error:", err);
+      setError(elId);
+    }
+  }
+
   // ---------------------------------------------------
   // Resize Plotly charts when Bootstrap tabs/collapse open
   // ---------------------------------------------------
   document.addEventListener("shown.bs.tab", function () {
     [
       "pie-st5-extl-ngrta", "pie-st6-extl-ngrta",
-      "bar-gender-st5-extl-ngrta","bar-gender-st6-extl-ngrta"
+      "bar-gender-st5-extl-ngrta","bar-gender-st6-extl-ngrta",
+      "bar-yrgrp-st5-extl-ngrta"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -247,7 +388,8 @@
   document.addEventListener("shown.bs.collapse", function () {
     [
       "pie-st5-extl-ngrta", "pie-st6-extl-ngrta",
-      "bar-gender-st5-extl-ngrta","bar-gender-st6-extl-ngrta"
+      "bar-gender-st5-extl-ngrta","bar-gender-st6-extl-ngrta",
+      "bar-yrgrp-st5-extl-ngrta"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -295,6 +437,16 @@
     });
   };
 
+  window.renderYearGroupStanine5Bar = function (elId = "bar-yrgrp-st5-extl-ngrta") {
+    return renderYearGroupStanineThresholdBar({
+      elId,
+      datasetKey: "ngrta",
+      stanineKey: "stanine",
+      yrgrpKey: "yrgrp",
+      threshold: 5
+    });
+  }
+
   // one function to render BOTH pies
   window.renderExternalNgrtAttainmentPies = function () {
     // Cohort pies
@@ -304,6 +456,9 @@
     // Gender-specific bars
     window.renderGenderStanine5Bar("bar-gender-st5-extl-ngrta");
     window.renderGenderStanine6Bar("bar-gender-st6-extl-ngrta");
+
+    // Year group bars
+    window.renderYearGroupStanine5Bar("bar-yrgrp-st5-extl-ngrta");
   };
 
   // ---------------------------------------------
@@ -333,7 +488,8 @@
       "pie-st5-extl-ngrta",
       "pie-st6-extl-ngrta",
       "bar-gender-st5-extl-ngrta",
-      "bar-gender-st6-extl-ngrta"
+      "bar-gender-st6-extl-ngrta",
+      "bar-yrgrp-st5-extl-ngrta"
     ];
 
     for (const id of ids) {
