@@ -1,11 +1,11 @@
-<div class="accordion" id="yrgrp-att_extl">
+<div class="accordion" id="yrgrp-att-prog_extl">
     {% include "partials/btns_extl_yrgrp_att.html" %}
-    <div id="btn_extl_yrgrp_atabove" class="accordion-collapse collapse show mb-2" data-bs-parent="#yrgrp-att_extl">
+    <div id="btn_extl_yrgrp_atabove" class="accordion-collapse collapse show mb-2" data-bs-parent="#yrgrp-att-prog_extl">
         <!-- Year Group Insights - at/above curriculum standards -->
         <div class="col-12 px-0 h-100 d-flex flex-column mb-3">
             <div class="card h-100 chart-card">
                 <div class="card-body d-flex flex-column">
-                    <div class="container ps-0 pe-3">
+                    <div class="container ps-0 pe-0">
                         <div class="row">
                             <div class="col-md-8 chart-title d-flex align-items-start gap-2 mb-2">
                                 <i class="fa-solid fa-chart-column fa-lg text-primary"></i>
@@ -128,12 +128,12 @@
         </div>
     </div>
 
-    <div id="btn_extl_yrgrp_above" class="accordion-collapse collapse mb-2" data-bs-parent="#yrgrp-att_extl">
+    <div id="btn_extl_yrgrp_above" class="accordion-collapse collapse mb-2" data-bs-parent="#yrgrp-att-prog_extl">
         <!-- Year Group Insights - at least level above curriculum standards -->
         <div class="col-12 px-0 h-100 d-flex flex-column mb-3">
             <div class="card h-100 chart-card">
                 <div class="card-body d-flex flex-column">
-                    <div class="container ps-0 pe-3">
+                    <div class="container ps-0 pe-0">
                         <div class="row">
                             <div class="col-md-8 chart-title d-flex align-items-start gap-2 mb-2">
                                 <i class="fa-solid fa-chart-column fa-lg text-primary"></i>
@@ -249,6 +249,39 @@
                                 <!-- tbody populated with rows of data from extl_analytics_ngrtc.js -->
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="accordion" id="yrgrp-prog_extl">
+    {% include "partials/btns_yrgrp_prog.html" %}
+    <div id="btn_yrgrp_prog_ebp" class="accordion-collapse collapse show mb-2" data-bs-parent="#yrgrp-prog_extl">
+        <!-- Extl: Year Group Insights - Expected/Better Progress -->
+        <div class="col-12 px-0 h-100 d-flex flex-column mb-3">
+            <div class="card h-100 chart-card">
+                <div class="card-body d-flex flex-column">
+                    <div class="container ps-0 pe-0">
+                        <div class="row">
+                            <p>Expected/Better Progress</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extl: Year Group Insights - Better Progress -->
+    <div id="btn_yrgrp_prog_bp" class="accordion-collapse collapse mb-2" data-bs-parent="#yrgrp-prog_extl">
+        <div class="col-12 px-0 h-100 d-flex flex-column mb-3">
+            <div class="card h-100 chart-card">
+                <div class="card-body d-flex flex-column">
+                    <div class="container ps-0 pe-0">
+                        <div class="row">
+                            <p>Better Progress</p>
                         </div>
                     </div>
                 </div>
