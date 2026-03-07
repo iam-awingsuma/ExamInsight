@@ -737,9 +737,9 @@
     });
   });
 
-  // -----------------------------
-  // Public functions (window.*)
-  // -----------------------------
+  // -------------------------------
+  // Public functions (window scope)
+  // -------------------------------
   window.renderStanine5Pie = function (elId = "pie-st5-extl-ngrtb") {
     return renderStanineThresholdPie({
       elId,
@@ -813,22 +813,6 @@
     });
   };
 
-  // window.renderProgressExpectedPlusPie = function (elId = "bar-gender-exp-plus-extl-ngrtb") {
-  //   return renderProgressCategoryPie({
-  //     elId,
-  //     datasetKey: "ngrtb",
-  //     mode: "expected_plus"
-  //   });
-  // };
-
-  // window.renderProgressBetterOnlyPie = function (elId = "bar-gender-better-extl-ngrtb") {
-  //   return renderProgressCategoryPie({
-  //     elId,
-  //     datasetKey: "ngrtb",
-  //     mode: "better_only"
-  //   });
-  // };
-
   // one function to render graphs
   window.renderExternalNGRTPies = function () {
     // Attainment pies - Cohort
@@ -888,6 +872,8 @@
       "pie-prog-better-extl-ngrtb",
       "bar-gender-exp-plus-extl-ngrtb",
       "bar-gender-better-extl-ngrtb",
+      "bar-yrgrp-st5-extl-ngrtb",
+      "bar-yrgrp-st6-extl-ngrtb"
     ];
 
     for (const id of ids) {
