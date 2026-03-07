@@ -345,11 +345,11 @@
   //       `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
   //     );
 
-  //     const el = document.getElementById(elId);
-  //     if (!el) return;
+      // const el = document.getElementById(elId);
+      // if (!el) return;
 
-  //     // clear "Loading..." or any placeholder HTML
-  //     el.innerHTML = "";
+      // // clear "Loading..." or any placeholder HTML
+      // el.innerHTML = "";
 
   //     const traces = labels.map((label, i) => ({
   //       type: "bar",
@@ -458,6 +458,12 @@
 
       function renderGraph(elId, meets, threshold){
 
+        const el = document.getElementById(elId);
+        if (!el) return;
+
+        // remove "Loading..." placeholder
+        el.innerHTML = "";
+
         const percentValues = labels.map(l =>
           totals[l] ? (meets[l]/totals[l])*100 : 0
         );
@@ -479,7 +485,7 @@
         }));
 
         const layout = {
-          title:`Students ≥ Stanine ${threshold}`,
+          title:"",
           autosize:true,
           barmode:"group",
           yaxis:{
@@ -493,7 +499,12 @@
           hovermode:"x unified"
         };
 
-        Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true});
+        Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true})
+        .then(() => {
+          const gd = document.getElementById(elId);
+          Plotly.Plots.resize(gd);
+          setTimeout(() => Plotly.Plots.resize(gd), 150);
+        });
       }
 
       function renderTable(tblId, meets){
