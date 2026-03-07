@@ -568,20 +568,168 @@
     }
   }
 
-  // -------------------------------------------------------------
-  // Public functions (window)
-  // -------------------------------------------------------------
-  window.renderGenderProgressBars = function ({
-    elIdExpectedPlus = "bar-gender-exp-plus-extl-ngrtc",
-    elIdBetterOnly   = "bar-gender-better-extl-ngrtc",
-    datasetKey = "ngrtc"
-  } = {}) {
-    return renderGenderProgressBars({
-      elIdExpectedPlus,
-      elIdBetterOnly,
-      datasetKey
-    });
-  };
+   // -----------------------------
+  // Year Group Insights Graphs
+  // -----------------------------
+
+  // Bar graph renderer External NGRTA - Year Group Insights
+  // at/above curriculum standards (St5 & above) and
+  // at least level above curriculum standards (St6 & above)
+  async function renderYearGroupStanineThresholdBars({
+  elId5,
+  elId6,
+  datasetKey = "ngrtc",
+  stanineKey = "stanine",
+  yrgrpKey = "yrgrp"
+  }) {
+
+    // const thresholds = { 5: {}, 6: {} };
+
+    const container5 = document.getElementById(elId5);
+    const container6 = document.getElementById(elId6);
+    if (!container5 || !container6) return;
+
+    setLoading(elId5);
+    setLoading(elId6);
+
+    try {
+
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        setEmpty(elId5);
+        setEmpty(elId6);
+        return;
+      }
+
+      const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
+
+      const totals = {
+        "2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0
+      };
+
+      const meets5 = {...totals};
+      const meets6 = {...totals};
+
+      for (const row of rows) {
+
+        const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
+        if (!yrGroups.includes(yrgrpRaw)) continue;
+
+        totals[yrgrpRaw]++;
+        totals["Cohort"]++;
+
+        const s = Number(row?.[stanineKey]);
+        if (!Number.isFinite(s)) continue;
+
+        if (s >= 5) {
+          meets5[yrgrpRaw]++;
+          meets5["Cohort"]++;
+        }
+
+        if (s >= 6) {
+          meets6[yrgrpRaw]++;
+          meets6["Cohort"]++;
+        }
+      }
+
+      const labels = [...yrGroups,"Cohort"];
+
+      const colorMap = {
+        "2-A":"#F3A1B4", "2-B":"#C8DBAC", "2-C":"#FBE8AF",
+        "2-D":"#B8EAEF", "2-E":"#D2CBF6", "2-F":"#E6978B",
+        "Cohort":"#5DA3D4"
+      };
+
+      function renderGraph(elId, meets, threshold){
+
+        const el = document.getElementById(elId);
+        if (!el) return;
+
+        // remove "Loading..." placeholder
+        el.innerHTML = "";
+
+        const percentValues = labels.map(l =>
+          totals[l] ? (meets[l]/totals[l])*100 : 0
+        );
+
+        const hoverText = labels.map(l =>
+          `${l}: ${meets[l]}/${totals[l]} students (${percentValues[labels.indexOf(l)].toFixed(1)}%)`
+        );
+
+        const traces = labels.map((label,i)=>({
+          type:"bar",
+          x:[label],
+          y:[percentValues[i]],
+          name:label,
+          text:[`${percentValues[i].toFixed(1)}%`],
+          textposition:"outside",
+          hoverinfo:"text",
+          hovertext:[hoverText[i]],
+          marker:{color:colorMap[label]}
+        }));
+
+        const layout = {
+          title:"",
+          autosize:true,
+          barmode:"group",
+          yaxis:{
+            title:"Percent of Students",
+            ticksuffix:"%",
+            range:[0,110]
+          },
+          margin:{t:40,r:20,b:60,l:60},
+          showlegend:true,
+          legend:{orientation:"h",y:-0.2},
+          hovermode:"x unified"
+        };
+
+        Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true})
+        .then(() => {
+          const gd = document.getElementById(elId);
+          // resize immediately
+          Plotly.Plots.resize(gd);
+          // resize after 150ms to handle any Bootstrap animation/layout changes
+          setTimeout(() => Plotly.Plots.resize(gd), 150);
+        });
+      }
+
+      function renderTable(tblId, meets){
+
+        const percentValues = labels.map(l =>
+          totals[l] ? (meets[l]/totals[l])*100 : 0
+        );
+
+        const tableBody = document.getElementById(tblId);
+        if (!tableBody) return;
+
+        tableBody.innerHTML = labels.map((label,i)=>`
+          <tr class="text-center">
+            <th scope="row">${label}</th>
+            <td class="table-light">${totals[label]}</td>
+            <td class="table-info">${meets[label]}</td>
+            <td class="table-success">${percentValues[i].toFixed(1)}%</td>
+          </tr>
+        `).join("");
+      }
+
+      // ---------- Render STANINE 5 ----------
+      renderGraph(elId5,meets5,5);
+      renderTable("tbl-yrgrp-st5-extl-ngrtc",meets5);
+
+      // ---------- Render STANINE 6 ----------
+      renderGraph(elId6,meets6,6);
+      renderTable("tbl-yrgrp-st6-extl-ngrtc",meets6);
+
+    }
+
+    catch(err){
+      console.error("Stanine combined error:",err);
+      setError(elId5);
+      setError(elId6);
+    }
+  }
 
   // ---------------------------------------------------
   // Resize Plotly charts when Bootstrap tabs/collapse open
@@ -591,7 +739,8 @@
       "pie-st5-extl-ngrtc", "pie-st6-extl-ngrtc",
       "bar-gender-st5-extl-ngrtc","bar-gender-st6-extl-ngrtc",
       "pie-prog-exp-plus-extl-ngrtc", "pie-prog-better-extl-ngrtc",
-      "bar-gender-exp-plus-extl-ngrtc", "bar-gender-better-extl-ngrtc"
+      "bar-gender-exp-plus-extl-ngrtc", "bar-gender-better-extl-ngrtc",
+      "bar-yrgrp-st5-extl-ngrtc", "bar-yrgrp-st6-extl-ngrtc"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -603,16 +752,17 @@
       "pie-st5-extl-ngrtc", "pie-st6-extl-ngrtc",
       "bar-gender-st5-extl-ngrtc","bar-gender-st6-extl-ngrtc",
       "pie-prog-exp-plus-extl-ngrtc", "pie-prog-better-extl-ngrtc",
-      "bar-gender-exp-plus-extl-ngrtc", "bar-gender-better-extl-ngrtc"
+      "bar-gender-exp-plus-extl-ngrtc", "bar-gender-better-extl-ngrtc",
+      "bar-yrgrp-st5-extl-ngrtc", "bar-yrgrp-st6-extl-ngrtc"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
     });
   });
 
-  // -----------------------------
-  // Public functions (window.*)
-  // -----------------------------
+  // -------------------------------
+  // Public functions (window scope)
+  // -------------------------------
   window.renderStanine5Pie = function (elId = "pie-st5-extl-ngrtc") {
     return renderStanineThresholdPie({
       elId,
@@ -667,19 +817,22 @@
     });
   };
 
-  window.renderProgressExpectedPlusPie = function (elId = "bar-gender-exp-plus-extl-ngrtc") {
-    return renderProgressCategoryPie({
-      elId,
-      datasetKey: "ngrtc",
-      mode: "expected_plus"
+  window.renderGenderProgressBars = function ({
+    elIdExpectedPlus = "bar-gender-exp-plus-extl-ngrtc",
+    elIdBetterOnly   = "bar-gender-better-extl-ngrtc",
+    datasetKey = "ngrtc"
+  } = {}) {
+    return renderGenderProgressBars({
+      elIdExpectedPlus,
+      elIdBetterOnly,
+      datasetKey
     });
   };
 
-  window.renderProgressBetterOnlyPie = function (elId = "bar-gender-better-extl-ngrtc") {
-    return renderProgressCategoryPie({
-      elId,
-      datasetKey: "ngrtc",
-      mode: "better_only"
+  window.renderYearGroupStanineBars = function () {
+    return renderYearGroupStanineThresholdBars({
+      elId5: "bar-yrgrp-st5-extl-ngrtc",
+      elId6: "bar-yrgrp-st6-extl-ngrtc"
     });
   };
 
@@ -705,6 +858,9 @@
       elIdBetterOnly: "bar-gender-better-extl-ngrtc",
       datasetKey: "ngrtc"
     });
+
+    // Year group bars
+    window.renderYearGroupStanineBars();
   };
 
   // ---------------------------------------------
@@ -737,8 +893,10 @@
       "bar-gender-st6-extl-ngrtc",
       "pie-prog-exp-plus-extl-ngrtc",
       "pie-prog-better-extl-ngrtc",
-       "bar-gender-exp-plus-extl-ngrtc",
+      "bar-gender-exp-plus-extl-ngrtc",
       "bar-gender-better-extl-ngrtc",
+      "bar-yrgrp-st5-extl-ngrtc",
+      "bar-yrgrp-st6-extl-ngrtc"
     ];
 
     for (const id of ids) {
