@@ -555,7 +555,7 @@
   async function renderYearGroupStanineThresholdBars({
   elId5,
   elId6,
-  datasetKey = "ngrta",
+  datasetKey = "ngrtb",
   stanineKey = "stanine",
   yrgrpKey = "yrgrp"
   }) {
@@ -693,11 +693,11 @@
 
       // ---------- Render STANINE 5 ----------
       renderGraph(elId5,meets5,5);
-      renderTable("tbl-yrgrp-st5-extl-ngrta",meets5);
+      renderTable("tbl-yrgrp-st5-extl-ngrtb",meets5);
 
       // ---------- Render STANINE 6 ----------
       renderGraph(elId6,meets6,6);
-      renderTable("tbl-yrgrp-st6-extl-ngrta",meets6);
+      renderTable("tbl-yrgrp-st6-extl-ngrtb",meets6);
 
     }
 
@@ -716,7 +716,8 @@
       "pie-st5-extl-ngrtb", "pie-st6-extl-ngrtb",
       "bar-gender-st5-extl-ngrtb","bar-gender-st6-extl-ngrtb",
       "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
-      "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb"
+      "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb",
+      "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -728,7 +729,8 @@
       "pie-st5-extl-ngrtb", "pie-st6-extl-ngrtb",
       "bar-gender-st5-extl-ngrtb","bar-gender-st6-extl-ngrtb",
       "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
-      "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb"
+      "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb",
+      "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -804,6 +806,13 @@
     });
   };
 
+  window.renderYearGroupStanineBars = function () {
+    return renderYearGroupStanineThresholdBars({
+      elId5: "bar-yrgrp-st5-extl-ngrtb",
+      elId6: "bar-yrgrp-st6-extl-ngrtb"
+    });
+  };
+
   // window.renderProgressExpectedPlusPie = function (elId = "bar-gender-exp-plus-extl-ngrtb") {
   //   return renderProgressCategoryPie({
   //     elId,
@@ -835,13 +844,16 @@
     window.renderProgressBetterOnlyPie("pie-prog-better-extl-ngrtb");
 
     // -----------------------------
-    // Progress bars - gender
+    // Progress bars - gender-specific
     // -----------------------------
     window.renderGenderProgressBars({
       elIdExpectedPlus: "bar-gender-exp-plus-extl-ngrtb",
       elIdBetterOnly: "bar-gender-better-extl-ngrtb",
       datasetKey: "ngrtb"
     });
+
+    // Year group bars
+    window.renderYearGroupStanineBars();
   };
 
   // ---------------------------------------------
