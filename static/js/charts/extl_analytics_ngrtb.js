@@ -549,7 +549,7 @@
   // Year Group Insights Graphs
   // -----------------------------
 
-  // Bar graph renderer External NGRTA - Year Group Insights
+  // Bar graph renderer External NGRTB - Year Group Insights
   // at/above curriculum standards (St5 & above) and
   // at least level above curriculum standards (St6 & above)
   async function renderYearGroupStanineThresholdBars({
@@ -708,6 +708,324 @@
     }
   }
 
+  // Bar graph renderer External NGRTB - Year Group Insights
+  // Gender-specific | Stanine 5 & above only
+  async function renderYearGroupStanine5GenderBars({
+    elIdMale,
+    elIdFemale,
+    datasetKey = "ngrtb",
+    stanineKey = "stanine",
+    yrgrpKey = "yrgrp",
+    genderKey = "gender"
+  }) {
+
+    const containerMale = document.getElementById(elIdMale);
+    const containerFemale = document.getElementById(elIdFemale);
+    if (!containerMale || !containerFemale) return;
+
+    setLoading(elIdMale);
+    setLoading(elIdFemale);
+
+    try {
+
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        setEmpty(elIdMale);
+        setEmpty(elIdFemale);
+        return;
+      }
+
+      const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
+
+      function buildCounters(){
+        return {
+          totals: {"2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0},
+          meets: {"2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0}
+        };
+      }
+
+      const male = buildCounters();
+      const female = buildCounters();
+
+      for (const row of rows) {
+
+        const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
+        const genderRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
+
+        if (!yrGroups.includes(yrgrpRaw)) continue;
+
+        const s = Number(row?.[stanineKey]);
+        if (!Number.isFinite(s)) continue;
+
+        const group = genderRaw === "male" ? male :
+                      genderRaw === "female" ? female : null;
+
+        if (!group) continue;
+
+        group.totals[yrgrpRaw]++;
+        group.totals["Cohort"]++;
+
+        if (s >= 5) {
+          group.meets[yrgrpRaw]++;
+          group.meets["Cohort"]++;
+        }
+      }
+
+      const labels = [...yrGroups,"Cohort"];
+
+      const colorMap = {
+        "2-A":"#F3A1B4","2-B":"#C8DBAC","2-C":"#FBE8AF",
+        "2-D":"#B8EAEF","2-E":"#D2CBF6","2-F":"#E6978B",
+        "Cohort":"#5DA3D4"
+      };
+
+      function renderGraph(elId, data, title){
+
+        const el = document.getElementById(elId);
+        if (!el) return;
+
+        el.innerHTML = "";
+
+        const percentValues = labels.map(l =>
+          data.totals[l] ? (data.meets[l]/data.totals[l])*100 : 0
+        );
+
+        const hoverText = labels.map(l =>
+          `${l}: ${data.meets[l]}/${data.totals[l]} students (${percentValues[labels.indexOf(l)].toFixed(1)}%)`
+        );
+
+        const traces = labels.map((label,i)=>({
+          type:"bar",
+          x:[label],
+          y:[percentValues[i]],
+          name:label,
+          text:[`${percentValues[i].toFixed(1)}%`],
+          textposition:"outside",
+          hovertext:[hoverText[i]],
+          hoverinfo:"text",
+          marker:{color:colorMap[label]}
+        }));
+
+        const layout = {
+          title:"",
+          autosize:true,
+          barmode: "group",
+          bargap: 0,
+          bargroupgap: 0.1,
+          yaxis:{
+            title:"Percent of Students",
+            ticksuffix:"%",
+            range:[0,110]
+          },
+          margin:{t:40,r:20,b:60,l:60},
+          showlegend:true,
+          legend:{orientation:"h",y:-0.2},
+          hovermode:"x unified"
+        };
+
+        Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true})
+        .then(() => {
+          const gd = document.getElementById(elId);
+          Plotly.Plots.resize(gd);
+          setTimeout(() => Plotly.Plots.resize(gd),150);
+        });
+      }
+
+      function renderGenderYearGroupTable(tblId, data){
+        const percentValues = labels.map(l =>
+          data.totals[l] ? (data.meets[l] / data.totals[l]) * 100 : 0
+        );
+
+        const tableBody = document.getElementById(tblId);
+        if (!tableBody) return;
+
+        tableBody.innerHTML = labels.map((label,i)=>`
+          <tr class="text-center">
+            <th scope="row">${label}</th>
+            <td class="table-light">${data.totals[label]}</td>
+            <td class="table-info">${data.meets[label]}</td>
+            <td class="table-success">${percentValues[i].toFixed(1)}%</td>
+          </tr>
+        `).join("");
+
+      }
+
+      // --------- Render Table & Graphs ---------
+      renderGraph(elIdMale, male);
+      renderGenderYearGroupTable("tbl-yrgrp-male-st5-extl-ngrtb", male);
+
+      renderGraph(elIdFemale, female);
+      renderGenderYearGroupTable("tbl-yrgrp-female-st5-extl-ngrtb", female);
+    }
+
+    catch(err){
+      console.error("Gender Year Group Stanine5 error:",err);
+      setError(elIdMale);
+      setError(elIdFemale);
+    }
+  }
+
+  // Bar graph renderer External NGRTB - Year Group Insights
+  // Gender-specific | Stanine 6 & above only
+  async function renderYearGroupStanine6GenderBars({
+    elIdMale,
+    elIdFemale,
+    datasetKey = "ngrtb",
+    stanineKey = "stanine",
+    yrgrpKey = "yrgrp",
+    genderKey = "gender"
+  }) {
+
+    const containerMale = document.getElementById(elIdMale);
+    const containerFemale = document.getElementById(elIdFemale);
+    if (!containerMale || !containerFemale) return;
+
+    setLoading(elIdMale);
+    setLoading(elIdFemale);
+
+    try {
+
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+
+      if (!Array.isArray(rows) || rows.length === 0) {
+        setEmpty(elIdMale);
+        setEmpty(elIdFemale);
+        return;
+      }
+
+      const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
+
+      function buildCounters(){
+        return {
+          totals: {"2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0},
+          meets: {"2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0}
+        };
+      }
+
+      const male = buildCounters();
+      const female = buildCounters();
+
+      for (const row of rows) {
+
+        const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
+        const genderRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
+
+        if (!yrGroups.includes(yrgrpRaw)) continue;
+
+        const s = Number(row?.[stanineKey]);
+        if (!Number.isFinite(s)) continue;
+
+        const group = genderRaw === "male" ? male :
+                      genderRaw === "female" ? female : null;
+
+        if (!group) continue;
+
+        group.totals[yrgrpRaw]++;
+        group.totals["Cohort"]++;
+
+        if (s >= 6) {
+          group.meets[yrgrpRaw]++;
+          group.meets["Cohort"]++;
+        }
+      }
+
+      const labels = [...yrGroups,"Cohort"];
+
+      const colorMap = {
+        "2-A":"#F3A1B4","2-B":"#C8DBAC","2-C":"#FBE8AF",
+        "2-D":"#B8EAEF","2-E":"#D2CBF6","2-F":"#E6978B",
+        "Cohort":"#5DA3D4"
+      };
+
+      function renderGraph(elId, data, title){
+
+        const el = document.getElementById(elId);
+        if (!el) return;
+
+        el.innerHTML = "";
+
+        const percentValues = labels.map(l =>
+          data.totals[l] ? (data.meets[l]/data.totals[l])*100 : 0
+        );
+
+        const hoverText = labels.map(l =>
+          `${l}: ${data.meets[l]}/${data.totals[l]} students (${percentValues[labels.indexOf(l)].toFixed(1)}%)`
+        );
+
+        const traces = labels.map((label,i)=>({
+          type:"bar",
+          x:[label],
+          y:[percentValues[i]],
+          name:label,
+          text:[`${percentValues[i].toFixed(1)}%`],
+          textposition:"outside",
+          hovertext:[hoverText[i]],
+          hoverinfo:"text",
+          marker:{color:colorMap[label]}
+        }));
+
+        const layout = {
+          title:"",
+          autosize:true,
+          barmode: "group",
+          bargap: 0,
+          bargroupgap: 0.1,
+          yaxis:{
+            title:"Percent of Students",
+            ticksuffix:"%",
+            range:[0,110]
+          },
+          margin:{t:40,r:20,b:60,l:60},
+          showlegend:true,
+          legend:{orientation:"h",y:-0.2},
+          hovermode:"x unified"
+        };
+
+        Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true})
+        .then(() => {
+          const gd = document.getElementById(elId);
+          Plotly.Plots.resize(gd);
+          setTimeout(() => Plotly.Plots.resize(gd),150);
+        });
+      }
+
+      function renderGenderYearGroupTable(tblId, data){
+        const percentValues = labels.map(l =>
+          data.totals[l] ? (data.meets[l] / data.totals[l]) * 100 : 0
+        );
+
+        const tableBody = document.getElementById(tblId);
+        if (!tableBody) return;
+
+        tableBody.innerHTML = labels.map((label,i)=>`
+          <tr class="text-center">
+            <th scope="row">${label}</th>
+            <td class="table-light">${data.totals[label]}</td>
+            <td class="table-info">${data.meets[label]}</td>
+            <td class="table-success">${percentValues[i].toFixed(1)}%</td>
+          </tr>
+        `).join("");
+
+      }
+
+      // --------- Render Table & Graphs ---------
+      renderGraph(elIdMale, male);
+      renderGenderYearGroupTable("tbl-yrgrp-male-st6-extl-ngrtb", male);
+
+      renderGraph(elIdFemale, female);
+      renderGenderYearGroupTable("tbl-yrgrp-female-st6-extl-ngrtb", female);
+    }
+
+    catch(err){
+      console.error("Gender Year Group Stanine6 error:",err);
+      setError(elIdMale);
+      setError(elIdFemale);
+    }
+  }
+
   // ---------------------------------------------------
   // Resize Plotly charts when Bootstrap tabs/collapse open
   // ---------------------------------------------------
@@ -717,7 +1035,9 @@
       "bar-gender-st5-extl-ngrtb","bar-gender-st6-extl-ngrtb",
       "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
       "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb",
-      "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb"
+      "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb",
+      "bar-yrgrp-male-st5-extl-ngrtb", "bar-yrgrp-female-st5-extl-ngrtb",
+      "bar-yrgrp-male-st6-extl-ngrtb", "bar-yrgrp-female-st6-extl-ngrtb",
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -730,7 +1050,9 @@
       "bar-gender-st5-extl-ngrtb","bar-gender-st6-extl-ngrtb",
       "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
       "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb",
-      "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb"
+      "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb",
+      "bar-yrgrp-male-st5-extl-ngrtb", "bar-yrgrp-female-st5-extl-ngrtb",
+      "bar-yrgrp-male-st6-extl-ngrtb", "bar-yrgrp-female-st6-extl-ngrtb",
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -813,6 +1135,20 @@
     });
   };
 
+  window.renderYearGroupStanine5GenderBars = function () {
+    return renderYearGroupStanine5GenderBars({
+      elIdMale: "bar-yrgrp-male-st5-extl-ngrtb",
+      elIdFemale: "bar-yrgrp-female-st5-extl-ngrtb"
+    });
+  }
+
+  window.renderYearGroupStanine6GenderBars = function () {
+    return renderYearGroupStanine6GenderBars({
+      elIdMale: "bar-yrgrp-male-st6-extl-ngrtb",
+      elIdFemale: "bar-yrgrp-female-st6-extl-ngrtb"
+    });
+  }
+
   // one function to render graphs
   window.renderExternalNGRTPies = function () {
     // Attainment pies - Cohort
@@ -838,6 +1174,12 @@
 
     // Year group bars
     window.renderYearGroupStanineBars();
+
+    // Year Group Insights - Gender-specific Stanine 5 & above
+    window.renderYearGroupStanine5GenderBars();
+
+    // Year Group Insights - Gender-specific Stanine 6 & above
+    window.renderYearGroupStanine6GenderBars();
   };
 
   // ---------------------------------------------
@@ -864,16 +1206,13 @@
   function wireResize() {
   window.addEventListener("resize", () => {
     const ids = [
-      "pie-st5-extl-ngrtb",
-      "pie-st6-extl-ngrtb",
-      "bar-gender-st5-extl-ngrtb",
-      "bar-gender-st6-extl-ngrtb",
-      "pie-prog-exp-plus-extl-ngrtb",
-      "pie-prog-better-extl-ngrtb",
-      "bar-gender-exp-plus-extl-ngrtb",
-      "bar-gender-better-extl-ngrtb",
-      "bar-yrgrp-st5-extl-ngrtb",
-      "bar-yrgrp-st6-extl-ngrtb"
+      "pie-st5-extl-ngrtb", "pie-st6-extl-ngrtb",
+      "bar-gender-st5-extl-ngrtb", "bar-gender-st6-extl-ngrtb",
+      "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
+      "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb",
+      "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb",
+      "bar-yrgrp-male-st5-extl-ngrtb", "bar-yrgrp-female-st5-extl-ngrtb",
+      "bar-yrgrp-male-st6-extl-ngrtb", "bar-yrgrp-female-st6-extl-ngrtb",
     ];
 
     for (const id of ids) {
