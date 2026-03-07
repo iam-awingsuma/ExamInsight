@@ -114,7 +114,9 @@
       Plotly.newPlot(elId, [trace], layout, { responsive: true })
       .then(() => {
         const gd = document.getElementById(elId);
+        // resize immediately
         Plotly.Plots.resize(gd);
+        // resize after 150ms to handle any Bootstrap animation/layout changes
         setTimeout(() => Plotly.Plots.resize(gd), 150);
       });
     } catch (err) {
@@ -230,7 +232,9 @@
       Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true })
       .then(() => {
         const gd = document.getElementById(elId);
+        // resize immediately
         Plotly.Plots.resize(gd);
+        // resize after 150ms to handle any Bootstrap animation/layout changes
         setTimeout(() => Plotly.Plots.resize(gd), 150);
       });
     } catch (err) {
@@ -339,10 +343,11 @@
       Plotly.newPlot(elId, [trace], layout, {displayModeBar: false, responsive: true })
       .then(() => {
         const gd = document.getElementById(elId);
+        // resize immediately
         Plotly.Plots.resize(gd);
+        // resize after 150ms to handle any Bootstrap animation/layout changes
         setTimeout(() => Plotly.Plots.resize(gd), 150);
       });
-
     } catch (err) {
       console.error("Progress category pie error:", err);
       setError(elId);
@@ -506,7 +511,9 @@
         Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true })
         .then(() => {
           const gd = document.getElementById(elId);
+          // resize immediately
           Plotly.Plots.resize(gd);
+          // resize after 150ms to handle any Bootstrap animation/layout changes
           setTimeout(() => Plotly.Plots.resize(gd), 150);
         });
       }
