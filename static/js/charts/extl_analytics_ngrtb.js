@@ -1021,8 +1021,7 @@
   // Bar graph renderer External NGRTB - Year Group Insights
   // Expected/Better Progress and Better Progress
   async function renderYearGroupProgressThresholdBars({
-    elIdEBP,
-    elIdBP,
+    elIdEBP, elIdBP,
     datasetKey = "ngrtb",
     progressKey = "progress_category",
     yrgrpKey = "yrgrp"
