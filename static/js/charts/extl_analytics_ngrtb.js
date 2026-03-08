@@ -1125,7 +1125,6 @@
 
       // Render Table
       function renderTable(tblId, meets){
-
         const tbl = document.getElementById(tblId);
         if(!tbl) return;
 
@@ -1134,7 +1133,6 @@
           const pct = totals[l]
             ? ((meets[l]/totals[l])*100).toFixed(1)
             : "0.0";
-
           return `
             <tr class="text-center">
               <th scope="row">${l}</th>
@@ -1143,32 +1141,23 @@
               <td class="table-success">${pct}%</td>
             </tr>
           `;
-
         }).join("");
-
       }
 
       // -------------------------
       // Render outputs
       // -------------------------
-
       renderGraph(elIdEBP, meetsEBP);
       renderTable("tbl-yrgrp-ebp-extl-ngrtb", meetsEBP);
 
       renderGraph(elIdBP, meetsBP);
       renderTable("tbl-yrgrp-bp-extl-ngrtb", meetsBP);
-
     }
-
     catch(err){
-
       console.error("Progress category error:", err);
-
       setError(elIdEBP);
       setError(elIdBP);
-
     }
-
   }
 
   // ---------------------------------------------------
