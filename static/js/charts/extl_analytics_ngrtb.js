@@ -1050,8 +1050,6 @@
         return;
       }
 
-      let cohortEBP = 0, cohortBP = 0;
-
       // Process dataset
       rows.forEach(row => {
         const yr = String(row?.[yrgrpKey] ?? "")
