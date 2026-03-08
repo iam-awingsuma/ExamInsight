@@ -1150,6 +1150,189 @@
     }
   }
 
+  // ---------------------------------------------------------
+  // Year Group Insights Graphs - Progress (Gender Split)
+  // 4 graphs:
+  //   1. Male - Expected + Better Progress
+  //   2. Female - Expected + Better Progress
+  //   3. Male - Better Progress Only
+  //   4. Female - Better Progress Only
+  // ---------------------------------------------------------
+  async function renderYearGroupGenderProgressThresholdBars({
+    // HTML element IDs for each chart
+    elIdMaleEBP, elIdFemaleEBP,
+    elIdMaleBP, elIdFemaleBP,
+    // dataset configuration
+    datasetKey = "ngrtc",
+    progressKey = "progress_category",
+    yrgrpKey = "yrgrp",
+    genderKey = "gender"
+  }) {
+
+    // Define Year Groups to display
+    const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
+    // Labels used for graphs and tables
+    const labels = [...yrGroups,"Cohort"];
+    // Color palette for bars
+    const colorMap = {
+      "2-A":"#F3A1B4", "2-B":"#C8DBAC", "2-C":"#FBE8AF",
+      "2-D":"#B8EAEF", "2-E":"#D2CBF6", "2-F":"#E6978B",
+      "Cohort":"#5DA3D4"
+    };
+    // ------------------------------------
+    // Helper function: create empty counters
+    // totals  -> total students | meetsEBP -> Expected OR Better | meetsBP  -> Better Only
+    // ------------------------------------
+    function createCounters(){
+      return {
+        totals: Object.fromEntries(labels.map(l => [l,0])),
+        meetsEBP: Object.fromEntries(labels.map(l => [l,0])),
+        meetsBP: Object.fromEntries(labels.map(l => [l,0]))
+      };
+    }
+    // Separate counters for each gender
+    const male = createCounters();
+    const female = createCounters();
+
+    try {
+      // Show loading state while data loads
+      setLoading(elIdMaleEBP);
+      setLoading(elIdFemaleEBP);
+      setLoading(elIdMaleBP);
+      setLoading(elIdFemaleBP);
+      // Fetch payload from API
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+      // If dataset empty → show empty message
+      if (!rows.length) {
+        setEmpty(elIdMaleEBP);
+        setEmpty(elIdFemaleEBP);
+        setEmpty(elIdMaleBP);
+        setEmpty(elIdFemaleBP);
+        return;
+      }
+      // Process dataset
+      rows.forEach(row => {
+        // Normalize year group value
+        const yr = String(row?.[yrgrpKey] ?? "")
+          .trim().toUpperCase();
+        // Skip records outside defined year groups
+        if (!yrGroups.includes(yr)) return;
+        // Normalize gender value
+        const gender = String(row?.[genderKey] ?? "")
+          .trim().toLowerCase();
+        // Normalize progress category
+        const progress = String(row?.[progressKey] ?? "")
+          .trim().toLowerCase();
+        // Select correct gender counter
+        const target =
+          gender === "male" ? male :
+          gender === "female" ? female :
+          null;
+
+        if (!target) return;
+        // Increment total student counts
+        target.totals[yr]++;
+        target.totals["Cohort"]++;
+        // Expected OR Better Progress
+        if (progress === "expected" || progress === "better than expected") {
+          target.meetsEBP[yr]++;
+          target.meetsEBP["Cohort"]++;
+        }
+        // Better Than Expected ONLY
+        if (progress === "better than expected") {
+          target.meetsBP[yr]++;
+          target.meetsBP["Cohort"]++;
+        }
+      });
+      // Graph Renderer
+      function renderGraph(elId, totals, meets){
+        const el = document.getElementById(elId);
+        if (!el) return;
+        // Remove loading placeholder
+        el.innerHTML = "";
+        // Calculate percentage values
+        const perc = labels.map(l =>
+          totals[l] ? (meets[l] / totals[l]) * 100 : 0
+        );
+        // Create Plotly bar traces
+        const traces = labels.map((label,i)=>({
+          type:"bar", x:[label], y:[perc[i]],
+          name:label,
+          text:[perc[i].toFixed(1) + "%"],
+          textposition:"outside",
+          marker:{color:colorMap[label]},
+          hovertext:`${label}: ${meets[label]}/${totals[label]} students`,
+          hoverinfo:"text"
+        }));
+        // Plot layout configuration
+        const layout = {
+          autosize:true, barmode:"group",
+          bargap:0, bargroupgap:0.1,
+          yaxis:{
+            title:"Percent of Students",
+            ticksuffix:"%",
+            range:[0,110]
+          },
+          margin:{t:40,r:20,b:60,l:60},
+          legend:{
+            orientation:"h", y:-0.2
+          },
+          hovermode:"x unified"
+        };
+        // Render Plotly graph
+        Plotly.newPlot(elId,traces,layout,{
+          displayModeBar:false, responsive:true})
+        .then(() => {
+          const gd = document.getElementById(elId);
+          // resize immediately
+          Plotly.Plots.resize(gd);
+          // resize after 150ms to handle any Bootstrap animation/layout changes
+          setTimeout(() => Plotly.Plots.resize(gd), 150);
+        });
+      }
+      // Render Table (reusable for Male/Female + EBP/BP)
+      function renderTable(tblId, totals, meets){
+        const tbl = document.getElementById(tblId);
+        if(!tbl) return;
+
+        tbl.innerHTML = labels.map(label => {
+          const pct = totals[label]
+            ? ((meets[label] / totals[label]) * 100).toFixed(1)
+            : "0.0";
+          return `
+            <tr class="text-center">
+              <th scope="row">${label}</th>
+              <td class="table-light">${totals[label]}</td>
+              <td class="table-info">${meets[label]}</td>
+              <td class="table-success">${pct}%</td>
+            </tr>
+          `;
+        }).join("");
+      }
+      // Render graphs: Expected + Better Progress
+      renderGraph(elIdMaleEBP, male.totals, male.meetsEBP);
+      renderGraph(elIdFemaleEBP, female.totals, female.meetsEBP);
+      // Render tables: Expected + Better Progress
+      renderTable("tbl-male-ebp-extl-ngrtc", male.totals, male.meetsEBP);
+      renderTable("tbl-female-ebp-extl-ngrtc", female.totals, female.meetsEBP);
+      // Render graphs: Better Progress Only
+      renderGraph(elIdMaleBP, male.totals, male.meetsBP);
+      renderGraph(elIdFemaleBP, female.totals, female.meetsBP);
+      // Render tables: Better Progress Only
+      renderTable("tbl-male-bp-extl-ngrtc", male.totals, male.meetsBP);
+      renderTable("tbl-female-bp-extl-ngrtc", female.totals, female.meetsBP);
+    }
+    // Error handler
+    catch(err){
+      console.error("Progress category error:", err);
+      setError(elIdMaleEBP);
+      setError(elIdFemaleEBP);
+      setError(elIdMaleBP);
+      setError(elIdFemaleBP);
+    }
+  }
+
   // ---------------------------------------------------
   // Resize Plotly charts when Bootstrap tabs/collapse open
   // ---------------------------------------------------
@@ -1163,6 +1346,8 @@
       "bar-yrgrp-male-st5-extl-ngrtc", "bar-yrgrp-female-st5-extl-ngrtc",
       "bar-yrgrp-male-st6-extl-ngrtc", "bar-yrgrp-female-st6-extl-ngrtc",
       "bar-yrgrp-ebp-extl-ngrtc", "bar-yrgrp-bp-extl-ngrtc",
+      "bar-male-ebp-extl-ngrtc", "bar-female-ebp-extl-ngrtc",
+      "bar-male-bp-extl-ngrtc", "bar-female-bp-extl-ngrtc",
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -1179,6 +1364,8 @@
       "bar-yrgrp-male-st5-extl-ngrtc", "bar-yrgrp-female-st5-extl-ngrtc",
       "bar-yrgrp-male-st6-extl-ngrtc", "bar-yrgrp-female-st6-extl-ngrtc",
       "bar-yrgrp-ebp-extl-ngrtc", "bar-yrgrp-bp-extl-ngrtc",
+      "bar-male-ebp-extl-ngrtc", "bar-female-ebp-extl-ngrtc",
+      "bar-male-bp-extl-ngrtc", "bar-female-bp-extl-ngrtc",
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -1282,6 +1469,13 @@
     });
   };
 
+  window.renderYearGroupGenderProgressBars = function (){
+    return renderYearGroupGenderProgressThresholdBars({
+      elIdMaleEBP: "bar-male-ebp-extl-ngrtc", elIdFemaleEBP: "bar-female-ebp-extl-ngrtc",
+      elIdMaleBP: "bar-male-bp-extl-ngrtc", elIdFemaleBP: "bar-female-bp-extl-ngrtc"
+    });
+  };
+
   // one function to render BOTH pies
   window.renderExternalNgrtAttainmentPies = function () {
     // Cohort pies
@@ -1316,6 +1510,9 @@
 
     // Year group progress bars
     window.renderYearGroupProgressBars();
+
+    // Year group gender progress bars
+    window.renderYearGroupGenderProgressBars();
   };
 
   // ---------------------------------------------
@@ -1350,6 +1547,8 @@
       "bar-yrgrp-male-st5-extl-ngrtc", "bar-yrgrp-female-st5-extl-ngrtc",
       "bar-yrgrp-male-st6-extl-ngrtc", "bar-yrgrp-female-st6-extl-ngrtc",
       "bar-yrgrp-ebp-extl-ngrtc", "bar-yrgrp-bp-extl-ngrtc",
+      "bar-male-ebp-extl-ngrtc", "bar-female-ebp-extl-ngrtc",
+      "bar-male-bp-extl-ngrtc", "bar-female-bp-extl-ngrtc",
     ];
 
     for (const id of ids) {
