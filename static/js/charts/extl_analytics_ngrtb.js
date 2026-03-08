@@ -1178,10 +1178,8 @@
 
     // Define Year Groups to display
     const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
-
     // Labels used for graphs and tables
     const labels = [...yrGroups,"Cohort"];
-
     // Color palette for bars
     const colorMap = {
       "2-A":"#F3A1B4", "2-B":"#C8DBAC", "2-C":"#FBE8AF",
