@@ -658,23 +658,17 @@
         );
 
         const traces = labels.map((label,i)=>({
-          type:"bar",
-          x:[label],
-          y:[percentValues[i]],
+          type:"bar", x:[label], y:[percentValues[i]],
           name:label,
           text:[`${percentValues[i].toFixed(1)}%`],
           textposition:"outside",
-          hovertext:[hoverText[i]],
-          hoverinfo:"text",
+          hovertext:[hoverText[i]], hoverinfo:"text",
           marker:{color:colorMap[label]}
         }));
 
         const layout = {
-          title:"",
-          autosize:true,
-          barmode: "group",
-          bargap: 0,
-          bargroupgap: 0.1,
+          autosize:true, barmode: "group",
+          bargap: 0, bargroupgap: 0.1,
           yaxis:{
             title:"Percent of Students",
             ticksuffix:"%",

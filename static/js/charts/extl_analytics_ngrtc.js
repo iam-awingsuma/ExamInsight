@@ -456,8 +456,7 @@
         const traces = [
           {
             type: "bar",
-            x: ["Male"],
-            y: [pct[0]],
+            x: ["Male"], y: [pct[0]],
             name: "Male",
             text: [`${pct[0].toFixed(1)}%`],
             textposition: "outside",
@@ -469,8 +468,7 @@
           },
           {
             type: "bar",
-            x: ["Female"],
-            y: [pct[1]],
+            x: ["Female"], y: [pct[1]],
             name: "Female",
             text: [`${pct[1].toFixed(1)}%`],
             textposition: "outside",
@@ -483,8 +481,7 @@
         ];
 
         const layout = {
-          autosize: true,
-          height: 360,
+          autosize: true, height: 360,
           margin: { t: 30, r: 10, b: 60, l: 10 },
           yaxis: {
             title: "Percent of Gender Total",
@@ -498,10 +495,8 @@
           hovermode: "x unified",
           legend: {
             orientation: "h",
-            x: 0.2,
-            xanchor: "center",
-            y: -0.15,
-            yanchor: "top"
+            x: 0.2, xanchor: "center",
+            y: -0.15, yanchor: "top"
           },
         };
 
@@ -633,21 +628,17 @@
         );
 
         const traces = labels.map((label,i)=>({
-          type:"bar",
-          x:[label],
-          y:[percentValues[i]],
+          type:"bar", x:[label], y:[percentValues[i]],
           name:label,
           text:[`${percentValues[i].toFixed(1)}%`],
           textposition:"outside",
-          hoverinfo:"text",
-          hovertext:[hoverText[i]],
+          hoverinfo:"text", hovertext:[hoverText[i]],
           marker:{color:colorMap[label]}
         }));
 
         const layout = {
-          title:"",
-          autosize:true,
-          barmode:"group",
+          autosize:true, barmode:"group",
+          bargap: 0, bargroupgap: 0.1,
           yaxis:{
             title:"Percent of Students",
             ticksuffix:"%",
@@ -670,7 +661,6 @@
       }
 
       function renderTable(tblId, meets){
-
         const percentValues = labels.map(l =>
           totals[l] ? (meets[l]/totals[l])*100 : 0
         );
@@ -953,23 +943,17 @@
         );
 
         const traces = labels.map((label,i)=>({
-          type:"bar",
-          x:[label],
-          y:[percentValues[i]],
+          type:"bar", x:[label], y:[percentValues[i]],
           name:label,
           text:[`${percentValues[i].toFixed(1)}%`],
           textposition:"outside",
-          hovertext:[hoverText[i]],
-          hoverinfo:"text",
+          hovertext:[hoverText[i]], hoverinfo:"text",
           marker:{color:colorMap[label]}
         }));
 
         const layout = {
-          title:"",
-          autosize:true,
-          barmode: "group",
-          bargap: 0,
-          bargroupgap: 0.1,
+          autosize:true, barmode: "group",
+          bargap: 0, bargroupgap: 0.1,
           yaxis:{
             title:"Percent of Students",
             ticksuffix:"%",

@@ -545,9 +545,9 @@
     }
   }
 
-  // -----------------------------
-  // Year Group Insights Graphs
-  // -----------------------------
+  // -------------------------------------------------------------
+  // Year Group Insights Graphs - Attainment by Stanine Thresholds
+  // -------------------------------------------------------------
 
   // Bar graph renderer External NGRTB - Year Group Insights
   // at/above curriculum standards (St5 & above) and
@@ -559,8 +559,6 @@
   stanineKey = "stanine",
   yrgrpKey = "yrgrp"
   }) {
-
-    // const thresholds = { 5: {}, 6: {} };
 
     const container5 = document.getElementById(elId5);
     const container6 = document.getElementById(elId6);
@@ -636,21 +634,17 @@
         );
 
         const traces = labels.map((label,i)=>({
-          type:"bar",
-          x:[label],
-          y:[percentValues[i]],
+          type:"bar", x:[label], y:[percentValues[i]],
           name:label,
           text:[`${percentValues[i].toFixed(1)}%`],
           textposition:"outside",
-          hoverinfo:"text",
-          hovertext:[hoverText[i]],
+          hoverinfo:"text", hovertext:[hoverText[i]],
           marker:{color:colorMap[label]}
         }));
 
         const layout = {
-          title:"",
-          autosize:true,
-          barmode:"group",
+          autosize:true, barmode:"group",
+          bargap: 0, bargroupgap: 0.1,
           yaxis:{
             title:"Percent of Students",
             ticksuffix:"%",
@@ -673,7 +667,6 @@
       }
 
       function renderTable(tblId, meets){
-
         const percentValues = labels.map(l =>
           totals[l] ? (meets[l]/totals[l])*100 : 0
         );
@@ -956,9 +949,7 @@
         );
 
         const traces = labels.map((label,i)=>({
-          type:"bar",
-          x:[label],
-          y:[percentValues[i]],
+          type:"bar", x:[label], y:[percentValues[i]],
           name:label,
           text:[`${percentValues[i].toFixed(1)}%`],
           textposition:"outside",
@@ -968,11 +959,8 @@
         }));
 
         const layout = {
-          title:"",
-          autosize:true,
-          barmode: "group",
-          bargap: 0,
-          bargroupgap: 0.1,
+          autosize:true, barmode: "group",
+          bargap: 0, bargroupgap: 0.1,
           yaxis:{
             title:"Percent of Students",
             ticksuffix:"%",
@@ -1026,6 +1014,163 @@
     }
   }
 
+  // ---------------------------------------
+  // Year Group Insights Graphs - Progress
+  // ---------------------------------------
+
+  // Bar graph renderer External NGRTB - Year Group Insights
+  // Expected/Better Progress and Better Progress
+  async function renderYearGroupProgressThresholdBars({
+    elIdEBP,
+    elIdBP,
+    datasetKey = "ngrtb",
+    progressKey = "progress_category",
+    yrgrpKey = "yrgrp"
+  }) {
+    const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
+    const labels = [...yrGroups,"Cohort"];
+    const colorMap = {
+      "2-A":"#F3A1B4","2-B":"#C8DBAC","2-C":"#FBE8AF",
+      "2-D":"#B8EAEF","2-E":"#D2CBF6","2-F":"#E6978B",
+      "Cohort":"#5DA3D4"
+    };
+    const totals = Object.fromEntries(labels.map(l=>[l,0]));
+    const meetsEBP = Object.fromEntries(labels.map(l=>[l,0]));
+    const meetsBP = Object.fromEntries(labels.map(l=>[l,0]));
+
+    try {
+      setLoading(elIdEBP);
+      setLoading(elIdBP);
+
+      const payload = await getExtNgrtPayload();
+      const rows = payload?.[datasetKey] || [];
+
+      if (!rows.length) {
+        setEmpty(elIdEBP);
+        setEmpty(elIdBP);
+        return;
+      }
+
+      let cohortEBP = 0, cohortBP = 0;
+
+      // Process dataset
+      rows.forEach(row => {
+        const yr = String(row?.[yrgrpKey] ?? "")
+          .trim().toUpperCase();
+
+        if (!yrGroups.includes(yr)) return;
+
+        totals[yr]++;
+        totals["Cohort"]++;
+
+        const progress = String(row?.[progressKey] ?? "")
+          .trim().toLowerCase();
+
+        if (progress === "expected" || progress === "better than expected") {
+          meetsEBP[yr]++;
+          meetsEBP["Cohort"]++;
+        }
+
+        if (progress === "better than expected") {
+          meetsBP[yr]++;
+          meetsBP["Cohort"]++;
+        }
+      });
+
+      // Render Graph
+      function renderGraph(elId, meets) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        // remove "Loading..." placeholder
+        el.innerHTML = "";
+
+        const perc = labels.map(l =>
+          totals[l] ? (meets[l] / totals[l]) * 100 : 0
+        );
+        const traces = labels.map((label,i)=>({
+          type:"bar", x:[label], y:[perc[i]],
+          name:label,
+          text:[perc[i].toFixed(1)+"%"],
+          textposition:"outside",
+          marker:{color:colorMap[label]},
+          hovertext:`${label}: ${meets[label]}/${totals[label]} students`,
+          hoverinfo:"text"
+        }));
+
+        const layout = {
+          autosize:true, barmode:"group",
+          bargap: 0, bargroupgap: 0.1,
+          yaxis:{
+            title:"Percent of Students",
+            ticksuffix:"%",
+            range:[0,110]
+          },
+          margin:{t:40,r:20,b:60,l:60},
+          legend:{orientation:"h", y:-0.2},
+          hovermode:"x unified"
+        };
+
+        Plotly.newPlot(elId,traces,layout,{
+          displayModeBar:false,
+          responsive:true
+        })
+        .then(() => {
+          const gd = document.getElementById(elId);
+          // resize immediately
+          Plotly.Plots.resize(gd);
+          // resize after 150ms to handle any Bootstrap animation/layout changes
+          setTimeout(() => Plotly.Plots.resize(gd), 150);
+        });
+      }
+
+      // Render Table
+      function renderTable(tblId, meets){
+
+        const tbl = document.getElementById(tblId);
+        if(!tbl) return;
+
+        tbl.innerHTML = labels.map(l => {
+
+          const pct = totals[l]
+            ? ((meets[l]/totals[l])*100).toFixed(1)
+            : "0.0";
+
+          return `
+            <tr class="text-center">
+              <th scope="row">${l}</th>
+              <td class="table-light">${totals[l]}</td>
+              <td class="table-info">${meets[l]}</td>
+              <td class="table-success">${pct}%</td>
+            </tr>
+          `;
+
+        }).join("");
+
+      }
+
+      // -------------------------
+      // Render outputs
+      // -------------------------
+
+      renderGraph(elIdEBP, meetsEBP);
+      renderTable("tbl-yrgrp-ebp-extl-ngrtb", meetsEBP);
+
+      renderGraph(elIdBP, meetsBP);
+      renderTable("tbl-yrgrp-bp-extl-ngrtb", meetsBP);
+
+    }
+
+    catch(err){
+
+      console.error("Progress category error:", err);
+
+      setError(elIdEBP);
+      setError(elIdBP);
+
+    }
+
+  }
+
   // ---------------------------------------------------
   // Resize Plotly charts when Bootstrap tabs/collapse open
   // ---------------------------------------------------
@@ -1038,6 +1183,7 @@
       "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb",
       "bar-yrgrp-male-st5-extl-ngrtb", "bar-yrgrp-female-st5-extl-ngrtb",
       "bar-yrgrp-male-st6-extl-ngrtb", "bar-yrgrp-female-st6-extl-ngrtb",
+      "bar-yrgrp-ebp-extl-ngrtb", "bar-yrgrp-bp-extl-ngrtb"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -1053,6 +1199,7 @@
       "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb",
       "bar-yrgrp-male-st5-extl-ngrtb", "bar-yrgrp-female-st5-extl-ngrtb",
       "bar-yrgrp-male-st6-extl-ngrtb", "bar-yrgrp-female-st6-extl-ngrtb",
+      "bar-yrgrp-ebp-extl-ngrtb", "bar-yrgrp-bp-extl-ngrtb"
     ].forEach(function(id){
       const gd = document.getElementById(id);
       if (gd) Plotly.Plots.resize(gd);
@@ -1149,6 +1296,13 @@
     });
   }
 
+  window.renderYearGroupProgressBars = function () {
+    return renderYearGroupProgressThresholdBars({
+      elIdEBP: "bar-yrgrp-ebp-extl-ngrtb",
+      elIdBP: "bar-yrgrp-bp-extl-ngrtb"
+    });
+  };
+
   // one function to render graphs
   window.renderExternalNGRTPies = function () {
     // Attainment pies - Cohort
@@ -1180,6 +1334,9 @@
 
     // Year Group Insights - Gender-specific Stanine 6 & above
     window.renderYearGroupStanine6GenderBars();
+
+    // Year group progress bars
+    window.renderYearGroupProgressBars();
   };
 
   // ---------------------------------------------
@@ -1213,6 +1370,7 @@
       "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb",
       "bar-yrgrp-male-st5-extl-ngrtb", "bar-yrgrp-female-st5-extl-ngrtb",
       "bar-yrgrp-male-st6-extl-ngrtb", "bar-yrgrp-female-st6-extl-ngrtb",
+      "bar-yrgrp-ebp-extl-ngrtb", "bar-yrgrp-bp-extl-ngrtb",
     ];
 
     for (const id of ids) {
