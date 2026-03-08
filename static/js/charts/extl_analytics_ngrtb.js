@@ -1165,7 +1165,6 @@
   //   3. Male - Better Progress Only
   //   4. Female - Better Progress Only
   // ---------------------------------------------------------
-
   async function renderYearGroupGenderProgressThresholdBars({
     // HTML element IDs for each chart
     elIdMaleEBP, elIdFemaleEBP,
