@@ -1201,18 +1201,15 @@
     // Separate counters for each gender
     const male = createCounters();
     const female = createCounters();
-
     try {
       // Show loading state while data loads
       setLoading(elIdMaleEBP);
       setLoading(elIdFemaleEBP);
       setLoading(elIdMaleBP);
       setLoading(elIdFemaleBP);
-
       // Fetch payload from API
       const payload = await getExtNgrtPayload();
       const rows = payload?.[datasetKey] || [];
-
       // If dataset empty → show empty message
       if (!rows.length) {
         setEmpty(elIdMaleEBP);
@@ -1234,11 +1231,9 @@
         // Normalize gender value
         const gender = String(row?.[genderKey] ?? "")
           .trim().toLowerCase();
-
         // Normalize progress category
         const progress = String(row?.[progressKey] ?? "")
           .trim().toLowerCase();
-
         // Select correct gender counter
         const target =
           gender === "male" ? male :
@@ -1246,17 +1241,14 @@
           null;
 
         if (!target) return;
-
         // Increment total student counts
         target.totals[yr]++;
         target.totals["Cohort"]++;
-
         // Expected OR Better Progress
         if (progress === "expected" || progress === "better than expected") {
           target.meetsEBP[yr]++;
           target.meetsEBP["Cohort"]++;
         }
-
         // Better Than Expected ONLY
         if (progress === "better than expected") {
           target.meetsBP[yr]++;
@@ -1270,12 +1262,10 @@
         if (!el) return;
         // Remove loading placeholder
         el.innerHTML = "";
-
         // Calculate percentage values
         const perc = labels.map(l =>
           totals[l] ? (meets[l] / totals[l]) * 100 : 0
         );
-
         // Create Plotly bar traces
         const traces = labels.map((label,i)=>({
           type:"bar", x:[label], y:[perc[i]],
@@ -1286,7 +1276,6 @@
           hovertext:`${label}: ${meets[label]}/${totals[label]} students`,
           hoverinfo:"text"
         }));
-
         // Plot layout configuration
         const layout = {
           autosize:true, barmode:"group",
@@ -1302,7 +1291,6 @@
           },
           hovermode:"x unified"
         };
-
         // Render Plotly graph
         Plotly.newPlot(elId,traces,layout,{
           displayModeBar:false, responsive:true})
@@ -1314,7 +1302,6 @@
           setTimeout(() => Plotly.Plots.resize(gd), 150);
         });
       }
-
       // Render Table (reusable for Male/Female + EBP/BP)
       function renderTable(tblId, totals, meets){
         const tbl = document.getElementById(tblId);
@@ -1334,19 +1321,15 @@
           `;
         }).join("");
       }
-
       // Render graphs: Expected + Better Progress
       renderGraph(elIdMaleEBP, male.totals, male.meetsEBP);
       renderGraph(elIdFemaleEBP, female.totals, female.meetsEBP);
-
       // Render tables: Expected + Better Progress
       renderTable("tbl-male-ebp-extl-ngrtb", male.totals, male.meetsEBP);
       renderTable("tbl-female-ebp-extl-ngrtb", female.totals, female.meetsEBP);
-
       // Render graphs: Better Progress Only
       renderGraph(elIdMaleBP, male.totals, male.meetsBP);
       renderGraph(elIdFemaleBP, female.totals, female.meetsBP);
-
       // Render tables: Better Progress Only
       renderTable("tbl-male-bp-extl-ngrtb", male.totals, male.meetsBP);
       renderTable("tbl-female-bp-extl-ngrtb", female.totals, female.meetsBP);
