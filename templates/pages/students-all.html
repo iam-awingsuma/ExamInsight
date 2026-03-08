@@ -114,9 +114,9 @@
                             <div class="d-inline-flex align-items-center justify-content-center gap-1 text-nowrap">
                                 <div>
                                     {% if (student.gender or "") | trim | lower == "male" %}
-                                        <img class="me-1" width="40" height="40" src="https://img.icons8.com/?size=100&id=4V1nG4SioGjp&format=png&color=000000" alt="Male" title="Male"/>
+                                        <img class="me-1" width="42" height="42" src="https://img.icons8.com/?size=100&id=4V1nG4SioGjp&format=png&color=000000" alt="Male" title="Male"/>
                                     {% elif (student.gender or "") | trim | lower == "female" %}
-                                        <img class="me-1" width="40" height="40" src="https://img.icons8.com/?size=100&id=Sz1FlYHdFpV4&format=png&color=000000" alt="Female" title="Female"/>
+                                        <img class="me-1" width="42" height="42" src="https://img.icons8.com/?size=100&id=Sz1FlYHdFpV4&format=png&color=000000" alt="Female" title="Female"/>
                                     {% endif %}
                                 </div>
                                 <div class="d-flex flex-column justify-content-center">
@@ -167,9 +167,9 @@
                         <td class="text-center" style="width: 1%;">
                             <a href="{{ url_for('home_blueprint.edit_student', student_id=student.student_id) }}" alt="Edit Student Details" title="Edit Student Details">
                                 {% if (student.gender or "") | trim | lower == "male" %}
-                                    <img class="me-1" width="32" height="32" src="https://img.icons8.com/?size=100&id=Gm48yAacguG8&format=png&color=000000" alt="Edit student details" title="Edit {{student.forename}}'s details"/>
+                                    <img class="me-1" width="36" height="36" src="https://img.icons8.com/?size=100&id=Gm48yAacguG8&format=png&color=000000" alt="Edit student details" title="Edit {{student.forename}}'s details"/>
                                 {% elif (student.gender or "") | trim | lower == "female" %}
-                                    <img class="me-1" width="32" height="32" src="https://img.icons8.com/?size=100&id=EHwXqGLtkRkS&format=png&color=000000" alt="Edit student details" title="Edit {{student.forename}}'s details"/>
+                                    <img class="me-1" width="36" height="36" src="https://img.icons8.com/?size=100&id=EHwXqGLtkRkS&format=png&color=000000" alt="Edit student details" title="Edit {{student.forename}}'s details"/>
                                 {% endif %}
                             </a>
                         </td>
