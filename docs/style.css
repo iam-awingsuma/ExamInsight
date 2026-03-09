@@ -72,3 +72,19 @@ width:75%;
 border-radius:6px;
 margin-top:10px;
 }
+
+.image-gallery {
+  display: flex; /* Enables flexbox layout */
+  justify-content: center; /* Horizontally centers the images within the container */
+  align-items: center; /* Vertically centers the images (optional, useful if images have different heights) */
+  gap: 10px; /* Adds space between the images */
+  /* Optional: Add padding/margin to the container if needed */
+}
+
+.image-gallery img {
+  /* Ensures images scale down responsively within their container */
+  max-width: 100%;
+  height: auto;
+  /* Optional: Set a specific width for consistency */
+  width: 150px; /* Adjust as needed */
+}
