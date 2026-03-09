@@ -161,25 +161,34 @@
           <tr>
             <td style="width: 1%;">
               <div class="d-flex px-2 py-1">
-                <div class="d-flex flex-column justify-content-center">
-                  <h6 class="mb-0 text-xs">{{ student.student_id }}&nbsp;
-                    <span class="text-xs text-primary mb-0">
-                      {{student.forename}}&nbsp;{{student.surname}}
-                    </span>
-                  </h6>
-                  <p class="text-xs text-secondary mb-0">
-                    {{student.gender}},&nbsp;{{student.nationality}}
-                  </p>
-                  <p class="text-xs text-secondary mb-0">
-                    {{student.status}},&nbsp;Year&nbsp;<span class="text-uppercase">{{student.yrgrp}}</span>
-                  </p>
-                  <p class="text-xs text-secondary mb-0">
-                    {% if student.sped == 'No' or student.sped == 'None' %}
-                        <!-- show nothing -->
-                    {% else %}
-                        SEN Details: <span class="badge bg-gradient-danger">{{student.sped}}</span>
-                    {% endif %}
-                  </p>
+                <div class="d-inline-flex align-items-center justify-content-center gap-1 text-nowrap">
+                  <div>
+                      {% if (student.gender or "") | trim | lower == "male" %}
+                          <img class="me-1" width="50" height="50" src="https://img.icons8.com/?size=100&id=4V1nG4SioGjp&format=png&color=000000" alt="Male" title="Male"/>
+                      {% elif (student.gender or "") | trim | lower == "female" %}
+                          <img class="me-1" width="50" height="50" src="https://img.icons8.com/?size=100&id=Sz1FlYHdFpV4&format=png&color=000000" alt="Female" title="Female"/>
+                      {% endif %}
+                  </div>
+                  <div class="d-flex flex-column justify-content-center">
+                    <h6 class="mb-0 text-xs">{{ student.student_id }}&nbsp;
+                      <span class="text-xs text-primary mb-0">
+                        {{student.forename}}&nbsp;{{student.surname}}
+                      </span>
+                    </h6>
+                    <p class="text-xs text-secondary mb-0">
+                      {{student.gender}},&nbsp;{{student.nationality}}
+                    </p>
+                    <p class="text-xs text-secondary mb-0">
+                      {{student.status}},&nbsp;Year&nbsp;<span class="text-uppercase">{{student.yrgrp}}</span>
+                    </p>
+                    <p class="text-xs text-secondary mb-0">
+                      {% if student.sped == 'No' or student.sped == 'None' %}
+                          <!-- show nothing -->
+                      {% else %}
+                          SEN Details: <span class="badge bg-gradient-danger">{{student.sped}}</span>
+                      {% endif %}
+                    </p>
+                  </div>
                 </div>
               </div>
             </td>
