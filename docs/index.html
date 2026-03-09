@@ -1,204 +1,158 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-<title>ExamInsight Project Dashboard</title>
+<meta charset="UTF-8">
+<title>ExamInsight</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-
 body{
-font-family:Arial;
-background:#f4f6fb;
-padding:40px;
+    font-family: Arial, Helvetica, sans-serif;
+    margin:0;
+    background:#f4f6f9;
+}
+
+header{
+    background:#1e293b;
+    color:white;
+    padding:40px;
+    text-align:center;
 }
 
 .container{
-max-width:1100px;
-margin:auto;
-}
-
-h1{
-color:#111827;
+    max-width:1100px;
+    margin:auto;
+    padding:40px;
 }
 
 .card{
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
-margin-bottom:25px;
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.1);
+    margin-bottom:25px;
 }
 
-.stats{
-display:flex;
-gap:40px;
+h2{
+    margin-top:0;
 }
 
-.stat{
-font-size:22px;
-font-weight:bold;
+.btn{
+    display:inline-block;
+    padding:12px 20px;
+    background:#2563eb;
+    color:white;
+    text-decoration:none;
+    border-radius:6px;
 }
 
-.commit{
-border-bottom:1px solid #eee;
-padding:10px 0;
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
 }
 
-.commit:last-child{
-border-bottom:none;
+footer{
+    text-align:center;
+    padding:20px;
+    color:#666;
 }
-
 </style>
-
 </head>
-
 
 <body>
 
-    <div class="container">
+<header>
+<h1>📊 ExamInsight</h1>
+<p>Educational Assessment Analytics Platform</p>
 
-        <h1>📊 ExamInsight Development Dashboard</h1>
-
-    <div class="card">
-
-        <h2>Repository Statistics</h2>
-
-        <div class="stats">
-
-            <div class="stat">⭐ Stars: <span id="stars"></span></div>
-
-            <div class="stat">🍴 Forks: <span id="forks"></span></div>
-
-            <div class="stat">👀 Watchers: <span id="watchers"></span></div>
-
-        </div>
-
-    </div>
+<a class="btn" href="https://github.com/iam-awingsuma/ExamInsight">
+View Repository
+</a>
+</header>
 
 
-    <div class="card">
+<div class="container">
 
-    <h2>📈 Commit Activity</h2>
+<div class="card">
+<h2>Project Overview</h2>
 
-    <canvas id="commitChart"></canvas>
+<p>
+ExamInsight is a data analytics platform designed to analyze and visualize
+student assessment performance across cohorts, year groups, and individual
+students.
+</p>
 
-    </div>
-
-
-    <div class="card">
-
-    <h2>🕒 Latest Commits</h2>
-
-    <div id="commits"></div>
-
-    </div>
-
-
-    <div class="card">
-
-    <h2>👥 Contributors</h2>
-
-    <div id="contributors"></div>
-
-    </div>
+<p>
+The system integrates standardized assessments such as
+<strong>NGRT</strong> and provides dashboards for educators to track progress,
+identify trends, and support data-driven instruction.
+</p>
+</div>
 
 
-    <div class="card">
+<div class="grid">
 
-    <h2>🔗 Repository Links</h2>
+<div class="card">
+<h2>⚙️ Technology Stack</h2>
 
-    <a href="https://github.com/iam-awingsuma/ExamInsight">Open Repository</a><br>
-    <a href="https://github.com/iam-awingsuma/ExamInsight/commits/master">Commit History</a>
-
-    </div>
-
-    </div>
-
-
-<script>
-
-    const repo = "iam-awingsuma/ExamInsight";
+<ul>
+<li>Python Flask</li>
+<li>SQLAlchemy</li>
+<li>Bootstrap UI</li>
+<li>Chart.js / Plotly</li>
+<li>REST APIs</li>
+</ul>
+</div>
 
 
-    // Repository stats
-    fetch(`https://api.github.com/repos/${repo}`)
-    .then(res => res.json())
-    .then(data => {
+<div class="card">
+<h2>📈 Features</h2>
 
-    document.getElementById("stars").textContent = data.stargazers_count;
-    document.getElementById("forks").textContent = data.forks_count;
-    document.getElementById("watchers").textContent = data.watchers_count;
-
-    });
-
-
-    // Commit feed
-    fetch(`https://api.github.com/repos/${repo}/commits?sha=master`)
-    .then(res => res.json())
-    .then(data => {
-
-    const container = document.getElementById("commits");
-
-    const commitDates = [];
-
-    data.slice(0,20).forEach(commit => {
-
-    const div = document.createElement("div");
-
-    div.className = "commit";
-
-    div.innerHTML = `
-    <b>${commit.commit.message}</b><br>
-    ${commit.commit.author.name} — ${new Date(commit.commit.author.date).toLocaleString()}
-    `;
-
-    container.appendChild(div);
-
-    commitDates.push(new Date(commit.commit.author.date).toLocaleDateString());
-
-    });
+<ul>
+<li>Cohort performance analytics</li>
+<li>Year group insights</li>
+<li>Student progress tracking</li>
+<li>External assessment analysis</li>
+<li>Interactive dashboards</li>
+</ul>
+</div>
 
 
-    const ctx = document.getElementById('commitChart');
+<div class="card">
+<h2>🧠 Architecture</h2>
 
-    new Chart(ctx, {
-    type:'line',
-    data:{
-    labels:commitDates.reverse(),
-    datasets:[{
-    label:'Commits',
-    data:new Array(commitDates.length).fill(1),
-    borderColor:'#2563eb',
-    fill:false
-    }]
-    }
-    });
-
-    });
+<ul>
+<li>Flask backend API</li>
+<li>Jinja template rendering</li>
+<li>JavaScript chart modules</li>
+<li>REST analytics endpoints</li>
+</ul>
+</div>
 
 
-    // Contributors
-    fetch(`https://api.github.com/repos/${repo}/contributors`)
-    .then(res => res.json())
-    .then(data => {
+<div class="card">
+<h2>🚀 Development Activity</h2>
 
-    const container = document.getElementById("contributors");
+<p>
+View the development activity and commits for this project on GitHub.
+</p>
 
-    data.forEach(user => {
+<a class="btn" href="https://github.com/iam-awingsuma/ExamInsight/commits/master">
+View Commits
+</a>
 
-    const div = document.createElement("div");
+</div>
 
-    div.innerHTML = `👤 ${user.login} — ${user.contributions} commits`;
+</div>
 
-    container.appendChild(div);
+</div>
 
-    });
 
-    });
-
-</script>
+<footer>
+ExamInsight Project • GitHub Pages
+</footer>
 
 </body>
 </html>
