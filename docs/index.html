@@ -1,158 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ExamInsight</title>
+
+<title>ExamInsight Analytics Platform</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<style>
-body{
-    font-family: Arial, Helvetica, sans-serif;
-    margin:0;
-    background:#f4f6f9;
-}
+<link rel="stylesheet" href="style.css">
 
-header{
-    background:#1e293b;
-    color:white;
-    padding:40px;
-    text-align:center;
-}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-.container{
-    max-width:1100px;
-    margin:auto;
-    padding:40px;
-}
-
-.card{
-    background:white;
-    padding:25px;
-    border-radius:10px;
-    box-shadow:0 3px 10px rgba(0,0,0,0.1);
-    margin-bottom:25px;
-}
-
-h2{
-    margin-top:0;
-}
-
-.btn{
-    display:inline-block;
-    padding:12px 20px;
-    background:#2563eb;
-    color:white;
-    text-decoration:none;
-    border-radius:6px;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:20px;
-}
-
-footer{
-    text-align:center;
-    padding:20px;
-    color:#666;
-}
-</style>
 </head>
 
 <body>
 
 <header>
+
 <h1>📊 ExamInsight</h1>
+
 <p>Educational Assessment Analytics Platform</p>
 
 <a class="btn" href="https://github.com/iam-awingsuma/ExamInsight">
 View Repository
 </a>
-</header>
 
+</header>
 
 <div class="container">
 
-<div class="card">
+<section class="card">
+
 <h2>Project Overview</h2>
 
 <p>
-ExamInsight is a data analytics platform designed to analyze and visualize
-student assessment performance across cohorts, year groups, and individual
-students.
+ExamInsight is a data analytics platform designed to visualize
+student assessment data and track performance trends across
+cohorts, year groups, and individual learners.
 </p>
 
-<p>
-The system integrates standardized assessments such as
-<strong>NGRT</strong> and provides dashboards for educators to track progress,
-identify trends, and support data-driven instruction.
-</p>
-</div>
+</section>
 
 
-<div class="grid">
+<section class="card">
 
-<div class="card">
-<h2>⚙️ Technology Stack</h2>
+<h2>System Architecture</h2>
+
+<img class="diagram" src="https://raw.githubusercontent.com/simple-icons/simple-icons/develop/icons/python.svg">
 
 <ul>
-<li>Python Flask</li>
-<li>SQLAlchemy</li>
-<li>Bootstrap UI</li>
-<li>Chart.js / Plotly</li>
-<li>REST APIs</li>
-</ul>
-</div>
 
+<li>Flask backend APIs</li>
 
-<div class="card">
-<h2>📈 Features</h2>
+<li>SQLAlchemy database models</li>
 
-<ul>
-<li>Cohort performance analytics</li>
-<li>Year group insights</li>
-<li>Student progress tracking</li>
-<li>External assessment analysis</li>
-<li>Interactive dashboards</li>
-</ul>
-</div>
-
-
-<div class="card">
-<h2>🧠 Architecture</h2>
-
-<ul>
-<li>Flask backend API</li>
-<li>Jinja template rendering</li>
-<li>JavaScript chart modules</li>
 <li>REST analytics endpoints</li>
+
+<li>JavaScript analytics dashboards</li>
+
+<li>Bootstrap UI components</li>
+
 </ul>
-</div>
+
+</section>
 
 
-<div class="card">
-<h2>🚀 Development Activity</h2>
+<section class="card">
 
-<p>
-View the development activity and commits for this project on GitHub.
-</p>
+<h2>Repository Statistics</h2>
 
-<a class="btn" href="https://github.com/iam-awingsuma/ExamInsight/commits/master">
-View Commits
-</a>
+<div class="stats">
 
-</div>
+<div>⭐ Stars: <span id="stars"></span></div>
 
-</div>
+<div>🍴 Forks: <span id="forks"></span></div>
+
+<div>👀 Watchers: <span id="watchers"></span></div>
 
 </div>
 
+</section>
+
+
+<section class="card">
+
+<h2>Commit Activity</h2>
+
+<canvas id="commitChart"></canvas>
+
+</section>
+
+
+<section class="card">
+
+<h2>Latest Commits</h2>
+
+<div id="commits"></div>
+
+</section>
+
+
+<section class="card">
+
+<h2>Contributors</h2>
+
+<div id="contributors"></div>
+
+</section>
+
+</div>
 
 <footer>
+
 ExamInsight Project • GitHub Pages
+
 </footer>
+
+
+<script src="app.js"></script>
 
 </body>
 </html>
