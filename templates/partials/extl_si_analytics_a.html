@@ -1,0 +1,23 @@
+<!-- Filters -->
+<div class="bg-white border-0 rounded-3 shadow-sm p-3 mb-3">
+  <!-- <div class="row align-items-center justify-content-between mx-auto"> -->
+    <div class="row g-3 mx-auto">
+        <div class="col-12 col-md-3 col-sm-12">
+        <label class="form-label mb-1 small text-secondary text-xs">Year Group</label>
+        <select id="yrgrp" class="form-select w-100">
+            <option value="">All Year Groups</option>
+        </select>
+        </div>
+
+        <div class="col-12 col-md-9 col-sm-12">
+        <label class="form-label mb-1 small text-secondary text-xs">Student</label>
+        <select id="student" class="form-select w-100" disabled>
+            <option value="">All Students</option>
+        </select>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/charts/extl_si_analytics_a.js') }}?v=4"></script>
+{% endblock %}
