@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>ExamInsight Project Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6fb;
+padding:40px;
+}
+
+.container{
+max-width:1100px;
+margin:auto;
+}
+
+h1{
+color:#111827;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+margin-bottom:25px;
+}
+
+.stats{
+display:flex;
+gap:40px;
+}
+
+.stat{
+font-size:22px;
+font-weight:bold;
+}
+
+.commit{
+border-bottom:1px solid #eee;
+padding:10px 0;
+}
+
+.commit:last-child{
+border-bottom:none;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+<h1>📊 ExamInsight Development Dashboard</h1>
+
+<div class="card">
+
+<h2>Repository Statistics</h2>
+
+<div class="stats">
+
+<div class="stat">⭐ Stars: <span id="stars"></span></div>
+
+<div class="stat">🍴 Forks: <span id="forks"></span></div>
+
+<div class="stat">👀 Watchers: <span id="watchers"></span></div>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>📈 Commit Activity</h2>
+
+<canvas id="commitChart"></canvas>
+
+</div>
+
+
+<div class="card">
+
+<h2>🕒 Latest Commits</h2>
+
+<div id="commits"></div>
+
+</div>
+
+
+<div class="card">
+
+<h2>👥 Contributors</h2>
+
+<div id="contributors"></div>
+
+</div>
+
+
+<div class="card">
+
+<h2>🔗 Repository Links</h2>
+
+<a href="https://github.com/iam-awingsuma/ExamInsight">Open Repository</a><br>
+<a href="https://github.com/iam-awingsuma/ExamInsight/commits/master">Commit History</a>
+
+</div>
+
+</div>
+
+
+<script>
+
+const repo = "iam-awingsuma/ExamInsight";
+
+
+// Repository stats
+fetch(`https://api.github.com/repos/${repo}`)
+.then(res => res.json())
+.then(data => {
+
+document.getElementById("stars").textContent = data.stargazers_count;
+document.getElementById("forks").textContent = data.forks_count;
+document.getElementById("watchers").textContent = data.watchers_count;
+
+});
+
+
+// Commit feed
+fetch(`https://api.github.com/repos/${repo}/commits?sha=master`)
+.then(res => res.json())
+.then(data => {
+
+const container = document.getElementById("commits");
+
+const commitDates = [];
+
+data.slice(0,20).forEach(commit => {
+
+const div = document.createElement("div");
+
+div.className = "commit";
+
+div.innerHTML = `
+<b>${commit.commit.message}</b><br>
+${commit.commit.author.name} — ${new Date(commit.commit.author.date).toLocaleString()}
+`;
+
+container.appendChild(div);
+
+commitDates.push(new Date(commit.commit.author.date).toLocaleDateString());
+
+});
+
+
+const ctx = document.getElementById('commitChart');
+
+new Chart(ctx, {
+type:'line',
+data:{
+labels:commitDates.reverse(),
+datasets:[{
+label:'Commits',
+data:new Array(commitDates.length).fill(1),
+borderColor:'#2563eb',
+fill:false
+}]
+}
+});
+
+});
+
+
+// Contributors
+fetch(`https://api.github.com/repos/${repo}/contributors`)
+.then(res => res.json())
+.then(data => {
+
+const container = document.getElementById("contributors");
+
+data.forEach(user => {
+
+const div = document.createElement("div");
+
+div.innerHTML = `👤 ${user.login} — ${user.contributions} commits`;
+
+container.appendChild(div);
+
+});
+
+});
+
+</script>
+
+</body>
+</html>
