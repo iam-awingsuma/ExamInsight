@@ -1,5 +1,6 @@
+
 // ---------------------------------------------------------------------
-// Handles year group and student dropdowns for Student Insights NGRT-A
+// Handles year group and student dropdowns for Student Insights NGRT-B
 // ---------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", function () {
     const elYrgrp = document.getElementById("yrgrp");
@@ -19,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const res = await fetch("/api/analytics_extl_ngrt");
             const data = await res.json();
             console.log("API DATA:", data);
-            allStudents = data.ngrta || [];
+            allStudents = data.ngrtb || [];
             populateYearGroups();
         } catch (err) {
             console.error("Failed to load API data:", err);
