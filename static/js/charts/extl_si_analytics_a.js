@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Year group change event
     elYrgrp.addEventListener("change", loadStudentsByYearGroup);
+    elStudent.addEventListener("change", updateStudentGenderIcon);
 
     // Load API Data
     async function loadData() {
@@ -82,5 +83,26 @@ document.addEventListener("DOMContentLoaded", function () {
             addStudentOption(s.student_id, fullname);
         });
         elStudent.disabled = false;
+    }
+
+    // update icon based on gender detection for students insights KPI
+    function updateStudentGenderIcon() {
+        const studentId = elStudent.value;
+        const icon = document.getElementById("student_gender_icon");
+
+        if (!studentId || !icon) return;
+
+        const student = allStudents.find(s => s.student_id == studentId);
+
+        if (!student || !student.gender) return;
+
+        const gender = student.gender.trim().toLowerCase();
+
+        if (gender === "male") {
+            icon.src = "https://img.icons8.com/?size=100&id=F9ipR5cXjxhq&format=png&color=000000";
+        }
+        else if (gender === "female") {
+            icon.src = "https://img.icons8.com/?size=100&id=Z6ZTBQJLLLWR&format=png&color=000000";
+        }
     }
 });
