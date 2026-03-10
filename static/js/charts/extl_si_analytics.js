@@ -278,10 +278,10 @@ document.addEventListener("DOMContentLoaded", function () {
             ],
             annotations: [
                 {
-                    x: 100, y: 9,
+                    x: 100, y: 9.3,
                     text: "<b>National Average SAS (100)</b>",
                     showarrow: false,
-                    font: {size:13, color:"#f5365c"},
+                    font: {size:14, color:"#ff7444"},
                 }
             ]
         };
