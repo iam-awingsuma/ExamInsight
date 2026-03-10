@@ -63,10 +63,19 @@ document.addEventListener("DOMContentLoaded", function () {
     // Load Students by Year Group
     function loadStudentsByYearGroup() {
         const yrgrp = elYrgrp.value;
+        const icon = document.getElementById("student_gender_icon");
 
         clearStudents();
 
+        if (!icon) return;
+
+        // no year group selected
+        // dropdown box is showing "All Year Groups"
         if (!yrgrp) {
+            // Show default icon
+            if (icon) {
+                icon.src = "https://img.icons8.com/?size=100&id=Gziha7xJGho9&format=png&color=000000";
+            }
             elStudent.disabled = true;
             return;
         }
@@ -90,7 +99,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const studentId = elStudent.value;
         const icon = document.getElementById("student_gender_icon");
 
-        if (!studentId || !icon) return;
+        if (!icon) return;
+
+        // If "All Students" selected → reset icon
+        if (!studentId) {
+            icon.src = "https://img.icons8.com/?size=100&id=Gziha7xJGho9&format=png&color=000000";
+            return;
+        }
 
         const student = allStudents.find(s => s.student_id == studentId);
 
