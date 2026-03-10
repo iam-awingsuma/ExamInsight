@@ -40,7 +40,8 @@
     <div id="c3" class="accordion-collapse collapse" data-bs-parent="#accorCohort">
       <div class="container-fluid px-0 mb-3">
         <div class="row g-0">
-          {% include "partials/extl_si_analytics_c.html" %}
+          <!-- filters for year group and students -->
+          {% include "partials/extl_si_analytics_c_filters.html" %}
         </div>
       </div>
     </div>
@@ -50,5 +51,5 @@
 {% endblock content %}
 
 {% block extra_js %}
-  
+    <script src="{{ url_for('static', filename='js/charts/extl_si_analytics_c.js') }}?v=4"></script>
 {% endblock %}
