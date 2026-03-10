@@ -1,7 +1,7 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
-<main class="container py-4">
+<main id="extl_si_analytics" class="container py-4" data-ngrt="ngrtb" data-chart="extl_ngrt_scatter">
   <div class="d-flex align-items-start justify-content-between mb-3">
     <div>
       <h5 class="h5 mb-1">📈 Analytics Dashboard - External Assessments - New Group Reading Test (Form-B)</h5>
@@ -52,8 +52,11 @@
           <!-- Reading profile card -->
           {% include "partials/extl_si_reading_profile.html" %}
 
+          <!-- Scatter Plot card -->
+          {% include "partials/extl_si_scatter_plot.html" %}
+
           <!-- Student performance over time cards -->
-          {% include "partials/extl_si_pot_ngrtb.html" %}
+          {% include "partials/extl_si_perf-over-time_ngrtb.html" %}
         </div>
       </div>
     </div>
@@ -63,5 +66,5 @@
 {% endblock content %}
 
 {% block extra_js %}
-    <script src="{{ url_for('static', filename='js/charts/extl_si_analytics_b.js') }}?v=4"></script>
+    <script src="{{ url_for('static', filename='js/charts/extl_si_analytics.js') }}?v=4"></script>
 {% endblock %}
