@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
             allStudents = data[dataset] || [];
             populateYearGroups(); // fill year group dropdown once data is loaded
             displayNgrtLevel(); // display NGRT level in the header
-            renderStanineScatter(); // draw graph immediately using all students
+            renderStanineScatter(); // draw graph and KPIs immediately using all students
         } catch (err) {
             console.error("Failed to load API data:", err);
         }
@@ -285,6 +285,59 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             ]
         };
+
+        // detect selected student
+        // let selectedStudent = null;
+
+        // if (studentId) {
+        //     selectedStudent = cohort.find(s => s.student_id == studentId);
+        // }
+
+        // // update KPIs
+        // renderKPIs(cohort, selectedStudent);
+
         Plotly.react(chartId, traces, layout, {displayModeBar: false, responsive:true});
+    }
+
+    // ---------------------------------------------
+    // Render KPIs for Student Insights External
+    // ---------------------------------------------
+    function renderKPIs(cohort = [], student = null) {
+        const set = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent =
+                (typeof val === "number" ? val.toFixed(0) : val ?? "-");
+        };
+
+        // student mode
+        if (student) {
+            set("kpi_total_value", 1);
+            set("kpi_sas", Number(student.sas));
+            set("kpi_stanine", Number(student.stanine));
+            set("kpi_progcat", student.progress_category || "-");
+            return;
+        }
+
+        // cohort mode
+        if (!cohort.length) {
+            set("kpi_total_value", 0);
+            set("kpi_sas", "-");
+            set("kpi_stanine", "-");
+            set("kpi_progcat", "-");
+            return;
+        }
+
+        const totalStudents = cohort.length;
+
+        const avgSAS =
+            cohort.reduce((sum, s) => sum + Number(s.sas || 0), 0) / totalStudents;
+
+        const avgStanine =
+            cohort.reduce((sum, s) => sum + Number(s.stanine || 0), 0) / totalStudents;
+
+        set("kpi_total_value", totalStudents);
+        set("kpi_sas", avgSAS);
+        set("kpi_stanine", avgStanine);
+        set("kpi_progcat", progress_category);
     }
 });
