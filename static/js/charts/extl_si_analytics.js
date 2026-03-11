@@ -2,7 +2,6 @@
 // Handles External Assessments - Student Insights NGRT-A
 // ---------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", function () {
-
     const main = document.getElementById("extl_si_analytics");
     // detect dataset and chart container
     const dataset = main?.getAttribute("data-ngrt") || "ngrta";
@@ -32,15 +31,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Year group change event
-    // elYrgrp.addEventListener("change", loadStudentsByYearGroup);
     elYrgrp.addEventListener("change", function(){
         loadStudentsByYearGroup();
-        renderStanineScatter();
+        updateDashboard();
     });
 
     elStudent.addEventListener("change", function(){
-        updateStudentGenderIcon();
-        renderStanineScatter();
+        updateDashboard();
     });
 
     // Load API Data
@@ -51,8 +48,8 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("API DATA:", data);
             allStudents = data[dataset] || [];
             populateYearGroups(); // fill year group dropdown once data is loaded
-            displayNgrtLevel(); // display NGRT level in the header
-            renderStanineScatter(); // draw graph and KPIs immediately using all students
+            displayNgrtLevel(); // display NGRT level in the headerz
+            updateDashboard(); // one function to display KPI, Scatter plot, Student highlights, gender icon
         } catch (err) {
             console.error("Failed to load API data:", err);
         }
@@ -110,9 +107,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // no year group selected, dropdown box is showing "All Year Groups"
         if (!yrgrp) {
-            // Show default icon
-            if (icon) { icon.src = "https://img.icons8.com/?size=100&id=Gziha7xJGho9&format=png&color=000000"; }
+            if (icon) {
+                icon.src = "https://img.icons8.com/?size=100&id=Gziha7xJGho9&format=png&color=000000";
+            }
             elStudent.disabled = true;
+            // show all students scatter
+            updateDashboard();
             return;
         }
 
@@ -129,9 +129,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         elStudent.disabled = false;
         
-        // reset graph when year group changes
-        Plotly.purge(chartId);
-        renderStanineScatter();
     }
 
     // update icon based on gender detection for students insights KPI
@@ -164,19 +161,24 @@ document.addEventListener("DOMContentLoaded", function () {
         const yrgrp = elYrgrp.value;
         const studentId = elStudent.value;
 
-        // Filter by year group if selected
-        let cohort = allStudents;      
-
-        if (yrgrp) {
-            cohort = allStudents.filter(s =>
+        const cohort = yrgrp
+            ? allStudents.filter(s =>
                 s.yrgrp &&
                 s.yrgrp.trim().toLowerCase() === yrgrp.trim().toLowerCase()
-            );
+            )
+            : allStudents;
+        
+            if (!cohort.length) {
+            Plotly.react(chartId, [], {
+                xaxis: {visible:false},
+                yaxis: {visible:false}
+            });
+            return;
         }
 
-        if (!cohort.length) return;
-
-        const x = [], y = [], names = [];
+        const x = cohort.map(s => Number(s.sas));
+        const y = cohort.map(s => Number(s.stanine));
+        const names = cohort.map(s => `${s.forename} ${s.surname}`);
 
         cohort.forEach(s => {
             x.push(Number(s.sas));
@@ -285,17 +287,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             ]
         };
-
-        // detect selected student
-        // let selectedStudent = null;
-
-        // if (studentId) {
-        //     selectedStudent = cohort.find(s => s.student_id == studentId);
-        // }
-
-        // // update KPIs
-        // renderKPIs(cohort, selectedStudent);
-
         Plotly.react(chartId, traces, layout, {displayModeBar: false, responsive:true});
     }
 
@@ -314,6 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
             set("kpi_total_value", 1);
             set("kpi_sas", Number(student.sas));
             set("kpi_stanine", Number(student.stanine));
+            // show student's progress category
             set("kpi_progcat", student.progress_category || "-");
             return;
         }
@@ -338,6 +330,60 @@ document.addEventListener("DOMContentLoaded", function () {
         set("kpi_total_value", totalStudents);
         set("kpi_sas", avgSAS);
         set("kpi_stanine", avgStanine);
-        set("kpi_progcat", progress_category);
+
+        // most common progress category
+        const categories = cohort
+            .map(s => s.progress_category)
+            .filter(Boolean);
+
+        let mostCommon = "-";
+
+        if (categories.length) {
+            const counts = {};
+            categories.forEach(cat => {
+                counts[cat] = (counts[cat] || 0) + 1;
+            });
+
+            mostCommon = Object.keys(counts).reduce((a, b) =>
+                counts[a] > counts[b] ? a : b
+            );
+        }
+
+        set("kpi_progcat", mostCommon);
+    }
+
+    // ---------------------------------------------
+    // Update Dashboard (KPIs + Chart + Student Icon)
+    // ---------------------------------------------
+    function updateDashboard() {
+
+        const yrgrp = elYrgrp.value;
+        const studentId = elStudent.value;
+
+        // Filter cohort
+        let cohort = allStudents;
+
+        if (yrgrp) {
+            cohort = allStudents.filter(s =>
+                s.yrgrp &&
+                s.yrgrp.trim().toLowerCase() === yrgrp.trim().toLowerCase()
+            );
+        }
+
+        // Detect selected student
+        let selectedStudent = null;
+
+        if (studentId) {
+            selectedStudent = cohort.find(s => String(s.student_id) === String(studentId));
+        }
+
+        // Update KPIs
+        renderKPIs(cohort, selectedStudent);
+
+        // Update gender icon
+        updateStudentGenderIcon();
+
+        // Render scatter plot
+        renderStanineScatter();
     }
 });
