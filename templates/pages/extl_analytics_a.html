@@ -63,5 +63,9 @@
 {% endblock content %}
 
 {% block extra_js %}
-    <script src="{{ url_for('static', filename='js/charts/extl_si_analytics.js') }}?v=4"></script>
+  <script src="{{ url_for('static', filename='js/extl_ai_interpretation.js') }}"></script>
+  <!-- <script>
+  const AI_API_URL = "{{ url_for('home_blueprint.api_interpret_external_performance') }}";
+  </script> -->
+  <script src="{{ url_for('static', filename='js/charts/extl_si_analytics.js') }}?v=4"></script>
 {% endblock %}
