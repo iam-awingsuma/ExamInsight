@@ -2028,8 +2028,6 @@ def api_yeargroup_attainment_by_class():
     return jsonify(yrgrp_payload)
 
 
-
-
 #*************************************************************
 #*** ChatGPT Interpretation API - Student Performance ***#
 #*************************************************************
@@ -2038,7 +2036,7 @@ def api_interpret_performance():
     """
     Generate AI interpretation of student performance data using ChatGPT.
     Accepts: student_id or yrgrp as query parameters
-    Returns: JSON with interpretation (max 5 sentences)
+    Returns: JSON with interpretation (max 10 sentences)
     """
     # Get parameters and remove extra-spaces
     yrgrp = request.args.get("yrgrp", "").strip()
@@ -2138,7 +2136,6 @@ def api_interpret_performance():
 def _format_data_for_chatgpt(rows, yrgrp=None, sid=None, student_name=None):
     """
     Format student performance data into a readable summary for ChatGPT.
-    
     Args:
         rows: InternalExam records to analyze
         yrgrp: Year group (optional)
@@ -2218,6 +2215,252 @@ Key Metrics:
 - Strongest subject: {max([(eng_avg, 'English'), (maths_avg, 'Maths'), (sci_avg, 'Science')])[1]}
 - Most improved: {max([(eng_progress, 'English'), (maths_progress, 'Maths'), (sci_progress, 'Science')])[1]}
 """
-    
     return summary
 
+#*************************************************************
+#*** ChatGPT Interpretation API - External Exam Performance ***
+#*************************************************************
+@blueprint.route("/api/interpret_external_performance", methods=["GET"])
+def api_interpret_external_performance():
+    """
+    Generate AI interpretation of external exam performance data
+    Supports datasets: ngrta, ngrtb, ngrtc
+    """
+    # Get parameters and remove extra-spaces
+    yrgrp = request.args.get("yrgrp", "").strip()
+    sid = request.args.get("student_id", "").strip()
+    dataset = request.args.get("dataset", "ngrta").strip().lower()
+
+    # Validate dataset
+    dataset_map = {
+        "ngrta": NGRTA,
+        "ngrtb": NGRTB,
+        "ngrtc": NGRTC,
+    }
+
+    if dataset not in dataset_map:
+        return jsonify({
+            "error": "Invalid dataset. Must be ngrta, ngrtb, or ngrtc."
+        }), 400
+
+    Model = dataset_map[dataset]
+
+    # Check OpenAI API key configuration
+    api_key = current_app.config.get('OPENAI_API_KEY')
+    if not api_key:
+        return jsonify({
+            "error": "OpenAI API key not configured.",
+            "interpretation": None
+        }), 500
+
+    # Query dataset
+    base_q = db.session.query(Model).join(
+        Students, Students.student_id == Model.student_id
+    )
+
+    if yrgrp:
+        base_q = base_q.filter(Students.yrgrp == yrgrp)
+    if sid:
+        base_q = base_q.filter(Model.student_id == sid)
+
+    rows = base_q.all()
+
+    if not rows:
+        return jsonify({
+            "error": "No data found for the specified criteria.",
+            "interpretation": None
+        }), 404
+
+    # Fetch student name
+    student_name = None
+    if sid:
+        student = db.session.query(Students).filter(
+            Students.student_id == sid
+        ).first()
+        if student:
+            student_name = f"{student.forename} {student.surname}"
+
+    # Format summary
+    data_summary = _format_external_data_for_chatgpt(
+        rows, dataset, yrgrp, sid, student_name
+    )
+
+    # Call OpenAI
+    try:
+        client = OpenAI(api_key=api_key)
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an educational data analyst specializing in student "
+                        "assessment interpretation. Provide concise actionable insights "
+                        "in exactly 10 sentences. Highlight attainment trends, strengths, "
+                        "areas for improvement, and suggested learning strategies."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Analyze this external exam data:\n\n{data_summary}\n\n"
+                        "Provide exactly 10 sentences of interpretation."
+                    )
+                }
+            ],
+            max_tokens=300,
+            temperature=0.7
+        )
+
+        interpretation = response.choices[0].message.content.strip()
+
+        return jsonify({
+            "interpretation": interpretation,
+            "dataset": dataset,
+            "student_id": sid if sid else None,
+            "student_name": student_name,
+            "yrgrp": yrgrp if yrgrp else None
+        })
+
+    except Exception as e:
+        return jsonify({
+            "error": f"OpenAI API error: {str(e)}",
+            "interpretation": None
+        }), 500
+
+# reading age parser
+def parse_reading_age(value):
+    """
+    Convert reading age format 'Y:MM' into decimal years.
+    Example: '6:07' -> 6.58
+    """
+    try:
+        if isinstance(value, str) and ":" in value:
+            years, months = value.split(":")
+            return int(years) + int(months) / 12
+        return float(value)
+    except:
+        return None
+
+def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, student_name=None):
+    """
+    Format NGRT external exam performance data into a readable summary for ChatGPT.
+    Args:
+        rows: External NGRT records (ngrta, ngrtb, ngrtc)
+        dataset: dataset name (ngrta/ngrtb/ngrtc)
+        yrgrp: Year group (optional)
+        sid: Student ID (optional)
+        student_name: Student full name (optional)
+    """
+
+    # Extract metrics
+    # stanines = [r.stanine for r in rows if getattr(r, "stanine", None) is not None]
+    stanines = [int(r.stanine) for r in rows if r.stanine is not None]
+
+    # standard_age_scores = [
+    #     r.sas
+    #     for r in rows
+    #     if getattr(r, "sas", None) is not None
+    # ]
+    standard_age_scores = [float(r.sas) for r in rows if r.sas is not None]
+
+    # reading_ages = [
+    #     r.reading_age
+    #     for r in rows
+    #     if getattr(r, "reading_age", None) is not None
+    # ]
+    reading_ages = [
+        parse_reading_age(r.reading_age)
+        for r in rows
+        if getattr(r, "reading_age", None) is not None
+    ]
+
+    # Safe average helper
+    def safe_avg(lst):
+        nums = [x for x in lst if isinstance(x, (int, float))]
+        return round(sum(nums) / len(nums), 2) if nums else 0
+
+    avg_stanine = safe_avg(stanines)
+    avg_sas = safe_avg(standard_age_scores)
+    avg_reading_age = safe_avg(reading_ages)
+
+    # Performance Bands (Stanine)
+    performance_bands = {
+        "Below Average": 0,
+        "Average": 0,
+        "Above Average": 0
+    }
+
+    for s in stanines:
+        if s <= 3:
+            performance_bands["Below Average"] += 1
+        elif s <= 6:
+            performance_bands["Average"] += 1
+        else:
+            performance_bands["Above Average"] += 1
+
+    # Progress Categories
+    prog_categories = {
+        # "Below Expected": 0,
+        "Lower than Expected": 0,
+        "Expected": 0,
+        # "Above Expected": 0
+        "Better than Expected": 0
+    }
+
+    for r in rows:
+        prog = getattr(r, "progress_category", None)
+        if prog:
+            normalized = prog.strip().title()
+            if "Lower" in normalized:
+                prog_categories["Lower than Expected"] += 1
+
+            elif "Better" in normalized:
+                prog_categories["Better than Expected"] += 1
+
+            elif "Expected" in normalized:
+                prog_categories["Expected"] += 1
+
+    # Context label
+    if sid and student_name:
+        context = f"Student: {student_name} (ID: {sid})"
+    elif sid:
+        context = f"Student ID: {sid}"
+    elif yrgrp:
+        context = f"YEAR GROUP {yrgrp}"
+    else:
+        context = "Cohort"
+
+    num_records = len(rows)
+
+    # Key indicators
+    strongest_band = max(performance_bands.items(), key=lambda x: x[1])[0]
+    dominant_progress = max(prog_categories.items(), key=lambda x: x[1])[0]
+
+    # Build summary
+    summary = f"""
+External Reading Assessment Analysis for {context} (n={num_records})
+Dataset: {dataset.upper() if dataset else "NGRT"}
+
+Attainment Metrics:
+- Average Stanine: {avg_stanine}
+- Average Age Standardised Score: {avg_sas}
+- Average Reading Age: {avg_reading_age}
+
+Stanine Performance Bands:
+- Below Average (1–3): {performance_bands['Below Average']}
+- Average (4–6): {performance_bands['Average']}
+- Above Average (7–9): {performance_bands['Above Average']}
+
+Progress Categories:
+- Lower than Expected: {prog_categories['Lower than Expected']}
+- Expected: {prog_categories['Expected']}
+- Better than Expected: {prog_categories['Better than Expected']}
+
+Key Indicators:
+- Dominant attainment band: {strongest_band}
+- Dominant progress category: {dominant_progress}
+"""
+
+    return summary

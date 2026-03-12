@@ -2,7 +2,6 @@
  * AI Performance Interpretation Module
  * Integrates ChatGPT analysis into student insights pages
  */
-
 class AIPerformanceInterpreter {
     constructor(options = {}) {
         this.apiEndpoint = '/api/interpret_performance';
