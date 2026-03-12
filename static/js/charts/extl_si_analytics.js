@@ -353,10 +353,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Update Dashboard (KPIs + Chart + Student Icon)
     // ---------------------------------------------
     function updateDashboard() {
-
         const yrgrp = elYrgrp.value;
         const studentId = elStudent.value;
-
         // Filter cohort
         let cohort = allStudents;
 
@@ -366,7 +364,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 s.yrgrp.trim().toLowerCase() === yrgrp.trim().toLowerCase()
             );
         }
-
         // Detect selected student
         let selectedStudent = null;
 
@@ -376,11 +373,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Update KPIs
         renderKPIs(cohort, selectedStudent);
-
         // Update gender icon
         updateStudentGenderIcon();
-
         // Render scatter plot
         renderStanineScatter();
+
+        // AI Interpretation upon page load xxx
+        // if (window.aiInterpreter) {
+        //     const params = {};
+        //     const student = document.getElementById("student")?.value;
+        //     const yrgrp = document.getElementById("yrgrp")?.value;
+
+        //     if (student) params.student_id = student;
+        //     if (yrgrp) params.yrgrp = yrgrp;
+
+        //     window.aiInterpreter.generateInterpretation(params);
+        // }
     }
 });
