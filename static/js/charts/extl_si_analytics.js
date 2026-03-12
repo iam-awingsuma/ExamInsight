@@ -27,7 +27,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Window resize event to make Plotly chart responsive
     window.addEventListener("resize", function () {
-        Plotly.Plots.resize(chartId);
+        const chart = document.getElementById(chartId);
+        if (chart) {
+            Plotly.Plots.resize(chart);
+        }
     });
 
     // Year group change event
@@ -179,12 +182,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const x = cohort.map(s => Number(s.sas));
         const y = cohort.map(s => Number(s.stanine));
         const names = cohort.map(s => `${s.forename} ${s.surname}`);
-
-        cohort.forEach(s => {
-            x.push(Number(s.sas));
-            y.push(Number(s.stanine));
-            names.push(`${s.forename} ${s.surname}`);
-        });
 
         const cohortTrace = {
             x: x, y: y,
