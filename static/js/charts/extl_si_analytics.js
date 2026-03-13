@@ -377,17 +377,5 @@ document.addEventListener("DOMContentLoaded", function () {
         updateStudentGenderIcon();
         // Render scatter plot
         renderStanineScatter();
-
-        // AI Interpretation upon page load xxx
-        // if (window.aiInterpreter) {
-        //     const params = {};
-        //     const student = document.getElementById("student")?.value;
-        //     const yrgrp = document.getElementById("yrgrp")?.value;
-
-        //     if (student) params.student_id = student;
-        //     if (yrgrp) params.yrgrp = yrgrp;
-
-        //     window.aiInterpreter.generateInterpretation(params);
-        // }
     }
 });
