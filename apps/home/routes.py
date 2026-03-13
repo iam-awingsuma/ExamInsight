@@ -2217,9 +2217,9 @@ Key Metrics:
 """
     return summary
 
-#*************************************************************
+#**************************************************************
 #*** ChatGPT Interpretation API - External Exam Performance ***
-#*************************************************************
+#**************************************************************
 @blueprint.route("/api/interpret_external_performance", methods=["GET"])
 def api_interpret_external_performance():
     """
