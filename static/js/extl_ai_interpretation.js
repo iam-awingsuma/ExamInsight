@@ -48,21 +48,54 @@ class AIExternalPerformanceInterpreter {
     // Button click handler
     init() {
         const button = document.querySelector(this.buttonSelector);
-
         if (!button) return;
 
         button.addEventListener("click", async () => {
-            const studentId = document.getElementById("student")?.value;
-            const yrgrp = document.getElementById("yrgrp")?.value;
+
+            const title = document.getElementById("ai_title");
+
+            const studentSelect = document.getElementById("student");
+            const yrgrpSelect = document.getElementById("yrgrp");
+
+            const studentId = studentSelect?.value;
+            const yrgrp = yrgrpSelect?.value;
+
             const params = {};
 
-            if (studentId) params.student_id = studentId;
-            if (yrgrp) params.yrgrp = yrgrp;
+            // dataset always included
+            params.dataset = this.dataset;
+
+            const datasetName =
+                this.dataset.slice(0, -1).toUpperCase() + "-" + this.dataset.slice(-1).toUpperCase();
+
+            // Student selected
+            if (studentId && studentId !== "all") {
+                params.student_id = studentId;
+                const studentName = studentSelect?.selectedOptions[0]?.text;
+                if (title) {
+                    title.textContent = `AI Analysis – ${studentName} (${datasetName})`;
+                }
+            }
+            // Year group selected
+            else if (yrgrp && yrgrp !== "all") {
+                params.yrgrp = yrgrp;
+                if (title) {
+                    title.textContent = `AI Analysis – Year ${yrgrp} Performance (${datasetName})`;
+                }
+            }
+            // Cohort (All Year Groups)
+            else {
+                if (title) {
+                    title.textContent = `AI Analysis – Cohort Performance (${datasetName})`;
+                }
+            }
 
             button.disabled = true;
 
             try {
                 await this.generateInterpretation(params);
+            } catch (error) {
+                console.error("AI analysis failed.", error);
             } finally {
                 button.disabled = false;
             }
@@ -146,13 +179,8 @@ class AIExternalPerformanceInterpreter {
 // Initialize automatically
 document.addEventListener("DOMContentLoaded", function () {
     // AI interpretation of cohort performance upon page load
-    // window.aiInterpreter = new AIExternalPerformanceInterpreter();
-    // window.aiInterpreter.init();
-
     const aiInterpreter = new AIExternalPerformanceInterpreter();
     aiInterpreter.init();
-    // Optional auto load
-    // aiInterpreter.initAutoLoad();
 });
 
 // Export for modules if needed

@@ -1952,11 +1952,6 @@ def api_yeargroup_attainment_by_class():
         for subj in subjects
     ]
 
-    # Class Progress (Expected + Above Expected, Above Expected only)
-    # class_progress_list = [
-    #     class_progress(getattr(InternalExam, f"{subj}_progcat"), CLASS_COL) for subj in subjects
-    # ]
-
     engCo, mathsCo, sciCo = cohort_progress_list
 
     (eng_total, eng_cnt_exp_above, eng_cnt_above_only,
@@ -2227,7 +2222,7 @@ def api_interpret_external_performance():
     Supports datasets: ngrta, ngrtb, ngrtc
     """
     # Get parameters and remove extra-spaces
-    yrgrp = request.args.get("yrgrp", "").strip()
+    yrgrp = request.args.get("yrgrp", "").strip().lower()
     sid = request.args.get("student_id", "").strip()
     dataset = request.args.get("dataset", "ngrta").strip().lower()
 
@@ -2265,11 +2260,18 @@ def api_interpret_external_performance():
 
     rows = base_q.all()
 
+    # if not rows:
+    #     return jsonify({
+    #         "error": "No data found for the specified criteria.",
+    #         "interpretation": None
+    #     }), 404
     if not rows:
         return jsonify({
-            "error": "No data found for the specified criteria.",
-            "interpretation": None
-        }), 404
+            "interpretation": "No assessment data is available for the selected student or cohort.",
+            "dataset": dataset,
+            "student_id": sid if sid else None,
+            "yrgrp": yrgrp if yrgrp else None
+        })
 
     # Fetch student name
     student_name = None
@@ -2355,21 +2357,10 @@ def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, 
     """
 
     # Extract metrics
-    # stanines = [r.stanine for r in rows if getattr(r, "stanine", None) is not None]
     stanines = [int(r.stanine) for r in rows if r.stanine is not None]
 
-    # standard_age_scores = [
-    #     r.sas
-    #     for r in rows
-    #     if getattr(r, "sas", None) is not None
-    # ]
     standard_age_scores = [float(r.sas) for r in rows if r.sas is not None]
 
-    # reading_ages = [
-    #     r.reading_age
-    #     for r in rows
-    #     if getattr(r, "reading_age", None) is not None
-    # ]
     reading_ages = [
         parse_reading_age(r.reading_age)
         for r in rows
@@ -2428,7 +2419,7 @@ def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, 
     elif sid:
         context = f"Student ID: {sid}"
     elif yrgrp:
-        context = f"YEAR GROUP {yrgrp}"
+        context = f"year group {yrgrp.strip().upper()}"
     else:
         context = "Cohort"
 
