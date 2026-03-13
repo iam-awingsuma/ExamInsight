@@ -104,7 +104,6 @@ class AIExternalPerformanceInterpreter {
         return queryParams.length ? "?" + queryParams.join("&") : "";
     }
 
-
     _showLoading() {
         const loading = document.querySelector(this.loadingSelector);
         const result = document.querySelector(this.resultSelector);
@@ -113,13 +112,11 @@ class AIExternalPerformanceInterpreter {
         if (result) result.style.display = "none";
     }
 
-
     _hideLoading() {
         const loading = document.querySelector(this.loadingSelector);
 
         if (loading) loading.style.display = "none";
     }
-
 
     _showResult(interpretation) {
         const result = document.querySelector(this.resultSelector);
@@ -129,7 +126,6 @@ class AIExternalPerformanceInterpreter {
 
         if (result) result.style.display = "block";
     }
-
 
     _showError(message) {
         const result = document.querySelector(this.resultSelector);
@@ -146,7 +142,6 @@ class AIExternalPerformanceInterpreter {
         if (result) result.style.display = "block";
     }
 }
-
 
 // Initialize automatically
 document.addEventListener("DOMContentLoaded", function () {
