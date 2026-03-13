@@ -71,7 +71,8 @@ class AIExternalPerformanceInterpreter {
             // Student selected
             if (studentId && studentId !== "all") {
                 params.student_id = studentId;
-                const studentName = studentSelect?.selectedOptions[0]?.text;
+                let studentName = studentSelect?.selectedOptions[0]?.text;
+                studentName = toTitleCase(studentName);
                 if (title) {
                     title.textContent = `AI Analysis: ${studentName} (${datasetName})`;
                 }
@@ -174,6 +175,12 @@ class AIExternalPerformanceInterpreter {
         }
         if (result) result.style.display = "block";
     }
+}
+
+function toTitleCase(name) {
+    return name
+        .toLowerCase()
+        .replace(/\b\w/g, letter => letter.toUpperCase());
 }
 
 // Initialize automatically
