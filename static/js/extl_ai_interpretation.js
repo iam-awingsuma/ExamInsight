@@ -73,20 +73,20 @@ class AIExternalPerformanceInterpreter {
                 params.student_id = studentId;
                 const studentName = studentSelect?.selectedOptions[0]?.text;
                 if (title) {
-                    title.textContent = `AI Analysis – ${studentName} (${datasetName})`;
+                    title.textContent = `AI Analysis: ${studentName} (${datasetName})`;
                 }
             }
             // Year group selected
             else if (yrgrp && yrgrp !== "all") {
                 params.yrgrp = yrgrp;
                 if (title) {
-                    title.textContent = `AI Analysis – Year ${yrgrp} Performance (${datasetName})`;
+                    title.textContent = `AI Analysis: Year ${yrgrp} Performance (${datasetName})`;
                 }
             }
             // Cohort (All Year Groups)
             else {
                 if (title) {
-                    title.textContent = `AI Analysis – Cohort Performance (${datasetName})`;
+                    title.textContent = `AI Analysis: Cohort Performance (${datasetName})`;
                 }
             }
 
