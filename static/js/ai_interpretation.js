@@ -48,16 +48,40 @@ class AIPerformanceInterpreter {
         if (!button) return;
 
         button.addEventListener('click', async () => {
+            const title = document.getElementById("ai_title");
+
+            const studentSelect = document.getElementById("student");
+            const yrgrpSelect = document.getElementById("yrgrp");
+
             // Get current filter values from page
             const studentId = document.getElementById('student')?.value;
             const yrgrp = document.getElementById('yrgrp')?.value;
             
             const params = {};
-            if (studentId) params.student_id = studentId;
-            if (yrgrp) params.yrgrp = yrgrp;
+
+            if (studentId && studentId !== "all") {
+                params.student_id = studentId;
+
+                let studentName = studentSelect?.selectedOptions[0]?.text;
+                studentName = toTitleCase(studentName);
+                
+                if (title) {
+                    title.textContent = `AI Analysis: ${studentName} ${yrgrp?.toUpperCase()}`;
+                }
+            }
+            else if (yrgrp && yrgrp !== "all") {
+                params.yrgrp = yrgrp;
+                if (title) {
+                    title.textContent = `AI Analysis: Year ${yrgrp?.toUpperCase()} Performance`;
+                }
+            }
+            else {
+                if (title) {
+                    title.textContent = `AI Analysis: Cohort Performance`;
+                }
+            }
             
             button.disabled = true;
-            
             try {
                 await this.generateInterpretation(params);
             } finally {
@@ -135,6 +159,12 @@ class AIPerformanceInterpreter {
     }
 }
 
+function toTitleCase(name) {
+    return name
+        .toLowerCase()
+        .replace(/\b\w/g, letter => letter.toUpperCase());
+}
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     // Create interpreter instance
@@ -142,10 +172,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize button handler
     aiInterpreter.init();
-    
-    // Optional: Enable auto-load functionality
-    // Uncomment the line below to auto-load interpretations when filters change
-    // aiInterpreter.initAutoLoad();
 });
 
 // Export for use in modules (if needed)
