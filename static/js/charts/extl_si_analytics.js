@@ -37,12 +37,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Year group change event
     elYrgrp.addEventListener("change", function(){
+        resetAIAndReadingProfile();
         loadStudentsByYearGroup();
         updateDashboard();
     });
 
     // Student selection change event
     elStudent.addEventListener("change", function(){
+        resetAIAndReadingProfile();
         updateDashboard();
     });
 
@@ -160,13 +162,55 @@ document.addEventListener("DOMContentLoaded", function () {
         else if (gender === "female") { icon.src = "https://img.icons8.com/?size=100&id=Z6ZTBQJLLLWR&format=png&color=000000"; }
     }
 
+    // Toggle reading profile card visibility based on student selection
     function toggleReadingProfileCard() {
+        // Get the currently selected student ID from the dropdown
         const studentId = elStudent.value;
+        // If a student is selected, show the Reading Profile card
         if (studentId && studentId !== "all") {
             rdgProfileCard.style.display = "block";
         } else {
+            // If "All Students" or no student is selected,
+            // hide the Reading Profile card
             rdgProfileCard.style.display = "none";
         }
+    }
+
+    // Reset AI Analysis and Reading Profile cards
+    function resetAIAndReadingProfile() {
+        // Reset AI interpretation text
+        const aiTextTitle = document.getElementById("ai-interpretation");
+        if (aiTextTitle) {
+            aiTextTitle.innerHTML = `<div class="rounded-3 p-3" style="background-color: #FFF7CD;"> <strong><i class="fas fa-lightbulb"></i>&nbsp;
+            <span class="text-info" id="ai_title"></span></strong><p id="interpretation-text" class="mb-0 mt-2 lh-base text-sm text-justify">
+            Click 'Generate AI Analysis' to interpret the results using AI.</p></div>`;
+        }
+
+        // Reset Reading Profile fields
+        const profileCategory = document.getElementById("rdg_profile_category");
+        const profileDescription = document.getElementById("rdg_profile_description");
+        const profileAI = document.getElementById("rdg_profile_ai_recommendations");
+
+        if (profileCategory) {
+            profileCategory.textContent = "Select a student & click 'Generate AI Analysis' to view their reading profile.";
+            profileCategory.classList.remove(
+                "badge",
+                "bg-gradient-danger",
+                "bg-gradient-info"
+            );
+        }
+
+        if (profileDescription) {
+            profileDescription.textContent = "Select a student & click 'Generate AI Analysis' to view their reading profile description.";
+        }
+
+        if (profileAI) {
+            profileAI.textContent = "Click 'Generate AI Analysis' to interpret the results using AI.";
+        }
+
+        // Hide loading spinner if it was active
+        const loading = document.getElementById("rdg_profile_loading");
+        if (loading) loading.style.display = "none";
     }
 
     // -------------------------------------

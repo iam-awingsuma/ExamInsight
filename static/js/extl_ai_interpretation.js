@@ -48,16 +48,16 @@ class AIExternalPerformanceInterpreter {
                     // reset previous badge styles
                     profileCategory.classList.remove(
                         "badge",
-                        "bg-gradient-warning",
+                        "bg-gradient-danger",
                         "bg-gradient-info"
                     );
                     if (!noProfile && (this.dataset === "ngrtb" || this.dataset === "ngrtc")) {
                         // profile exists for NGRT-B or NGRT-C
                         profileCategory.textContent = data.reader_profile;
-                        profileCategory.classList.add("badge", "bg-gradient-info", "px-2","py-1", "text-sm", "text-capitalize", "text-white");
+                        profileCategory.classList.add("badge", "bg-gradient-info", "px-2","py-1", "text-sm", "text-capitalize");
                     } else { // no profile for NGRT-A or missing reader profile
                         profileCategory.textContent = "No reading profile available for NGRT-A";
-                        profileCategory.classList.add("badge", "bg-gradient-danger", "px-2","py-1", "text-sm", "text-capitalize", "text-white");
+                        profileCategory.classList.add("badge", "bg-gradient-danger", "px-2","py-1", "text-sm", "text-capitalize");
                     }
                 }
 
