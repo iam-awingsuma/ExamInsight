@@ -2084,31 +2084,27 @@ def api_interpret_performance():
             messages=[
                 {
                     "role": "system",
-                    # "content": "You are an educational data analyst specializing in student performance interpretation. Provide concise, actionable insights in exactly 5 sentences or fewer. Focus on key patterns, strengths, areas for improvement, and forecasts."
-                    # "content": "You are an educational data analyst specializing in student performance interpretation. Provide concise, actionable insights in exactly 5 to 8 sentences. Focus on key trends and patterns in student attainment and progress, highlighting strengths, areas for improvement, and potential forecasts based on the data provided. Offer formative feedback to address knowledge gaps, areas to improve, support resources needed and learning strategies to adapt, as well as offer actionable insights for teachers. Use clear language suitable for educators and avoid technical jargon."
                     "content": (
-                        "You are an educational data analyst specializing in student performance interpretation. "
-                        "Provide concise, actionable insights in exactly 10 sentences. Focus on key trends and patterns "
-                        "in student attainment and progress, highlighting strengths, areas for improvement, and potential forecasts based on the data provided. "
-                        "Offer formative feedback to address knowledge gaps, areas to improve, support resources needed and learning strategies to adapt, "
-                        "as well as offer actionable insights for teachers. Use clear language suitable for educators and avoid technical jargon."
+                        "You are an educational data analyst interpreting student assessment data "
+                        "for teachers and school leaders. Focus on meaningful interpretation rather "
+                        "than repeating statistics. Identify attainment trends, strengths, learning "
+                        "gaps, and possible instructional responses. Provide practical classroom "
+                        "recommendations where relevant. Use clear professional language suitable "
+                        "for educators and avoid technical jargon. Write exactly 10 concise sentences."
                     )
                 },
                 {
                     "role": "user",
-                    # "content": f"Analyze this student performance data and provide a comprehensive interpretation and forecast:\n\n{data_summary}\n\nProvide your analysis in maximum 5 sentences."
                     "content": (
-                        f"Analyze this student performance data and provide a comprehensive interpretation and forecast:\n\n{data_summary}\n\n"
-                        "Provide concise, actionable insights in exactly 10 sentences. Focus on key trends and patterns "
-                        "in student attainment and progress, highlighting strengths, areas for improvement, and potential forecasts based on the data provided. "
-                        "Offer formative feedback to address knowledge gaps, areas to improve, support resources needed and learning strategies to adapt, "
-                        "as well as offer actionable insights for teachers. Use clear language suitable for educators and avoid technical jargon."
-                        "Provide your analysis in maximum 10 sentences."
+                        f"The following data summarizes student performance from an external assessment.\n\n"
+                        f"{data_summary}\n\n"
+                        "Interpret the results by identifying key trends, strengths, areas needing "
+                        "support, and possible learning strategies."
                     )
                 }
             ],
-            max_tokens=300,
-            temperature=0.7
+            max_tokens=250, # enough for 10 sentences
+            temperature=0.4 # more consistent analysis
         )
         
         interpretation = response.choices[0].message.content.strip()
@@ -2260,11 +2256,6 @@ def api_interpret_external_performance():
 
     rows = base_q.all()
 
-    # if not rows:
-    #     return jsonify({
-    #         "error": "No data found for the specified criteria.",
-    #         "interpretation": None
-    #     }), 404
     if not rows:
         return jsonify({
             "interpretation": "No assessment data is available for the selected student or cohort.",
@@ -2281,6 +2272,13 @@ def api_interpret_external_performance():
         ).first()
         if student:
             student_name = f"{student.forename} {student.surname}"
+    
+    # fetch reading profile of selected student
+    reader_profile = None
+    reading_profile = None
+    profile_description = None
+    if sid:
+        reading_profile = get_student_reading_profile(rows)
 
     # Format summary
     data_summary = _format_external_data_for_chatgpt(
@@ -2297,32 +2295,84 @@ def api_interpret_external_performance():
                 {
                     "role": "system",
                     "content": (
-                        "You are an educational data analyst specializing in student "
-                        "assessment interpretation. Provide concise actionable insights "
-                        "in exactly 10 sentences. Highlight attainment trends, strengths, "
-                        "areas for improvement, and suggested learning strategies."
+                        "You are an educational data analyst interpreting external assessment "
+                        "data such as NGRT reading tests. The data may represent an individual "
+                        "student, a year group, or an entire cohort. "
+                        "Provide insight into attainment levels, reading development, and "
+                        "learning implications for teachers. Identify strengths, areas needing "
+                        "support, and possible instructional strategies. "
+                        "Avoid simply repeating statistics; interpret what the numbers mean "
+                        "for learning and teaching. Write exactly 10 concise sentences."
                     )
                 },
                 {
                     "role": "user",
                     "content": (
-                        f"Analyze this external exam data:\n\n{data_summary}\n\n"
-                        "Provide exactly 10 sentences of interpretation."
+                        f"The following data summarizes results from an external reading assessment "
+                        f"(such as NGRT). The dataset may represent a student, a year group, or a "
+                        f"whole cohort depending on the filter selected.\n\n"
+                        f"{data_summary}\n\n"
+                        "Interpret the results by identifying attainment trends, strengths, "
+                        "possible areas for improvement, and suggested learning strategies. "
+                        "Write exactly 10 sentences."
                     )
                 }
             ],
-            max_tokens=300,
-            temperature=0.7
+            max_tokens=250, # enough for 10 sentences
+            temperature=0.4 # more consistent analysis
         )
 
         interpretation = response.choices[0].message.content.strip()
+
+        # Reading profile AI analysis/interpretation
+        profile_ai_interpretation = None
+
+        if sid and reading_profile:
+
+            profile_prompt = f"""
+            Reader Profile: {reading_profile.get("reader_profile")}
+            Profile Description: {reading_profile.get("profile_description")}
+
+            Explain what this reading profile means for the student's reading development
+            and suggest practical classroom strategies for teachers. Write exactly 3 sentences.
+            """
+
+            profile_response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are an educational reading specialist interpreting "
+                            "NGRT reading profiles. Explain what the profile means "
+                            "for the student's reading development and suggest "
+                            "practical teaching strategies."
+                        )
+                    },
+                    {
+                        "role": "user",
+                        "content": profile_prompt
+                    }
+                ],
+                max_tokens=120,
+                temperature=0.4
+            )
+
+            profile_ai_interpretation = profile_response.choices[0].message.content.strip()
+
+            # safely extract reader profile fields
+            reader_profile = reading_profile.get("reader_profile") if reading_profile else None
+            profile_description = reading_profile.get("profile_description") if reading_profile else None
 
         return jsonify({
             "interpretation": interpretation,
             "dataset": dataset,
             "student_id": sid if sid else None,
             "student_name": student_name,
-            "yrgrp": yrgrp if yrgrp else None
+            "yrgrp": yrgrp if yrgrp else None,
+            "reader_profile": reader_profile,
+            "profile_description": profile_description,
+            "profile_ai_interpretation": profile_ai_interpretation,
         })
 
     except Exception as e:
@@ -2344,6 +2394,31 @@ def parse_reading_age(value):
         return float(value)
     except:
         return None
+
+# reading profile extractor for selected student
+# (assumes rows belong to one student due to filtering)
+def get_student_reading_profile(rows):
+    """
+    Extract reading profile category and description for a single student.
+    Assumes rows belong to one student because student_id filter is applied.
+    """
+    reader_profile = None
+    profile_description = None
+
+    for r in rows:
+        reader_profile = getattr(r, "reader_profile", None)
+        profile_desc = getattr(r, "profile_desc", None)
+
+        if reader_profile or profile_desc:
+            return {
+                "reader_profile": reader_profile.strip() if reader_profile else None,
+                "profile_description": profile_desc.strip() if profile_desc else None
+            }
+
+    return {
+        "reader_profile": reader_profile,
+        "profile_description": profile_description
+    }
 
 def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, student_name=None):
     """

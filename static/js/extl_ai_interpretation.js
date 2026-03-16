@@ -9,7 +9,6 @@ class AIExternalPerformanceInterpreter {
     constructor(options = {}) {
 
         this.apiEndpoint = options.apiEndpoint || '/api/interpret_external_performance';
-
         this.loadingSelector = options.loadingSelector || '#ai-loading';
         this.resultSelector = options.resultSelector || '#ai-interpretation';
         this.buttonSelector = options.buttonSelector || '#ai-interpret-btn';
@@ -33,7 +32,47 @@ class AIExternalPerformanceInterpreter {
             if (!response.ok) {
                 throw new Error(data.error || "Failed to generate interpretation");
             }
+
+            // Show AI analysis/interpretation result
             this._showResult(data.interpretation);
+
+            // Update the reading profile card
+            const profileCategory = document.getElementById("rdg_profile_category");
+            const profileDescription = document.getElementById("rdg_profile_description");
+            const profileAI = document.getElementById("rdg_profile_ai_recommendations");
+            const profileResult = document.getElementById("rdg_profile_result");
+
+            if (data.student_id) {
+                if (profileCategory) {
+                    const noProfile = !data.reader_profile;
+                    // reset previous badge styles
+                    profileCategory.classList.remove(
+                        "badge",
+                        "bg-gradient-warning",
+                        "bg-gradient-info"
+                    );
+                    if (!noProfile && (this.dataset === "ngrtb" || this.dataset === "ngrtc")) {
+                        // profile exists for NGRT-B or NGRT-C
+                        profileCategory.textContent = data.reader_profile;
+                        profileCategory.classList.add("badge", "bg-gradient-info", "px-2","py-1", "text-sm", "text-capitalize", "text-white");
+                    } else { // no profile for NGRT-A or missing reader profile
+                        profileCategory.textContent = "No reading profile available for NGRT-A";
+                        profileCategory.classList.add("badge", "bg-gradient-danger", "px-2","py-1", "text-sm", "text-capitalize", "text-white");
+                    }
+                }
+
+                if (profileDescription) {
+                    profileDescription.textContent = data.profile_description || "No profile description available";
+                }
+
+                if (profileAI) {
+                    profileAI.textContent = data.profile_ai_interpretation || "No AI interpretation available for this reading profile";
+                }
+
+                if (profileResult) {
+                    profileResult.style.display = "block";
+                }
+            }
 
             return data;
 
@@ -144,12 +183,20 @@ class AIExternalPerformanceInterpreter {
 
         if (loading) loading.style.display = "block";
         if (result) result.style.display = "none";
+
+        const profileLoading = document.getElementById("rdg_profile_loading");
+        const profileResult = document.getElementById("rdg_profile_result");
+
+        if (profileLoading) profileLoading.style.display = "block";
+        if (profileResult) profileResult.style.display = "none";
     }
 
     _hideLoading() {
         const loading = document.querySelector(this.loadingSelector);
-
         if (loading) loading.style.display = "none";
+
+        const profileLoading = document.getElementById("rdg_profile_loading");
+        if (profileLoading) profileLoading.style.display = "none";
     }
 
     _showResult(interpretation) {

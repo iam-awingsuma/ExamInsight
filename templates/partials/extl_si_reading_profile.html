@@ -1,15 +1,32 @@
 <div class="bg-white border-0 rounded-3 shadow-sm p-3 mb-3">
     <div class="card-header mb-3">
-        <div class="card-title mb-0 text-uppercase font-weight-bolder text-primary">
+        <div class="card-title mb-0 text-uppercase fw-bolder text-primary">
             <div class="col-md-10 d-flex align-items-start gap-1">
                 <img class="me-1 mt-n1" width="48" height="48" src="https://img.icons8.com/?size=100&id=o4hVnyNT3g5Q&format=png&color=000000" 
                 alt="Reading Profile" title="Reading Profile"/>
                 <h5 class="text-body mb-0 mt-3 lh-1">
-                    <span class="text-uppercase text-primary font-weight-bolder">Reading Profile</span><br/>
+                    <span class="text-uppercase text-primary fw-bolder">Reading Profile</span><br/>
                 </h5>
             </div>
         </div>
     </div>
     <div class="card-body">
+        <!-- Loading Spinner -->
+        <div id="rdg_profile_loading" class="mt-1" style="display:none;">
+            <div class="spinner-border text-primary" role="status"></div>
+            <span class="ms-2 text-xs">Analysing reading profile data ...</span>
+        </div>
+        <!-- Reading Profile Result -->
+        <div id="rdg_profile_result" class="text-sm rounded-3 p-3 mt-1 mb-2 text-justify" style="display:none; background-color:#FFF7CD;">
+            <div class="fw-bold mb-2">Reader Profile:
+                <span id="rdg_profile_category"></span>
+            </div>
+            <div class="fw-bold mb-2">Profile Description:
+                <span id="rdg_profile_description" class="fw-normal"></span>
+            </div>
+            <div class="fw-bold">AI Analysis:
+                <span id="rdg_profile_ai_recommendations" class="fw-normal"></span>
+            </div>
+        </div>
     </div>
 </div>
