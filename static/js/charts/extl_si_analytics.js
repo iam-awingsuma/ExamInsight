@@ -11,6 +11,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const elYrgrp = document.getElementById("yrgrp");
     const elStudent = document.getElementById("student");
 
+    const rdgProfileCard = document.getElementById("rdg_profile_card");
+
     // Store API data once
     let allStudents = [];
     // Load API data
@@ -39,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateDashboard();
     });
 
+    // Student selection change event
     elStudent.addEventListener("change", function(){
         updateDashboard();
     });
@@ -155,6 +158,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (gender === "male") { icon.src = "https://img.icons8.com/?size=100&id=F9ipR5cXjxhq&format=png&color=000000"; }
         else if (gender === "female") { icon.src = "https://img.icons8.com/?size=100&id=Z6ZTBQJLLLWR&format=png&color=000000"; }
+    }
+
+    function toggleReadingProfileCard() {
+        const studentId = elStudent.value;
+        if (studentId && studentId !== "all") {
+            rdgProfileCard.style.display = "block";
+        } else {
+            rdgProfileCard.style.display = "none";
+        }
     }
 
     // -------------------------------------
@@ -377,5 +389,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updateStudentGenderIcon();
         // Render scatter plot
         renderStanineScatter();
+        // Toggle reading profile card
+        toggleReadingProfileCard();
     }
 });
