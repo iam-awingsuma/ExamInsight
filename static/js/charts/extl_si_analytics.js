@@ -405,6 +405,66 @@ document.addEventListener("DOMContentLoaded", function () {
         set("kpi_progcat", mostCommon);
     }
 
+    // -------------------------------------------------------------
+    // NGRT Line Graph (SAS + Stanine) - Attainment over Time
+    // -------------------------------------------------------------
+    function renderNgrtAttainmentLine(cohort = [], student = null) {
+        const labels = ["Previous", "Current"];
+
+        let prevSAS = 0, currSAS = 0;
+        let prevStanine = 0, currStanine = 0;
+
+        // Student mode - show individual student's progression
+        if (student) {
+            // student SAS and Stanine scores (use 0 if not available to avoid Plotly errors)
+            prevSAS = Number(student.prev_sas || 0);
+            currSAS = Number(student.sas || 0);
+            prevStanine = Number(student.prev_stanine || 0);
+            currStanine = Number(student.stanine || 0);
+        }
+        // Cohort / Year Group Mode - show average progression for the group
+        else if (cohort.length) {
+            const avg = (arr, key) => {
+                const vals = arr.map(x => Number(x[key] || 0));
+                return vals.length
+                    ? vals.reduce((a,b)=>a+b,0) / vals.length
+                    : 0;
+            };
+            // average previous and current SAS and Stanine for the cohort/year group
+            prevSAS = avg(cohort, "prev_sas");
+            currSAS = avg(cohort, "sas");
+            prevStanine = avg(cohort, "prev_stanine");
+            currStanine = avg(cohort, "stanine");
+        }
+
+        const traceSAS = [
+            {x: labels, y: [prevSAS, currSAS], type: "scatter", mode: "lines+markers", name: "SAS", marker: { color: "#0BA6DF" }, line: { width: 3 }},
+        ];
+
+        const traceStanine = [
+            {x: labels, y: [prevStanine, currStanine], type: "scatter", mode: "lines+markers", name: "Stanine", marker: { color: "#0BA6DF" }, line: { width: 3 }}
+        ];
+
+        const layout = {
+            margin: { t: 20, r: 20, b: 40, l: 50 },
+            // xaxis: { title: "<b>Assessment</b>" },
+            // yaxis: { title: "<b>Score</b>", rangemode: "tozero" },
+            legend: { orientation: "h" },
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)"
+        };
+
+        Plotly.react("chart_attainment_over_time", traceSAS, layout, {
+            displayModeBar: false,
+            responsive: true
+        });
+
+        Plotly.react("chart_progress_over_time", traceStanine, layout, {
+            displayModeBar: false,
+            responsive: true
+        });
+    }
+
     // ---------------------------------------------------------------------
     // Update Dashboard (KPIs + Chart + Student Icon + Reading Profile card)
     // ---------------------------------------------------------------------
@@ -433,6 +493,8 @@ document.addEventListener("DOMContentLoaded", function () {
         updateStudentGenderIcon();
         // Render scatter plot
         renderStanineScatter();
+        // Render attainment over time line graph
+        renderNgrtAttainmentLine(cohort, selectedStudent);
         // Toggle reading profile card
         toggleReadingProfileCard();
     }
