@@ -405,9 +405,9 @@ document.addEventListener("DOMContentLoaded", function () {
         set("kpi_progcat", mostCommon);
     }
 
-    // ---------------------------------------------
-    // Update Dashboard (KPIs + Chart + Student Icon)
-    // ---------------------------------------------
+    // ---------------------------------------------------------------------
+    // Update Dashboard (KPIs + Chart + Student Icon + Reading Profile card)
+    // ---------------------------------------------------------------------
     function updateDashboard() {
         const yrgrp = elYrgrp.value;
         const studentId = elStudent.value;
