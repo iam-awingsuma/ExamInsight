@@ -66,15 +66,28 @@ document.addEventListener("DOMContentLoaded", function () {
     // display NGRT level in the header
     function displayNgrtLevel() {
         const elLevel = document.getElementById("extl_ngrt_level");
-        if (!elLevel || !allStudents.length) return;
-        const level = allStudents[0].ngrt_level || "NGRT";
+        if (!elLevel) return;
+        if (!allStudents.length) {
+            elLevel.textContent = "NGRT";
+            return;
+        }
+        const rowWithLevel = allStudents.find(s => s.ngrt_level);
+        const level = rowWithLevel?.ngrt_level || "NGRT";
         elLevel.textContent = level;
+        console.log("NGRT Level displayed in header:", allStudents.find(s => s.ngrt_level)?.ngrt_level);
+    }
+
+    // Helper to convert string to Title Case (for progress categories)
+    function titleCase(s) {
+        return s.toLowerCase()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
     }
 
     // Populate Year Groups
     function populateYearGroups() {
         const yrgrpSet = new Set();
-
         allStudents.forEach(row => {
             if (row.yrgrp) {
                 yrgrpSet.add(row.yrgrp.trim().toUpperCase());
@@ -487,6 +500,94 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // -------------------------------------------------------------
+    // NGRT Bar Chart - Progress over Time (Progress Categories)
+    // -------------------------------------------------------------
+    function renderNgrtProgressBar(cohort = [], student = null) {
+        const labels = ["lower than expected", "expected", "better than expected"];
+        // initialize counts for each category to 0
+        const counts = {
+            "lower than expected": 0,
+            "expected": 0,
+            "better than expected": 0,
+        }; // default counts for the three categories
+
+        const displayLabels = labels.map(s => titleCase(s));
+
+        // Student mode - show individual student's progress category
+        if (student && student.progress_category) {
+            const cat = student.progress_category.trim().toLowerCase();
+            if (counts.hasOwnProperty(cat)) {
+                counts[cat] = 1;  // only 1 student
+            }
+        }
+
+        // Cohort / Year Group Mode - show distribution of progress categories for the group
+        else if (cohort.length) {
+            cohort.forEach(s => {
+                if (!s.progress_category) return;
+                const cat = s.progress_category.trim().toLowerCase();
+
+                if (counts.hasOwnProperty(cat)) {
+                    counts[cat]++;
+                }
+            });
+        }
+
+        const yValues = labels.map(l => counts[l]);
+        const total = yValues.reduce((a, b) => a + b, 0);
+
+        const percentages = yValues.map(v =>
+            total ? ((v / total) * 100).toFixed(1) : 0
+        );
+        
+        const trace = [{
+            x: labels.map(s => titleCase(s)), y: yValues, type: "bar", name: labels.map(s => titleCase(s)),
+            text: percentages.map(p => `${p}%`),
+            textposition:"outside",
+            marker: {
+                color: [
+                    "#FF5A5A",  // Lower → red
+                    "#FCB53B",  // Expected → yellow
+                    "#A7E399"   // Better → green
+                ]
+            },
+            customdata: yValues.map(() => total),
+            hovertemplate: "<b>%{y}/%{customdata}</b> students<extra></extra>",
+        }];
+        const layout = {
+            autosize: true,
+            width: null,
+            margin: { t: 10, r: 10, b: 50, l: 50 },
+            xaxis: {
+                title: "Progress Category",
+                categoryorder: "array",
+                categoryarray: labels,
+                tickvals: labels,
+                ticktext: displayLabels,
+                showspikes: false,
+            },
+            yaxis: {    
+                title: "Count",
+                rangemode: "tozero",
+            },
+            legend: { orientation: "h" },
+            barmode: 'group', bargap: 0, bargroupgap: 0.1,
+            hovermode: "x unified",
+            hoverlabel:{ bgcolor:"#fff", bordercolor:"#ccc", align:"left", namelength:0 },
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)"
+        };
+        Plotly.react("chart_extl_progcat", trace, layout, {
+            displayModeBar: false, responsive: true,
+        });
+
+        setTimeout(() => {
+            const chart = document.getElementById("chart_extl_progcat");
+            if (chart) Plotly.Plots.resize(chart);
+        }, 100);
+    }
+
     // ---------------------------------------------------------------------
     // Update Dashboard (KPIs + Chart + Student Icon + Reading Profile card)
     // ---------------------------------------------------------------------
@@ -517,6 +618,8 @@ document.addEventListener("DOMContentLoaded", function () {
         renderStanineScatter();
         // Render attainment over time line graph
         renderNgrtAttainmentLine(cohort, selectedStudent);
+        // Render progress category distribution bar chart
+        renderNgrtProgressBar(cohort, selectedStudent);
         // Toggle reading profile card
         toggleReadingProfileCard();
     }
