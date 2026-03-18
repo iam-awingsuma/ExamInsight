@@ -409,7 +409,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // NGRT Line Graph (SAS + Stanine) - Attainment over Time
     // -------------------------------------------------------------
     function renderNgrtAttainmentLine(cohort = [], student = null) {
-        const labels = ["Previous", "Current"];
+        const SASlabels = ["Previous SAS", "Latest SAS"];
+        const Staninelabels = ["Previous Stanine", "Latest Stanine"];
 
         let prevSAS = 0, currSAS = 0;
         let prevStanine = 0, currStanine = 0;
@@ -427,7 +428,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const avg = (arr, key) => {
                 const vals = arr.map(x => Number(x[key] || 0));
                 return vals.length
-                    ? vals.reduce((a,b)=>a+b,0) / vals.length
+                    ? Math.round(vals.reduce((a,b)=>a+b,0) / vals.length)
                     : 0;
             };
             // average previous and current SAS and Stanine for the cohort/year group
@@ -438,18 +439,24 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const traceSAS = [
-            {x: labels, y: [prevSAS, currSAS], type: "scatter", mode: "lines+markers", name: "SAS", marker: { color: "#0BA6DF" }, line: { width: 3 }},
+            {x: SASlabels, y: [prevSAS, currSAS], type: "scatter", mode: "lines+markers", name: "SAS", 
+                marker: { color: "#6FAF4F", size: 8 }, line: { color: "#A7E399", width: 2 }, 
+            hovertemplate: "<b>SAS</b><br><b>%{y}</b><extra></extra>"}
         ];
 
         const traceStanine = [
-            {x: labels, y: [prevStanine, currStanine], type: "scatter", mode: "lines+markers", name: "Stanine", marker: { color: "#0BA6DF" }, line: { width: 3 }}
+            {x: Staninelabels, y: [prevStanine, currStanine], type: "scatter", mode: "lines+markers", name: "Stanine", 
+                marker: { color: "#6FAF4F", size: 8 }, line: { color: "#A7E399", width: 2 }, 
+            hovertemplate: "<b>Stanine</b><br><b>%{y}</b><extra></extra>"}
         ];
 
         const layout = {
+            autosize: true,
+            width: null,
             margin: { t: 20, r: 20, b: 40, l: 50 },
-            // xaxis: { title: "<b>Assessment</b>" },
-            // yaxis: { title: "<b>Score</b>", rangemode: "tozero" },
             legend: { orientation: "h" },
+            hoverlabel:{ bgcolor:"#fff", bordercolor:"#ccc", align:"center" },
+            hovermode: "x unified",
             paper_bgcolor: "rgba(0,0,0,0)",
             plot_bgcolor: "rgba(0,0,0,0)"
         };
@@ -462,6 +469,21 @@ document.addEventListener("DOMContentLoaded", function () {
         Plotly.react("chart_progress_over_time", traceStanine, layout, {
             displayModeBar: false,
             responsive: true
+        });
+
+        const chart1 = document.getElementById("chart_attainment_over_time");
+        const chart2 = document.getElementById("chart_progress_over_time");
+
+        [chart1, chart2].forEach(chart => {
+            if (!chart) return;
+            // Initial resize charts to ensure they fit their containers
+            if (chart) Plotly.Plots.resize(chart);
+
+            // automatically resize charts when their container size changes
+            const observer = new ResizeObserver(() => {
+                Plotly.Plots.resize(chart);
+            });
+            observer.observe(chart);
         });
     }
 
