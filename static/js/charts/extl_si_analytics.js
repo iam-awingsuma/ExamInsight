@@ -55,8 +55,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await res.json();
             console.log("API DATA:", data);
             allStudents = data[dataset] || [];
+            updateAllNgrtLevels(); // display NGRT level in most chart/card header
             populateYearGroups(); // fill year group dropdown once data is loaded
-            displayNgrtLevel(); // display NGRT level in the headerz
             updateDashboard(); // one function to display KPI, Scatter plot, Student highlights, gender icon
         } catch (err) {
             console.error("Failed to load API data:", err);
@@ -64,17 +64,17 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // display NGRT level in the header
-    function displayNgrtLevel() {
-        const elLevel = document.getElementById("extl_ngrt_level");
-        if (!elLevel) return;
-        if (!allStudents.length) {
-            elLevel.textContent = "NGRT";
-            return;
-        }
-        const rowWithLevel = allStudents.find(s => s.ngrt_level);
-        const level = rowWithLevel?.ngrt_level || "NGRT";
-        elLevel.textContent = level;
-        console.log("NGRT Level displayed in header:", allStudents.find(s => s.ngrt_level)?.ngrt_level);
+    function getNgrtLevel() {
+        return allStudents.find(s => s.ngrt_level)?.ngrt_level || dataset.toUpperCase().replace("NGRT", "NGRT-");
+    }
+
+    // update all elements with class "extl_ngrt_level" to show the NGRT level (e.g. NGRT-A,B,C)
+    function updateAllNgrtLevels() {
+        const elements = document.querySelectorAll(".extl_ngrt_level");
+        const level = getNgrtLevel();
+        elements.forEach(el => {
+            el.textContent = level;
+        });
     }
 
     // Helper to convert string to Title Case (for progress categories)
