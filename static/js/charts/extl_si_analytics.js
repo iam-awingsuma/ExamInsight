@@ -265,10 +265,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     hovertemplate:
                         "<b>%{text}</b><br>SAS: %{x}<br>Stanine: %{y}<extra></extra>",
                     marker: {
-                        size: 18, color: "#f5365c",
-                        line: { width: 2, color: "#000" }
+                        size: 18, color: "#ED3F27",
+                        line: { width: 2, color: "#134686" }
                     },
-                    name: "<b><span style='color:#f5365c'>" + student.forename + " " + student.surname + "</span></b>" +
+                    name: "<b><span style='color:#008BFF'>" + student.forename + " " + student.surname + "</span></b>" +
                     "<b><span style='color:#008BFF'>" + " | Stanine: " + student.stanine + " | SAS: " + student.sas + "</span></b>",
                 });
             }
