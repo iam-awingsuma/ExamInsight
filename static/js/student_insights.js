@@ -81,6 +81,7 @@
     if (countEl) countEl.textContent = t.count ?? '—';
   }
 
+  // Performance over time line chart (Eng, Maths, Sci))
   function renderLine(line) {
     const labels = line.labels || ['Previous','Current'];
     const eng = line.english || [0,0];
@@ -99,6 +100,7 @@
     Plotly.newPlot('chart_line', traces, layout, {displayModeBar:false, responsive:true});
   }
 
+  // Performance bands bar chart (E/D, C, B, A, A*) - stacked by subject
   function renderBands(bands = {}) {
     const labels = bands.labels || ['E/D','C','B','A','A*'];
     const hasStacks = Array.isArray(bands.english) && Array.isArray(bands.maths) && Array.isArray(bands.science);
@@ -120,6 +122,7 @@
     }, {displayModeBar:false, responsive:true});
   }
 
+  // Progress categories bar chart (Below Expected, Expected, Above Expected) - stacked by subject
   function renderProgCats(progcats = {}) {
     // x-axis categories (order locked)
     const labels = progcats.labels || ['Below Expected', 'Expected', 'Above Expected'];
