@@ -441,13 +441,13 @@ document.addEventListener("DOMContentLoaded", function () {
         const traceSAS = [
             {x: SASlabels, y: [prevSAS, currSAS], type: "scatter", mode: "lines+markers", name: "SAS", 
                 marker: { color: "#6FAF4F", size: 8 }, line: { color: "#A7E399", width: 2 }, 
-            hovertemplate: "<b>SAS</b><br><b>%{y}</b><extra></extra>"}
+            hovertemplate: "<b>SAS: </b><b>%{y}</b><extra></extra>"}
         ];
 
         const traceStanine = [
             {x: Staninelabels, y: [prevStanine, currStanine], type: "scatter", mode: "lines+markers", name: "Stanine", 
                 marker: { color: "#6FAF4F", size: 8 }, line: { color: "#A7E399", width: 2 }, 
-            hovertemplate: "<b>Stanine</b><br><b>%{y}</b><extra></extra>"}
+            hovertemplate: "<b>Stanine: </b><b>%{y}</b><extra></extra>"}
         ];
 
         const layout = {
@@ -455,7 +455,7 @@ document.addEventListener("DOMContentLoaded", function () {
             width: null,
             margin: { t: 20, r: 20, b: 40, l: 50 },
             legend: { orientation: "h" },
-            hoverlabel:{ bgcolor:"#fff", bordercolor:"#ccc", align:"center" },
+            hoverlabel:{ bgcolor:"#fff", bordercolor:"#ccc", align:"left"},
             hovermode: "x unified",
             paper_bgcolor: "rgba(0,0,0,0)",
             plot_bgcolor: "rgba(0,0,0,0)"
