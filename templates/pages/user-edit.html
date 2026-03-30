@@ -6,8 +6,14 @@
         <div class="col-lg-8">
             <div class="card">
                 <div class="card-header pb-0">
-                    <h5 class="mb-0">📝 Edit User Information</h5>
-                    <p class="text-sm mb-0">Update user profile details.</p>
+                    <div class="d-flex align-items-start gap-1">
+                        <img class="me-1 mt-0" width="42" height="42" src="https://img.icons8.com/?size=100&id=93GdqgOETvkz&format=png&color=000000" 
+                            alt="Edit User Information" title="Edit User Information"/>
+                        <div class="d-flex-inline">
+                            <h5 class="mb-1">Edit User Information</h5>
+                            <div class="text-xs">Update user profile details</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
                     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -72,6 +78,5 @@
             </div>
         </div>
     </div>
-    {% include "includes/footer.html" %}
 </div>
 {% endblock content %}
