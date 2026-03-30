@@ -71,14 +71,56 @@ def _restrict_to_allowed_year_groups(query, class_col=Students.yrgrp):
     lowered = [code.lower() for code in allowed]
     return query.filter(func.lower(func.trim(class_col)).in_(lowered))
 
+def get_attainment_bundle():
+    def ge60_ge70_for(col): 
+        n, ge60, ge70 = db.session.query(
+            func.count(col),
+            func.sum(case((col >= 60, 1), else_=0)),
+            func.sum(case((col >= 70, 1), else_=0))
+        ).one()
+
+        n = int(n or 0)
+        ge60 = int(ge60 or 0)
+        ge70 = int(ge70 or 0)
+
+        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0
+        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0
+
+        return n, ge60, ge70, pct60, pct70
+
+    eng_n, eng60, eng70, eng_pct60, eng_pct70 = ge60_ge70_for(InternalExam.eng_currPct)
+    math_n, math60, math70, math_pct60, math_pct70 = ge60_ge70_for(InternalExam.maths_currPct)
+    sci_n, sci60, sci70, sci_pct60, sci_pct70 = ge60_ge70_for(InternalExam.sci_currPct)
+
+    # TABLE
+    attainment_table = [
+        {"subject": "English", "n": eng_n, "ge60_count": eng60, "ge60_pct": eng_pct60, "ge70_count": eng70, "ge70_pct": eng_pct70},
+        {"subject": "Maths", "n": math_n, "ge60_count": math60, "ge60_pct": math_pct60, "ge70_count": math70, "ge70_pct": math_pct70},
+        {"subject": "Science", "n": sci_n, "ge60_count": sci60, "ge60_pct": sci_pct60, "ge70_count": sci70, "ge70_pct": sci_pct70},
+    ]
+
+    # CHART
+    threshold_data = [
+        {"subject": "English", "n": eng_n, "ge60_count": eng60, "ge70_count": eng70, "ge60": eng_pct60, "ge70": eng_pct70},
+        {"subject": "Maths",   "n": math_n, "ge60_count": math60, "ge70_count": math70, "ge60": math_pct60, "ge70": math_pct70},
+        {"subject": "Science", "n": sci_n, "ge60_count": sci60, "ge70_count": sci70, "ge60": sci_pct60, "ge70": sci_pct70},
+    ]
+
+    return threshold_data, attainment_table
+
+#***********************************
+#*** Dashboard Analytics Routes ***#
+#***********************************
 @blueprint.route('/')
 @blueprint.route('/index')
 @login_required
 def index():
-    # return render_template('pages/index.html', segment='dashboard', parent="dashboard")
-    # logged_in = session.get('logged_in', False) # check if user is logged in for session management
-    return render_template('pages/index.html', segment='dashboard')
-
+    threshold_data, attainment_table = get_attainment_bundle()
+    return render_template(
+        'pages/index.html',
+        segment='dashboard',
+        threshold_data=threshold_data,
+    )
 
 #************************
 #*** Data Management ***#
@@ -1255,56 +1297,7 @@ def analytics_internal():
         "sci_curr": round(float(curr_avg_sci), 1),
     }
 
-    #*** Cohort ATTAINMENT Chart
-    # ≥60 for at/above curr std and ≥ 70 for above curr std
-    def ge60_ge70_for(col): 
-        # count non-null values in this column + how many meet each cut
-        n, ge60, ge70 = db.session.query(
-            func.count(col),  # counts non-null values only
-            func.sum(case((col >= 60, 1), else_=0)), # counts how many are >= 60
-            func.sum(case((col >= 70, 1), else_=0)) # counts how many are >= 70
-        ).one()
-
-        n = int(n or 0) # ensure n is int and not None
-        ge60 = int(ge60 or 0) # ensure ge60 is int and not None
-        ge70 = int(ge70 or 0) # ensure ge70 is int and not None
-        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0 # avoid division by zero; percentage for 60+
-        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0 # avoid division by zero; percentage for 70+
-        # return pct60, pct70
-        return n, ge60, ge70, pct60, pct70
-
-    eng_n, eng60, eng70, eng_pct60, eng_pct70 = ge60_ge70_for(InternalExam.eng_currPct) # compute English for current-year 60/70+
-    math_n, math60, math70, math_pct60, math_pct70 = ge60_ge70_for(InternalExam.maths_currPct) # compute Maths for current-year 60/70+
-    sci_n, sci60, sci70, sci_pct60, sci_pct70 = ge60_ge70_for(InternalExam.sci_currPct) # compute Science for current-year 60/70+
-
-    # table rows for attainment table
-    attainment_table = [
-        {
-            "subject": "English",
-            "n": eng_n,
-            "ge60_count": eng60, "ge60_pct": eng_pct60,
-            "ge70_count": eng70, "ge70_pct": eng_pct70,
-        },
-        {
-            "subject": "Maths",
-            "n": math_n,
-            "ge60_count": math60, "ge60_pct": math_pct60,
-            "ge70_count": math70, "ge70_pct": math_pct70,
-        },
-        {
-            "subject": "Science",
-            "n": sci_n,
-            "ge60_count": sci60, "ge60_pct": sci_pct60,
-            "ge70_count": sci70, "ge70_pct": sci_pct70,
-        },
-    ]
-
-     # payload for the thresholds chart (60+ and 70+) - cohort attainment
-    threshold_data = [
-        {"subject": "English", "ge60_count": eng60, "ge70_count": eng70, "ge60": eng_pct60, "ge70": eng_pct70}, # 60+ and 70+ for English
-        {"subject": "Maths", "ge60_count": math60, "ge70_count": math70, "ge60": math_pct60, "ge70": math_pct70}, # 60+ and 70+ for Maths
-        {"subject": "Science", "ge60_count": sci60, "ge70_count": sci70, "ge60": sci_pct60,  "ge70": sci_pct70}, # 60+ and 70+ for Science
-    ]
+    threshold_data, attainment_table = get_attainment_bundle() # take from helper function to get threshold data for the chart
 
     #*** Cohort PROGRESS Chart
     # For each subject, compute:
