@@ -1,20 +1,46 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
+<!-- Dashboard tabs for different groups -->
+<div class="ei-tabs-container mx-4 my-2">
+  <div class="ei-tabs">
+    <button class="ei-tab active" data-tab="internal">Internal</button>
+    <button class="ei-tab" data-tab="ngrta">NGRT-A</button>
+    <button class="ei-tab" data-tab="ngrtb">NGRT-B</button>
+    <button class="ei-tab" data-tab="ngrtc">NGRT-C</button>
+  </div>
+</div>
 
-<div class="container-fluid px-2 py-2">
+<div class="container-fluid py-0">
   <div class="row">
-    <div class="col-12">
-      <div class="card">
-        <!-- Cohort KPI cards-->
-        {% include "partials/ci_kpi.html" %}
+    <div class="col-12 m-0">
+      <!-- Cohort KPI cards-->
+      {% include "partials/ci_kpi.html" %}
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <div class="card-header pb-0">
+        <h6>Recent Student Activity</h6>
       </div>
     </div>
   </div>
 </div>
 {% endblock content %}
 
-
 {% block extra_js %}
+<script>
+// Tab switching logic
+const tabs = document.querySelectorAll(".ei-tab");
 
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    tabs.forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+
+    console.log("Selected:", tab.dataset.tab);
+  });
+});
+</script>
 {% endblock extra_js %}
