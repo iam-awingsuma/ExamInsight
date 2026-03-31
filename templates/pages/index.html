@@ -151,14 +151,17 @@
 
   <!-- Jinja data blobs -->
   <script id="chart-cohort-attainment" type="application/json">{{ threshold_data | default([]) | tojson | safe }}</script>
+  <script id="chart-cohort-progress" type="application/json">{{ progress_simple_data | default([]) | tojson | safe }}</script>
 
   <!-- chart globals -->
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_attainment.js') }}?v=3"></script>
+  <script src="{{ url_for('static', filename='js/charts/cohort_progress.js') }}?v=3"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      renderCohortAttainment();4
+      renderCohortAttainment();
+      renderCohortProgress();
     });
   </script>
 {% endblock extra_js %}

@@ -108,6 +108,60 @@ def get_attainment_bundle():
 
     return threshold_data, attainment_table
 
+def get_progress_data():
+    #*** Cohort PROGRESS Chart
+    # For each subject, compute:
+    # - %('expected') + %('above expected')
+    # - %('above expected')
+    def simple_progress(col):
+        """
+        Return 2 percentages for a progcat column:
+        - p_sum = %('expected') + %('above expected')
+        - p_above = %('above expected')
+        """
+        norm = func.lower(func.trim(col))  # normalise for safe matching
+
+        # total non-null rows for this subject's progcat
+        total = db.session.query(func.count(col)).scalar() or 0
+
+        # count of 'expected'
+        exp_cnt = db.session.query(
+            func.sum(case((norm == "expected", 1), else_=0))
+        ).scalar() or 0
+
+        # count of 'above expected'
+        above_cnt = db.session.query(
+            func.sum(case((norm == "above expected", 1), else_=0))
+        ).scalar() or 0
+
+        # count of expected and above (sum), and above only
+        cnt_exp_above = exp_cnt + above_cnt
+        cnt_above_only = above_cnt
+
+        # percentages (protect from divide-by-zero)
+        p_expected = round((exp_cnt / total * 100.0), 1) if total else 0.0
+        p_above    = round((above_cnt / total * 100.0), 1) if total else 0.0
+
+        # requested variables
+        p_sum        = round(p_expected + p_above, 1)  # Expected + Above Expected
+        p_above_only = p_above # Above Expected only (explicit name)
+
+        return total, cnt_exp_above, cnt_above_only, p_sum, p_above_only
+
+    # Compute per subject
+    eng_total, cnt_eng_exp_above, cnt_eng_above_only, eng_sum, eng_above_only = simple_progress(InternalExam.eng_progcat)
+    maths_total, cnt_maths_exp_above, cnt_maths_above_only, maths_sum, maths_above_only = simple_progress(InternalExam.maths_progcat)
+    sci_total, cnt_sci_exp_above, cnt_sci_above_only, sci_sum, sci_above_only = simple_progress(InternalExam.sci_progcat)
+
+    # Payload for the simple progress chart
+    progress_simple_data = [
+        {"subject": "English", "n": eng_total, "count_exp_above": cnt_eng_exp_above, "count_above_only": cnt_eng_above_only, "sum_expected_above": eng_sum,   "above_only": eng_above_only},
+        {"subject": "Maths", "n": maths_total, "count_exp_above": cnt_maths_exp_above, "count_above_only": cnt_maths_above_only, "sum_expected_above": maths_sum, "above_only": maths_above_only},
+        {"subject": "Science", "n": sci_total, "count_exp_above": cnt_sci_exp_above, "count_above_only": cnt_sci_above_only, "sum_expected_above": sci_sum,   "above_only": sci_above_only},
+    ]
+
+    return progress_simple_data
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -116,10 +170,13 @@ def get_attainment_bundle():
 @login_required
 def index():
     threshold_data, attainment_table = get_attainment_bundle()
+    progress_simple_data = get_progress_data()
+
     return render_template(
         'pages/index.html',
         segment='dashboard',
         threshold_data=threshold_data,
+        progress_simple_data=progress_simple_data,
     )
 
 #************************
@@ -1299,56 +1356,9 @@ def analytics_internal():
 
     threshold_data, attainment_table = get_attainment_bundle() # take from helper function to get threshold data for the chart
 
-    #*** Cohort PROGRESS Chart
-    # For each subject, compute:
-    # - %('expected') + %('above expected')
-    # - %('above expected')
-    def simple_progress(col):
-        """
-        Return 2 percentages for a progcat column:
-        - p_sum = %('expected') + %('above expected')
-        - p_above = %('above expected')
-        """
-        norm = func.lower(func.trim(col))  # normalise for safe matching
+    progress_simple_data = get_progress_data() # take from helper function to get progress data for the chart
 
-        # total non-null rows for this subject's progcat
-        total = db.session.query(func.count(col)).scalar() or 0
-
-        # count of 'expected'
-        exp_cnt = db.session.query(
-            func.sum(case((norm == "expected", 1), else_=0))
-        ).scalar() or 0
-
-        # count of 'above expected'
-        above_cnt = db.session.query(
-            func.sum(case((norm == "above expected", 1), else_=0))
-        ).scalar() or 0
-
-        # count of expected and above (sum), and above only
-        cnt_exp_above = exp_cnt + above_cnt
-        cnt_above_only = above_cnt
-
-        # percentages (protect from divide-by-zero)
-        p_expected = round((exp_cnt / total * 100.0), 1) if total else 0.0
-        p_above    = round((above_cnt / total * 100.0), 1) if total else 0.0
-
-        # requested variables
-        p_sum        = round(p_expected + p_above, 1)  # Expected + Above Expected
-        p_above_only = p_above # Above Expected only (explicit name)
-
-        return total, cnt_exp_above, cnt_above_only, p_sum, p_above_only
-
-    # Compute per subject
-    eng_total, cnt_eng_exp_above, cnt_eng_above_only, eng_sum, eng_above_only = simple_progress(InternalExam.eng_progcat)
-    maths_total, cnt_maths_exp_above, cnt_maths_above_only, maths_sum, maths_above_only = simple_progress(InternalExam.maths_progcat)
-    sci_total, cnt_sci_exp_above, cnt_sci_above_only, sci_sum, sci_above_only = simple_progress(InternalExam.sci_progcat)
-
-    # Payload for the simple progress chart
-    progress_simple_data = [
-        {"subject": "English", "n": eng_total, "count_exp_above": cnt_eng_exp_above, "count_above_only": cnt_eng_above_only, "sum_expected_above": eng_sum,   "above_only": eng_above_only},
-        {"subject": "Maths", "n": maths_total, "count_exp_above": cnt_maths_exp_above, "count_above_only": cnt_maths_above_only, "sum_expected_above": maths_sum, "above_only": maths_above_only},
-        {"subject": "Science", "n": sci_total, "count_exp_above": cnt_sci_exp_above, "count_above_only": cnt_sci_above_only, "sum_expected_above": sci_sum,   "above_only": sci_above_only},
-    ]
+    
 
     #*** Student ATTAINMENT Chart: Gender-specific 
     def _pct(n, d):
