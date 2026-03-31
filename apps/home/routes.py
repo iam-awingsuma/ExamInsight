@@ -162,6 +162,13 @@ def get_progress_data():
 
     return progress_simple_data
 
+def get_curr_average():
+    # Render Cohort averages of current year for English, Maths, Science (chart 1)
+    curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    curr_avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    return curr_avg_eng, curr_avg_maths, curr_avg_sci
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -169,14 +176,25 @@ def get_progress_data():
 @blueprint.route('/index')
 @login_required
 def index():
+    # Render cohort attainment data
     threshold_data, attainment_table = get_attainment_bundle()
+    # Render cohort progress data
     progress_simple_data = get_progress_data()
+    # Render cohort averages
+    avg_eng, avg_maths, avg_sci = get_curr_average()
+
+    # Total count of InternalExam intakes
+    count_intake = db.session.query(InternalExam).count()
 
     return render_template(
         'pages/index.html',
         segment='dashboard',
         threshold_data=threshold_data,
         progress_simple_data=progress_simple_data,
+        avg_eng=avg_eng,
+        avg_maths=avg_maths,
+        avg_sci=avg_sci,
+        count_intake=count_intake
     )
 
 #************************
@@ -1330,14 +1348,11 @@ def analytics_internal():
     # if you want a dict {yrgrp: count}
     counts_by_yrgrp = dict(rc_yrgrp)
     
-    #* KPIs: Y2 Cohort, Average Attainment for E/M/S
     # Total count of InternalExam intakes
     count_intake = db.session.query(InternalExam).count()
 
     # Render Cohort averages of current year for English, Maths, Science (chart 1)
-    curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
-    curr_avg_maths = round(db.session.query(func.avg(InternalExam.maths_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
-    curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
+    curr_avg_eng, curr_avg_maths, curr_avg_sci = get_curr_average()
 
     # averages for English, Maths, Science but for previous-year results
     prev_avg_eng = round(db.session.query(func.avg(InternalExam.eng_prevPct)).scalar() or 0, 1)

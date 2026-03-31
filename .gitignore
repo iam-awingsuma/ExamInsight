@@ -100,3 +100,8 @@ static/assets/csv/*.csv
 # User uploads
 static/assets/images/avatars/*
 !static/assets/images/avatars/.gitkeep
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
