@@ -35,7 +35,7 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     text: aboveOnly.map(v => `${Number(v).toFixed(1)}%`),
     textposition: "outside",
     customdata: customAboveOnly,
-    hovertemplate: "(%{x}, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<extra>made better progress</extra>"
+    hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>made better progress<extra></extra>"
   };
 
   const tExpectedAbove = {
@@ -47,7 +47,7 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     text: sumExpectedAbove.map(v => `${Number(v).toFixed(1)}%`),
     textposition: "outside",
     customdata: customExpectedAbove,
-    hovertemplate: "(%{x}, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<extra>made expected or better progress</extra>"
+    hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>made expected or better progress<extra></extra>"
   };
 
   Plotly.newPlot(

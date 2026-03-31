@@ -37,7 +37,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     text: ge70_pct.map(v => `${Number(v).toFixed(1)}%`),   // label with total ≥70%
     textposition: "outside",
     customdata: custom70,
-    hovertemplate: "(%{x}, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<extra>≥70% (above curriculum standard)</extra>"
+    hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>≥70% (above curriculum standard)<extra></extra>"
   };
 
   const t60 = {
@@ -50,7 +50,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     text: ge60_pct.map(v => `${Number(v).toFixed(1)}%`),   // label with total ≥60%
     textposition: "outside",
     customdata: custom60,
-    hovertemplate: "(%{x}, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<extra>≥60% (at/above curriculum standard)</extra>"
+    hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>≥60% (at/above curriculum standard)<extra></extra>"
   };
 
   Plotly.newPlot(
