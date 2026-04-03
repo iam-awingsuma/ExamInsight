@@ -23,7 +23,8 @@ document.addEventListener("DOMContentLoaded", function () {
     //   if (activeSection) {
     //     activeSection.classList.remove("d-none");
     //   }
-    // 🔥 resize Plotly AFTER showing
+    
+    // resize Plotly AFTER showing
     setTimeout(() => {
     if (target === "internal") {
         Plotly.Plots.resize("chart_cohort_attainment");

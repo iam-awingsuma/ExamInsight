@@ -10,8 +10,8 @@
 .ei-tab {
   border: none;
   padding: 8px 18px;
-  background: #fff;
-  color: #6b7280;
+  background: #bde8f5;
+  color: black;
   font-size: small;
   font-weight: 500;
   cursor: pointer;
@@ -41,7 +41,12 @@
 
 /* Hover */
 .ei-tab:hover:not(.active) {
-  background: #bde8f5;
+  background: #FEFDDF;
+  color: black;
+}
+
+.ei-tab:hover {
+  background: #FEFDDF;
   color: black;
 }
 
