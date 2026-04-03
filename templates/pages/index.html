@@ -26,6 +26,7 @@
   <!-- Jinja data blobs -->
   <script id="chart-cohort-attainment" type="application/json">{{ threshold_data | default([]) | tojson | safe }}</script>
   <script id="chart-cohort-progress" type="application/json">{{ progress_simple_data | default([]) | tojson | safe }}</script>
+  
   <!-- data blob for scatter plot is passed via window.internalScatterData in the script below -->
   <script>
     window.internalScatterData = {{ internal_scatter_data | tojson | safe }};

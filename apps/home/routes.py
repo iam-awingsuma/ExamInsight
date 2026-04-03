@@ -230,6 +230,70 @@ def get_avg_attainment_by_year():
 
     return data
 
+# Dashboard AI Performance Insights
+# fetch insights from external API endpoint
+def generate_internal_insights():
+    # from openai import OpenAI
+    client = OpenAI()
+
+    avg_eng, avg_maths, avg_sci = get_curr_average()
+    total_students = db.session.query(InternalExam).count()
+
+    prompt = f"""
+You are an educational data analyst.
+
+Analyse the following cohort performance data.
+
+DATA:
+- English Average: {avg_eng:.2f}%
+- Maths Average: {avg_maths:.2f}%
+- Science Average: {avg_sci:.2f}%
+- Total Students: {total_students}
+
+Return ONLY valid JSON in this format:
+
+{{
+  "strengths": ["...", "..."],
+  "concerns": ["...", "..."],
+  "recommendations": ["...", "...", "..."]
+}}
+
+RULES:
+- Exactly 2 strengths
+- Exactly 2 concerns
+- Exactly 3 recommendations (full sentences)
+- No extra text, no explanation, JSON only
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are an expert in school performance analysis."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.4
+    )
+
+    import json
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        parsed = json.loads(content)
+    except:
+        # fallback (important for stability)
+        parsed = {
+            "strengths": ["Data unavailable", "Data unavailable"],
+            "concerns": ["Data unavailable", "Data unavailable"],
+            "recommendations": [
+                "Review assessment data.",
+                "Ensure data accuracy.",
+                "Re-run analysis."
+            ]
+        }
+
+    return parsed
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -253,6 +317,9 @@ def index():
     # Fetch data for the average year-group attainment chart
     avg_attainment_by_year = get_avg_attainment_by_year()
 
+    # Fetch AI-generated insights for internal assessments
+    ai_internal_insights = generate_internal_insights()
+
     return render_template(
         'pages/index.html',
         segment='dashboard',
@@ -264,6 +331,9 @@ def index():
         count_intake=count_intake,
         internal_scatter_data = internal_scatter_data,
         avg_attainment_by_year = avg_attainment_by_year,
+        ai_strengths = ai_internal_insights["strengths"],
+        ai_concerns = ai_internal_insights["concerns"],
+        ai_recommendations = ai_internal_insights["recommendations"],
     )
 
 #************************
