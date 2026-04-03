@@ -169,6 +169,35 @@ def get_curr_average():
     curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
     return curr_avg_eng, curr_avg_maths, curr_avg_sci
 
+def get_internal_scatter_data():
+    rows = (
+        db.session.query(
+            Students.student_id,
+            Students.forename,
+            Students.surname,
+            Students.yrgrp,
+            InternalExam.eng_currGr,
+            InternalExam.maths_currGr,
+            InternalExam.sci_currGr
+        )
+        .join(InternalExam, InternalExam.student_id == Students.student_id)
+        .all()
+    )
+
+    data = []
+    for r in rows:
+        data.append({
+            "student_id": r.student_id,
+            "forename": r.forename,
+            "surname": r.surname,
+            "yrgrp": (r.yrgrp or "").upper(),
+            "eng_currGr": r.eng_currGr,
+            "maths_currGr": r.maths_currGr,
+            "sci_currGr": r.sci_currGr,
+        })
+
+    return data
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -186,6 +215,8 @@ def index():
     # Total count of InternalExam intakes
     count_intake = db.session.query(InternalExam).count()
 
+    internal_scatter_data = get_internal_scatter_data()
+
     return render_template(
         'pages/index.html',
         segment='dashboard',
@@ -194,7 +225,8 @@ def index():
         avg_eng=avg_eng,
         avg_maths=avg_maths,
         avg_sci=avg_sci,
-        count_intake=count_intake
+        count_intake=count_intake,
+        internal_scatter_data = internal_scatter_data,
     )
 
 #************************

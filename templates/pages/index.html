@@ -5,9 +5,7 @@
 <div class="ei-tabs-container mx-4 my-2">
   <div class="ei-tabs">
     <button class="ei-tab active" data-tab="internal">Internal</button>
-    <button class="ei-tab" data-tab="ngrta">NGRT-A</button>
-    <button class="ei-tab" data-tab="ngrtb">NGRT-B</button>
-    <button class="ei-tab" data-tab="ngrtc">NGRT-C</button>
+    <button class="ei-tab" data-tab="ngrt">NGRT</button>
   </div>
 </div>
 
@@ -16,17 +14,10 @@
   {% include "partials/dashboard_internal.html" %}
 </div>
 
-<div id="section-ngrta" class="tab-section d-none">
-  <div class="p-3">📊 Sample text for NGRT-A</div>
+<div id="section-ngrt" class="tab-section d-none">
+  <div class="p-3">📊 Sample text for NGRT</div>
 </div>
 
-<div id="section-ngrtb" class="tab-section d-none">
-  <div class="p-3">📈 Sample text for NGRT-B</div>
-</div>
-
-<div id="section-ngrtc" class="tab-section d-none">
-  <div class="p-3">📚 Sample text for NGRT-C</div>
-</div>
 {% endblock content %}
 
 {% block extra_js %}
@@ -35,16 +26,22 @@
   <!-- Jinja data blobs -->
   <script id="chart-cohort-attainment" type="application/json">{{ threshold_data | default([]) | tojson | safe }}</script>
   <script id="chart-cohort-progress" type="application/json">{{ progress_simple_data | default([]) | tojson | safe }}</script>
+  <!-- data blob for scatter plot is passed via window.internalScatterData in the script below -->
+  <script>
+    window.internalScatterData = {{ internal_scatter_data | tojson | safe }};
+  </script>  
 
   <!-- chart globals -->
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_attainment.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_progress.js') }}?v=3"></script>
+  <script src="{{ url_for('static', filename='js/charts/dashboard_charts.js') }}"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       renderCohortAttainment();
       renderCohortProgress();
+      renderInternalScatter();
     });
   </script>
 {% endblock extra_js %}

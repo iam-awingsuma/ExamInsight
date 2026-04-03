@@ -100,9 +100,9 @@
     Plotly.newPlot('chart_line', traces, layout, {displayModeBar:false, responsive:true});
   }
 
-  // Performance bands bar chart (E/D, C, B, A, A*) - stacked by subject
+  // Performance bands bar chart (D/E, C, B, A, A*) - stacked by subject
   function renderBands(bands = {}) {
-    const labels = bands.labels || ['E/D','C','B','A','A*'];
+    const labels = bands.labels || ['D/E','C','B','A','A*'];
     const hasStacks = Array.isArray(bands.english) && Array.isArray(bands.maths) && Array.isArray(bands.science);
     const toNums = arr => (arr || []).map(v => (typeof v==='number'?v:Number(v)||0));
 
