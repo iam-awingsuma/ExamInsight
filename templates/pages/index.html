@@ -29,19 +29,26 @@
   <!-- data blob for scatter plot is passed via window.internalScatterData in the script below -->
   <script>
     window.internalScatterData = {{ internal_scatter_data | tojson | safe }};
-  </script>  
+  </script>
+  
+  <!-- data blob for year-group average attainment chart -->
+  <script>
+    window.avgByYearData = {{ avg_attainment_by_year | tojson | safe }};
+  </script>
 
   <!-- chart globals -->
   <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_attainment.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_progress.js') }}?v=3"></script>
-  <script src="{{ url_for('static', filename='js/charts/dashboard_charts.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/charts/dashboard_gr_distri_scatter.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/charts/dashboard_avg_att_yrgrp.js') }}"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       renderCohortAttainment();
       renderCohortProgress();
       renderInternalScatter();
+      renderYearGroupAttainment();
     });
   </script>
 {% endblock extra_js %}

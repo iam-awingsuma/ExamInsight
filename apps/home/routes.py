@@ -169,6 +169,7 @@ def get_curr_average():
     curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
     return curr_avg_eng, curr_avg_maths, curr_avg_sci
 
+# Fetch data for the internal assessment scatter plot
 def get_internal_scatter_data():
     rows = (
         db.session.query(
@@ -198,6 +199,37 @@ def get_internal_scatter_data():
 
     return data
 
+# Fetch average attainment by year-group/class for English, Maths, Science
+# ... used for attainment by year-group table and chart
+def get_avg_attainment_by_year():
+    rows = (
+        db.session.query(
+            Students.yrgrp,
+            func.avg(InternalExam.eng_currPct),
+            func.avg(InternalExam.maths_currPct),
+            func.avg(InternalExam.sci_currPct)
+        )
+        .join(InternalExam, InternalExam.student_id == Students.student_id)
+        .group_by(Students.yrgrp)
+        .all()
+    )
+
+    data = []
+
+    for r in rows:
+        data.append({
+            "yrgrp": (r[0] or "").upper(),
+            "eng_avg": float(r[1] or 0),
+            "maths_avg": float(r[2] or 0),
+            "sci_avg": float(r[3] or 0),
+        })
+
+    # sort in correct order
+    order = ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F"]
+    data.sort(key=lambda x: order.index(x["yrgrp"]) if x["yrgrp"] in order else 999)
+
+    return data
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -215,7 +247,11 @@ def index():
     # Total count of InternalExam intakes
     count_intake = db.session.query(InternalExam).count()
 
+    # Fetch data for the internal assessment scatter plot
     internal_scatter_data = get_internal_scatter_data()
+
+    # Fetch data for the average year-group attainment chart
+    avg_attainment_by_year = get_avg_attainment_by_year()
 
     return render_template(
         'pages/index.html',
@@ -227,6 +263,7 @@ def index():
         avg_sci=avg_sci,
         count_intake=count_intake,
         internal_scatter_data = internal_scatter_data,
+        avg_attainment_by_year = avg_attainment_by_year,
     )
 
 #************************
