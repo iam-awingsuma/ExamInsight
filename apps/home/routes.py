@@ -108,6 +108,9 @@ def get_attainment_bundle():
 
     return threshold_data, attainment_table
 
+#----------------------------------------------
+# Internal Assessments for Dashboard Analytics
+#----------------------------------------------
 def get_progress_data():
     #*** Cohort PROGRESS Chart
     # For each subject, compute:
@@ -162,6 +165,7 @@ def get_progress_data():
 
     return progress_simple_data
 
+# return average of English, Maths, Science current percentages for the cohort (used for chart and AI insights)
 def get_curr_average():
     # Render Cohort averages of current year for English, Maths, Science (chart 1)
     curr_avg_eng = round(db.session.query(func.avg(InternalExam.eng_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
@@ -294,6 +298,27 @@ RULES:
 
     return parsed
 
+#-------------------------------------------
+# NGRT Assessments for Dashboard Analytics
+#-------------------------------------------
+# return average of total intake from 3 NGRT assessments
+def get_ngrt_intake_average():
+    values = [
+        db.session.query(func.count(NGRTA.id)).scalar() or 0,
+        db.session.query(func.count(NGRTB.id)).scalar() or 0,
+        db.session.query(func.count(NGRTC.id)).scalar() or 0
+    ]
+
+    return sum(values) / len(values) if values else 0
+
+# return average stanine of three NGRT assessments
+def get_avg_ngrt_stanine():
+    avg_stanine_a = db.session.query(func.avg((func.coalesce(NGRTA.stanine, 0)))).scalar() or 0
+    avg_stanine_b = db.session.query(func.avg((func.coalesce(NGRTB.stanine, 0)))).scalar() or 0
+    avg_stanine_c = db.session.query(func.avg((func.coalesce(NGRTC.stanine, 0)))).scalar() or 0
+
+    return (round(avg_stanine_a,0), round(avg_stanine_b,0), round(avg_stanine_c,0))
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -320,6 +345,12 @@ def index():
     # Fetch AI-generated insights for internal assessments
     ai_internal_insights = generate_internal_insights()
 
+    # Total average count of NGRT intakes
+    avg_ngrt_intake = get_ngrt_intake_average()
+
+    # Fetch average NGRT stanine for each of the three assessments
+    avg_stanine_a, avg_stanine_b, avg_stanine_c = get_avg_ngrt_stanine()
+
     return render_template(
         'pages/index.html',
         segment='dashboard',
@@ -329,11 +360,15 @@ def index():
         avg_maths=avg_maths,
         avg_sci=avg_sci,
         count_intake=count_intake,
+        avg_ngrt_intake=avg_ngrt_intake,
         internal_scatter_data = internal_scatter_data,
         avg_attainment_by_year = avg_attainment_by_year,
         ai_strengths = ai_internal_insights["strengths"],
         ai_concerns = ai_internal_insights["concerns"],
         ai_recommendations = ai_internal_insights["recommendations"],
+        avg_stanine_a = avg_stanine_a,
+        avg_stanine_b = avg_stanine_b,
+        avg_stanine_c = avg_stanine_c,
     )
 
 #************************

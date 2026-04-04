@@ -1,0 +1,158 @@
+<div class="container-fluid py-0">
+    <!-- KPI-Average Attainment, Internal Assessment E/M/S -->
+    <div class="row mb-2">
+        <div class="col-12 m-0">
+        <!-- Cohort KPI cards-->
+        {% include "partials/ci_kpi_ngrt.html" %}
+        </div>
+    </div>
+
+    <div class="row g-2 align-items-stretch mb-2">
+        <!-- Dashboard column/barchart - Cohort Attainment -->
+        <div class="col-lg-4 col-md-4 col-sm-12">
+        <div class="card h-100 chart-card">
+            <div class="card-body d-flex flex-column">
+            <div class="row">
+                <div class="d-flex align-items-start gap-1">
+                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000" 
+                    alt="Cohort Attainment" title="Cohort Attainment"/>
+                <div class="d-flex-inline">
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Cohort Attainment</h5>
+                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
+                </div>
+                </div>
+            </div>
+            <div class="chart-body mt-1 mx-n3">
+                <div id="chart_cohort_attainment" class="w-100" style="height:360px;"></div>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Dashboard column/bar chart - Progress Distribution -->
+        <div class="col-lg-4 col-md-4 col-sm-12">
+        <div class="card h-100 chart-card">
+            <div class="card-body d-flex flex-column">
+            <div class="row">
+                <div class="d-flex align-items-start gap-1">
+                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000" 
+                    alt="Progress Distribution" title="Progress Distribution"/>
+                <div class="d-flex-inline">
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Cohort Progress</h5>
+                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
+                </div>
+                </div>
+            </div>
+            <div class="chart-body mt-1 mx-n3">
+                <div id="chart_cohort_progress" class="w-100" style="height:360px;"></div>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Dashboard - AI Performance Insights -->
+        <div class="col-lg-4 col-md-4 col-sm-12">
+            <div class="card h-100 chart-card ps-3 pt-3">
+                <div class="col-md-10 d-flex align-items-start gap-2 mb-2">
+                    <img width="42" height="42" src="https://img.icons8.com/?size=100&id=ws4pu3LRfits&format=png&color=000000" 
+                    alt="AI Performance Insights" title="AI Performance Insights"/>
+                    <h5 class="text-body mb-0 mt-2">
+                        <span class="text-uppercase text-info font-weight-bolder">Performance Insights</span>
+                    </h5>
+                </div>
+                <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-1" style="background-color: #DDF6D2; height: auto !important;">
+                    <div class="d-flex align-items-end gap-2 mb-2">
+                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=7Zk9m4C4u82V&format=png&color=000000" 
+                        alt="AI Recommendations" title="AI Recommendations"/>
+                        <h6 class="text-body mb-0 mt-1">
+                            <span class="text-success font-weight-bolder">Strengths</span>
+                        </h6>
+                    </div>
+                    <div>
+                        <ul class="text-xs text-muted lh-sm">
+                            {% for s in ai_strengths %}
+                                <li>{{ s }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-1" style="background-color: #FFF0CE; height: auto !important;">
+                    <div class="d-flex align-items-end gap-2 mb-2">
+                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=7svKOkN1CiaR&format=png&color=000000" 
+                        alt="AI Recommendations" title="AI Recommendations"/>
+                        <h6 class="text-body mb-0 mt-1">
+                            <span class="text-danger font-weight-bolder">Concerns</span>
+                        </h6>
+                    </div>
+                    <div>
+                        <ul class="text-xs text-muted lh-sm">
+                            {% for c in ai_concerns %}
+                                <li>{{ c }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-3" style="background-color: #FEFDDF; height: auto !important;">
+                    <div class="d-flex align-items-end gap-2 mb-2">
+                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=w5vsJopX73g7&format=png&color=000000" 
+                        alt="AI Recommendations" title="AI Recommendations"/>
+                        <h6 class="text-body mb-0 mt-1">
+                            <span class="text-info font-weight-bolder">Recommendations</span>
+                        </h6>
+                    </div>
+                    <div>
+                        <ul class="text-xs text-muted lh-sm">
+                            {% for r in ai_recommendations %}
+                                <li>{{ r }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-2 align-items-stretch mb-3">
+        <!-- Dasboard chart - Internal Assessment Scatter Plot -->
+        <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="card h-100 chart-card">
+            <div class="card-body d-flex flex-column">
+            <div class="row">
+                <div class="d-flex align-items-start gap-1">
+                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=wcbCKdrSmiHG&format=png&color=000000" 
+                    alt="Scatter Plot" title="Scatter Plot"/>
+                <div class="d-flex-inline">
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Grade Distribution</h5>
+                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
+                </div>
+                </div>
+            </div>
+            <div class="chart-body mt-1 mx-n3">
+                <div id="internal_scatter_chart" class="w-100" style="height:360px;"></div>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Dashboard line chart - Year Group Average Attainment -->
+        <div class="col-lg-6 col-md-6 col-sm-12">
+        <div class="card h-100 chart-card">
+            <div class="card-body d-flex flex-column">
+            <div class="row">
+                <div class="d-flex align-items-start gap-1">
+                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
+                    alt="Year Group Average Attainment" title="Year Group Average Attainment"/>
+                <div class="d-flex-inline">
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Year Group Attainment</h5>
+                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
+                </div>
+                </div>
+            </div>
+            <div class="chart-body mt-1 mx-n3">
+                <div id="line_attainment_chart" class="w-100" style="height:360px;"></div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
