@@ -302,14 +302,23 @@ RULES:
 # NGRT Assessments for Dashboard Analytics
 #-------------------------------------------
 # return average of total intake from 3 NGRT assessments
-def get_ngrt_intake_average():
-    values = [
-        db.session.query(func.count(NGRTA.id)).scalar() or 0,
-        db.session.query(func.count(NGRTB.id)).scalar() or 0,
-        db.session.query(func.count(NGRTC.id)).scalar() or 0
-    ]
+# def get_ngrt_intake_average():
+#     values = [
+#         db.session.query(func.count(NGRTA.id)).scalar() or 0,
+#         db.session.query(func.count(NGRTB.id)).scalar() or 0,
+#         db.session.query(func.count(NGRTC.id)).scalar() or 0
+#     ]
 
-    return sum(values) / len(values) if values else 0
+#     return sum(values) / len(values) if values else 0
+
+# return count of students present across all 3 NGRT assessments
+def get_matched_students():
+    matched = db.session.query(func.count(NGRTA.student_id))\
+        .join(NGRTB, NGRTA.student_id == NGRTB.student_id)\
+        .join(NGRTC, NGRTA.student_id == NGRTC.student_id)\
+        .scalar() or 0
+
+    return matched
 
 # return average stanine of three NGRT assessments
 def get_avg_ngrt_stanine():
@@ -346,7 +355,7 @@ def index():
     ai_internal_insights = generate_internal_insights()
 
     # Total average count of NGRT intakes
-    avg_ngrt_intake = get_ngrt_intake_average()
+    extl_ngrt_intake = get_matched_students()
 
     # Fetch average NGRT stanine for each of the three assessments
     avg_stanine_a, avg_stanine_b, avg_stanine_c = get_avg_ngrt_stanine()
@@ -360,7 +369,7 @@ def index():
         avg_maths=avg_maths,
         avg_sci=avg_sci,
         count_intake=count_intake,
-        avg_ngrt_intake=avg_ngrt_intake,
+        extl_ngrt_intake=extl_ngrt_intake,
         internal_scatter_data = internal_scatter_data,
         avg_attainment_by_year = avg_attainment_by_year,
         ai_strengths = ai_internal_insights["strengths"],
