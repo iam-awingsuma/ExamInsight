@@ -301,32 +301,123 @@ RULES:
 #-------------------------------------------
 # NGRT Assessments for Dashboard Analytics
 #-------------------------------------------
-# return average of total intake from 3 NGRT assessments
-# def get_ngrt_intake_average():
-#     values = [
-#         db.session.query(func.count(NGRTA.id)).scalar() or 0,
-#         db.session.query(func.count(NGRTB.id)).scalar() or 0,
-#         db.session.query(func.count(NGRTC.id)).scalar() or 0
-#     ]
 
-#     return sum(values) / len(values) if values else 0
-
-# return count of students present across all 3 NGRT assessments
+# return count of students present based on given NGRT dataset availability
+# with priority order: NGRT-A -> NGRT-B -> NGRT-C
 def get_matched_students():
-    matched = db.session.query(func.count(NGRTA.student_id))\
-        .join(NGRTB, NGRTA.student_id == NGRTB.student_id)\
-        .join(NGRTC, NGRTA.student_id == NGRTC.student_id)\
-        .scalar() or 0
+    has_ngrtb_data = db.session.query(NGRTB.student_id).first() is not None
+    has_ngrtc_data = db.session.query(NGRTC.student_id).first() is not None
 
-    return matched
+    query = db.session.query(func.count(func.distinct(NGRTA.student_id)))
+    label = "[ NGRT-A ]"
+
+    if has_ngrtb_data:
+        query = query.join(NGRTB, NGRTA.student_id == NGRTB.student_id)
+        label = "[ NGRT-A & NGRT-B ]"
+
+        if has_ngrtc_data:
+            query = query.join(NGRTC, NGRTA.student_id == NGRTC.student_id)
+            label = "Across All NGRT Exams"
+
+    return (query.scalar() or 0), label
 
 # return average stanine of three NGRT assessments
-def get_avg_ngrt_stanine():
-    avg_stanine_a = db.session.query(func.avg((func.coalesce(NGRTA.stanine, 0)))).scalar() or 0
-    avg_stanine_b = db.session.query(func.avg((func.coalesce(NGRTB.stanine, 0)))).scalar() or 0
-    avg_stanine_c = db.session.query(func.avg((func.coalesce(NGRTC.stanine, 0)))).scalar() or 0
+# def get_avg_ngrt_stanine():
+#     avg_stanine_a = db.session.query(func.avg((func.coalesce(NGRTA.stanine, 0)))).scalar() or 0
+#     avg_stanine_b = db.session.query(func.avg((func.coalesce(NGRTB.stanine, 0)))).scalar() or 0
+#     avg_stanine_c = db.session.query(func.avg((func.coalesce(NGRTC.stanine, 0)))).scalar() or 0
 
-    return (round(avg_stanine_a,0), round(avg_stanine_b,0), round(avg_stanine_c,0))
+#     return (round(avg_stanine_a,0), round(avg_stanine_b,0), round(avg_stanine_c,0))
+
+# return average stanine based on latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
+def get_latest_avg_ngrt_stanine():
+    avg_stanine_c = db.session.query(func.avg(NGRTC.stanine)).filter(NGRTC.stanine.isnot(None)).scalar()
+    avg_stanine_b = db.session.query(func.avg(NGRTB.stanine)).filter(NGRTB.stanine.isnot(None)).scalar()
+    avg_stanine_a = db.session.query(func.avg(NGRTA.stanine)).filter(NGRTA.stanine.isnot(None)).scalar()
+
+    if avg_stanine_c is not None:
+        return round(avg_stanine_c, 0), "NGRT-C"
+    elif avg_stanine_b is not None:
+        return round(avg_stanine_b, 0), "NGRT-B"
+    elif avg_stanine_a is not None:
+        return round(avg_stanine_a, 0), "NGRT-A"
+    else:
+        return 0, "No data available."
+
+# return average SAS based on latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
+def get_latest_avg_ngrt_sas():
+    avg_sas_c = db.session.query(func.avg(NGRTC.sas)).filter(NGRTC.sas.isnot(None)).scalar()
+    avg_sas_b = db.session.query(func.avg(NGRTB.sas)).filter(NGRTB.sas.isnot(None)).scalar()
+    avg_sas_a = db.session.query(func.avg(NGRTA.sas)).filter(NGRTA.sas.isnot(None)).scalar()
+
+    if avg_sas_c is not None:
+        return round(avg_sas_c, 0), "NGRT-C"
+    elif avg_sas_b is not None:
+        return round(avg_sas_b, 0), "NGRT-B"
+    elif avg_sas_a is not None:
+        return round(avg_sas_a, 0), "NGRT-A"
+    else:
+        return 0, "No data available."
+
+# return count and percentage of students with SAS ≥90 based on
+# latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
+def get_sas_90_stats():
+    datasets = [
+        ("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA),
+    ]
+
+    for label, model in datasets:
+        total = db.session.query(func.count(model.id)).filter(model.sas.isnot(None)).scalar() or 0
+
+        if total > 0:
+            count = db.session.query(func.count(model.id)) \
+                .filter(model.sas.isnot(None), model.sas >= 90) \
+                .scalar() or 0
+
+            percentage = round((count / total) * 100, 1)
+            return count, percentage, label
+
+    return 0, 0, None
+
+# return count and percentage of students with SAS ≥110 based on
+# latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
+def get_sas_110_stats():
+    datasets = [
+        ("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA),
+    ]
+
+    for label, model in datasets:
+        total = db.session.query(func.count(model.id)).filter(model.sas.isnot(None)).scalar() or 0
+
+        if total > 0:
+            count = db.session.query(func.count(model.id)) \
+                .filter(model.sas.isnot(None), model.sas >= 110) \
+                .scalar() or 0
+
+            percentage = round((count / total) * 100, 1)
+            return count, percentage, label
+
+    return 0, 0, None
+
+# return count and percentage of students with SAS ≥120 based on
+# latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
+def get_sas_120_stats():
+    datasets = [
+        ("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA),
+    ]
+
+    for label, model in datasets:
+        total = db.session.query(func.count(model.id)).filter(model.sas.isnot(None)).scalar() or 0
+
+        if total > 0:
+            count = db.session.query(func.count(model.id)) \
+                .filter(model.sas.isnot(None), model.sas >= 120) \
+                .scalar() or 0
+
+            percentage = round((count / total) * 100, 1)
+            return count, percentage, label
+
+    return 0, 0, None
 
 #***********************************
 #*** Dashboard Analytics Routes ***#
@@ -355,10 +446,25 @@ def index():
     ai_internal_insights = generate_internal_insights()
 
     # Total average count of NGRT intakes
-    extl_ngrt_intake = get_matched_students()
+    extl_ngrt_intake, extl_ngrt_dataset = get_matched_students()
 
     # Fetch average NGRT stanine for each of the three assessments
-    avg_stanine_a, avg_stanine_b, avg_stanine_c = get_avg_ngrt_stanine()
+    # avg_stanine_a, avg_stanine_b, avg_stanine_c = get_avg_ngrt_stanine()
+
+    # Fetch average NGRT stanine & latest available dataset (priority: C > B > A)
+    latest_avg_stanine, latest_stanine_dataset = get_latest_avg_ngrt_stanine()
+
+    # Fetch average NGRT SAS & latest available dataset (priority: C > B > A)
+    latest_avg_sas, latest_sas_dataset = get_latest_avg_ngrt_sas()
+
+    # Fetch count and percentage of students with SAS ≥90 based on latest available NGRT dataset
+    sas_90_count, sas_90_percentage, sas_90_dataset = get_sas_90_stats()
+
+    # Fetch count and percentage of students with SAS ≥110 based on latest available NGRT dataset
+    sas_110_count, sas_110_percentage, sas_110_dataset = get_sas_110_stats()
+
+    # Fetch count and percentage of students with SAS ≥120 based on latest available NGRT dataset
+    sas_120_count, sas_120_percentage, sas_120_dataset = get_sas_120_stats()
 
     return render_template(
         'pages/index.html',
@@ -370,14 +476,28 @@ def index():
         avg_sci=avg_sci,
         count_intake=count_intake,
         extl_ngrt_intake=extl_ngrt_intake,
+        extl_ngrt_dataset=extl_ngrt_dataset,
         internal_scatter_data = internal_scatter_data,
         avg_attainment_by_year = avg_attainment_by_year,
         ai_strengths = ai_internal_insights["strengths"],
         ai_concerns = ai_internal_insights["concerns"],
         ai_recommendations = ai_internal_insights["recommendations"],
-        avg_stanine_a = avg_stanine_a,
-        avg_stanine_b = avg_stanine_b,
-        avg_stanine_c = avg_stanine_c,
+        # avg_stanine_a = avg_stanine_a,
+        # avg_stanine_b = avg_stanine_b,
+        # avg_stanine_c = avg_stanine_c,
+        latest_avg_stanine = latest_avg_stanine,
+        latest_stanine_dataset = latest_stanine_dataset,
+        latest_avg_sas = latest_avg_sas,
+        latest_sas_dataset = latest_sas_dataset,
+        sas_90_count = sas_90_count,
+        sas_90_percentage = sas_90_percentage,
+        sas_90_dataset = sas_90_dataset,
+        sas_110_count = sas_110_count,
+        sas_110_percentage = sas_110_percentage,
+        sas_110_dataset = sas_110_dataset,
+        sas_120_count = sas_120_count,
+        sas_120_percentage = sas_120_percentage,
+        sas_120_dataset = sas_120_dataset,
     )
 
 #************************

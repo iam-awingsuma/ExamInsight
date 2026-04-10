@@ -2,78 +2,81 @@
 <div class="row g-2 align-items-stretch">
     <div class="col-6 col-md-2">
         <div class="card card-kpi p-3 bg-dark text-white">
-            <span class="text-white font-weight-bolder text-end mb-n4 fs-5">YEAR 2 COHORT</span>
+            <span class="text-white font-weight-bolder text-end mb-n4 fs-6">COHORT</span>
             <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1">
                 <img src="https://img.icons8.com/?size=100&id=YkUw5cL9MarG&format=png&color=000000" alt="Icon" width="38" height="auto">
             </div>
             <div class="text-end mt-n2">
                 <h3 class="text-white font-weight-bolder mb-0">{{ "%.0f"|format(extl_ngrt_intake) }}</h3>
-                <div class="kpi-title text-xs font-weight-bolder text-uppercase">Total Intake (All NGRT Exams)</div>
+                <div class="kpi-title text-xs font-weight-bolder text-uppercase">Total Intake<br/>{{ extl_ngrt_dataset }}</div>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2">
         <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #c3c3c3">
-            <span class="font-weight-bolder text-end mb-n4 fs-5">AVG STANINE</span>
+            <span class="font-weight-bolder text-end mb-n4 fs-6">Avg Stanine</span>
             <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1">
                 <img src="https://img.icons8.com/?size=100&id=Lr1pVV0VC2Nc&format=png&color=000000" alt="Icon" width="38" height="auto">
             </div>
             <div class="text-end mt-n2">
-                <h3 class="text-dark font-weight-bolder mb-0">{{ "%.0f"|format(avg_stanine_a) }}</h3>
-                <div class="kpi-title text-xs font-weight-bolder text-uppercase">Latest Snapshot | NGRT-???</div>
+                <h3 class="text-dark font-weight-bolder mb-0">{{ "%.0f"|format(latest_avg_stanine) }}</h3>
+                <div class="kpi-title text-xs font-weight-bolder text-uppercase">Latest Snapshot<br/> [ <span class="text-info">{{ latest_stanine_dataset }}</span> ]</div>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2">
         <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #c3c3c3">
-            <span class="font-weight-bolder text-end mb-n4 fs-5">AVG SAS</span>
+            <span class="font-weight-bolder text-end mb-n4 fs-6">Avg SAS</span>
             <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1">
                 <img src="https://img.icons8.com/?size=100&id=08MAP6WshKB8&format=png&color=000000" alt="Icon" width="38" height="auto">
             </div>
             <div class="text-end mt-n2">
-                <h3 class="text-dark font-weight-bolder mb-0">{{ "%.0f"|format(avg_stanine_a) }}</h3>
-                <div class="kpi-title text-xs font-weight-bolder text-uppercase">Latest Snapshot | NGRT-???</div>
+                <h3 class="text-dark font-weight-bolder mb-0">{{ "%.0f"|format(latest_avg_sas) }}</h3>
+                <div class="kpi-title text-xs font-weight-bolder text-uppercase">Latest Snapshot<br/> [ <span class="text-info">{{ latest_sas_dataset }}</span> ]</div>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2">
         <div class="card card-kpi p-3 bg-gradient-warning text-white">
-            <span class="text-white font-weight-bolder text-end mb-n4 fs-5">% SAS ≥90</span>
+            <span class="text-white font-weight-bolder text-end mb-n4 fs-6">SAS ≥90</span>
              <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1">
                 <img src="https://img.icons8.com/?size=100&id=Vt1kcsrhXe2k&format=png&color=000000" alt="Icon" width="38" height="auto">
             </div>
             <div class="text-end mt-n2">
-                <h3 class="text-white font-weight-bolder mb-0">{{ "%.0f"|format(avg_stanine_b) }}</h3>
-                <div class="kpi-title text-xs font-weight-bolder text-uppercase">Within Average+ Literacy</div>
+                <h3 class="text-white fw-bolder mb-0">{{ "%.0f"|format(sas_90_percentage) }}%</h3>
+                <div class="kpi-title text-xs fw-bolder text-uppercase">{{ sas_90_count }} students</div>
+                <div class="kpi-title text-xs fw-bold">Within Average+ Literacy</div>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2">
         <div class="card card-kpi p-3 bg-gradient-info text-white">
-            <span class="text-white font-weight-bolder text-end mb-n4 fs-5">% SAS ≥110</span>
+            <span class="text-white font-weight-bolder text-end mb-n4 fs-6">SAS ≥110</span>
              <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1">
                 <img src="https://img.icons8.com/?size=100&id=Vt1kcsrhXe2k&format=png&color=000000" alt="Icon" width="38" height="auto">
             </div>
             <div class="text-end mt-n2">
-                <h3 class="text-white font-weight-bolder mb-0">{{ "%.0f"|format(avg_stanine_c) }}</h3>
-                <div class="kpi-title text-xs font-weight-bolder text-uppercase">High Literacy Threshold</div>
+                <h3 class="text-white fw-bolder mb-0">{{ "%.0f"|format(sas_110_percentage) }}%</h3>
+                <div class="kpi-title text-xs fw-bolder text-uppercase">{{ sas_110_count }} students</div>
+                <div class="kpi-title text-xs fw-bold">High Literacy</div>
             </div>
         </div>
     </div>
 
     <div class="col-6 col-md-2">
         <div class="card card-kpi p-3 bg-gradient-success text-white">
-            <span class="text-white font-weight-bolder text-end mb-n4 fs-5">% SAS ≥120</span>
+            <span class="text-white font-weight-bolder text-end mb-n4 fs-6">SAS ≥120</span>
              <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1">
                 <img src="https://img.icons8.com/?size=100&id=Vt1kcsrhXe2k&format=png&color=000000" alt="Icon" width="38" height="auto">
             </div>
             <div class="text-end mt-n2">
-                <h3 class="text-white font-weight-bolder mb-0">{{ "%.0f"|format(avg_stanine_c) }}</h3>
-                <div class="kpi-title text-xs font-weight-bolder text-uppercase">Very High Literacy Threshold</div>
+                <h3 class="text-white fw-bolder mb-0">{{ "%.0f"|format(sas_120_percentage) }}%</h3>
+                <div class="kpi-title text-xs fw-bolder text-uppercase">{{ sas_120_count }} students</div>
+                <div class="kpi-title text-xs fw-bold">Very High Literacy</div>
             </div>
         </div>
     </div>
