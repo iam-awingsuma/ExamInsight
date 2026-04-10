@@ -321,14 +321,6 @@ def get_matched_students():
 
     return (query.scalar() or 0), label
 
-# return average stanine of three NGRT assessments
-# def get_avg_ngrt_stanine():
-#     avg_stanine_a = db.session.query(func.avg((func.coalesce(NGRTA.stanine, 0)))).scalar() or 0
-#     avg_stanine_b = db.session.query(func.avg((func.coalesce(NGRTB.stanine, 0)))).scalar() or 0
-#     avg_stanine_c = db.session.query(func.avg((func.coalesce(NGRTC.stanine, 0)))).scalar() or 0
-
-#     return (round(avg_stanine_a,0), round(avg_stanine_b,0), round(avg_stanine_c,0))
-
 # return average stanine based on latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
 def get_latest_avg_ngrt_stanine():
     avg_stanine_c = db.session.query(func.avg(NGRTC.stanine)).filter(NGRTC.stanine.isnot(None)).scalar()
@@ -448,9 +440,6 @@ def index():
     # Total average count of NGRT intakes
     extl_ngrt_intake, extl_ngrt_dataset = get_matched_students()
 
-    # Fetch average NGRT stanine for each of the three assessments
-    # avg_stanine_a, avg_stanine_b, avg_stanine_c = get_avg_ngrt_stanine()
-
     # Fetch average NGRT stanine & latest available dataset (priority: C > B > A)
     latest_avg_stanine, latest_stanine_dataset = get_latest_avg_ngrt_stanine()
 
@@ -482,9 +471,6 @@ def index():
         ai_strengths = ai_internal_insights["strengths"],
         ai_concerns = ai_internal_insights["concerns"],
         ai_recommendations = ai_internal_insights["recommendations"],
-        # avg_stanine_a = avg_stanine_a,
-        # avg_stanine_b = avg_stanine_b,
-        # avg_stanine_c = avg_stanine_c,
         latest_avg_stanine = latest_avg_stanine,
         latest_stanine_dataset = latest_stanine_dataset,
         latest_avg_sas = latest_avg_sas,
