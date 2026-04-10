@@ -8,7 +8,7 @@
     </div>
 
     <div class="row g-2 align-items-stretch mb-2">
-        <!-- Dashboard column/barchart - Cohort Attainment -->
+        <!-- Dashboard column/barchart - Attainment Distribution - Classwise -->
         <div class="col-lg-4 col-md-4 col-sm-12">
         <div class="card h-100 chart-card">
             <div class="card-body d-flex flex-column">
@@ -17,8 +17,8 @@
                 <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000" 
                     alt="Cohort Attainment" title="Cohort Attainment"/>
                 <div class="d-flex-inline">
-                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Cohort Attainment</h5>
-                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Attainment Distribution</h5>
+                    <div class="text-muted text-xs">Classwise | Data Across All NGRT Exams</div>
                 </div>
                 </div>
             </div>
@@ -29,7 +29,7 @@
         </div>
         </div>
 
-        <!-- Dashboard column/bar chart - Progress Distribution -->
+        <!-- Dashboard column/bar chart - Progress Distribution - Classwise -->
         <div class="col-lg-4 col-md-4 col-sm-12">
         <div class="card h-100 chart-card">
             <div class="card-body d-flex flex-column">
@@ -38,13 +38,78 @@
                 <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000" 
                     alt="Progress Distribution" title="Progress Distribution"/>
                 <div class="d-flex-inline">
-                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Cohort Progress</h5>
-                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Progress Distribution</h5>
+                    <div class="text-muted text-xs">Classwise | Data Across All NGRT Exams</div>
                 </div>
                 </div>
             </div>
             <div class="chart-body mt-1 mx-n3">
                 <div id="chart_cohort_progress" class="w-100" style="height:360px;"></div>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Dashboard column/bar chart - Reading Literacy Threshold - Classwise -->
+        <div class="col-lg-4 col-md-4 col-sm-12">
+        <div class="card h-100 chart-card">
+            <div class="card-body d-flex flex-column">
+            <div class="row">
+                <div class="d-flex align-items-start gap-1">
+                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=5ZKXxNjdLtq4&format=png&color=000000" 
+                    alt="Reading Literacy Threshold" title="Reading Literacy Threshold"/>
+                <div class="d-flex-inline">
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Reading Literacy Threshold</h5>
+                    <div class="text-muted text-xs">Classwise | Data Across All NGRT Exams</div>
+                </div>
+                </div>
+            </div>
+            <div class="chart-body mt-1 mx-n3">
+                <div id="chart_cohort_progress" class="w-100" style="height:360px;"></div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="row g-2 align-items-stretch mb-3">
+        <!-- Dasboard chart - Internal Assessment Scatter Plot -->
+        <div class="col-lg-4 col-md-4 col-sm-12">
+        <div class="card h-100 chart-card">
+            <div class="card-body d-flex flex-column">
+            <div class="row">
+                <div class="d-flex align-items-start gap-1">
+                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=wcbCKdrSmiHG&format=png&color=000000" 
+                    alt="Scatter Plot" title="Scatter Plot"/>
+                <div class="d-flex-inline">
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Grade Distribution</h5>
+                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
+                </div>
+                </div>
+            </div>
+            <div class="chart-body mt-1 mx-n3">
+                <div id="internal_scatter_chart" class="w-100" style="height:360px;"></div>
+            </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Dashboard line chart - Year Group Average Attainment -->
+        <div class="col-lg-4 col-md-4 col-sm-12">
+        <div class="card h-100 chart-card">
+            <div class="card-body d-flex flex-column">
+            <div class="row">
+                <div class="d-flex align-items-start gap-1">
+                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
+                    alt="Year Group Average Attainment" title="Year Group Average Attainment"/>
+                <div class="d-flex-inline">
+                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Year Group Attainment</h5>
+                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
+                </div>
+                </div>
+            </div>
+            <div class="chart-body mt-1 mx-n3">
+                <div id="line_attainment_chart" class="w-100" style="height:360px;"></div>
             </div>
             </div>
         </div>
@@ -109,50 +174,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="row g-2 align-items-stretch mb-3">
-        <!-- Dasboard chart - Internal Assessment Scatter Plot -->
-        <div class="col-lg-6 col-md-6 col-sm-12">
-        <div class="card h-100 chart-card">
-            <div class="card-body d-flex flex-column">
-            <div class="row">
-                <div class="d-flex align-items-start gap-1">
-                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=wcbCKdrSmiHG&format=png&color=000000" 
-                    alt="Scatter Plot" title="Scatter Plot"/>
-                <div class="d-flex-inline">
-                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Grade Distribution</h5>
-                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
-                </div>
-                </div>
-            </div>
-            <div class="chart-body mt-1 mx-n3">
-                <div id="internal_scatter_chart" class="w-100" style="height:360px;"></div>
-            </div>
-            </div>
-        </div>
-        </div>
-
-        <!-- Dashboard line chart - Year Group Average Attainment -->
-        <div class="col-lg-6 col-md-6 col-sm-12">
-        <div class="card h-100 chart-card">
-            <div class="card-body d-flex flex-column">
-            <div class="row">
-                <div class="d-flex align-items-start gap-1">
-                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
-                    alt="Year Group Average Attainment" title="Year Group Average Attainment"/>
-                <div class="d-flex-inline">
-                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Year Group Attainment</h5>
-                    <div class="text-muted text-xs">Current Academic Year (English, Maths, Science)</div>
-                </div>
-                </div>
-            </div>
-            <div class="chart-body mt-1 mx-n3">
-                <div id="line_attainment_chart" class="w-100" style="height:360px;"></div>
-            </div>
-            </div>
-        </div>
         </div>
     </div>
 </div>
