@@ -5,6 +5,11 @@ async function renderNGRTClasswiseStanineChart() {
   const yearGroups = data.year_groups || [];
   const examLabel = data.exam_label || "NGRT";
 
+  const examLabelEl = document.getElementById("ngrt-exam-label");
+  if (examLabelEl) {
+    examLabelEl.textContent = examLabel;
+  }
+
   const belowPct = data.below_average_pct || [];
   const avgPct = data.average_pct || [];
   const abovePct = data.above_average_pct || [];
@@ -25,12 +30,12 @@ async function renderNGRTClasswiseStanineChart() {
       customdata: belowCustom,
       name: "Below Average",
       type: "bar",
-      marker: { color: "#dc3545" },
+      marker: { color: "#FF5A5A" },
       hovertemplate:
-        "<b>%{x}</b><br>" +
+        "<b>Year %{x}</b><br>" +
         "Band: Below Average<br>" +
         "Percentage: %{y:.1f}%<br>" +
-        "Count: %{customdata[0]}<br>" +
+        "Count: %{customdata[0]} student(s)<br>" +
         "Total Students: %{customdata[1]}<extra></extra>"
     },
     {
@@ -39,12 +44,12 @@ async function renderNGRTClasswiseStanineChart() {
       customdata: avgCustom,
       name: "Average",
       type: "bar",
-      marker: { color: "#fd7e14" },
+      marker: { color: "#FCB53B" },
       hovertemplate:
-        "<b>%{x}</b><br>" +
+        "<b>Year %{x}</b><br>" +
         "Band: Average<br>" +
         "Percentage: %{y:.1f}%<br>" +
-        "Count: %{customdata[0]}<br>" +
+        "Count: %{customdata[0]} student(s)<br>" +
         "Total Students: %{customdata[1]}<extra></extra>"
     },
     {
@@ -53,34 +58,34 @@ async function renderNGRTClasswiseStanineChart() {
       customdata: aboveCustom,
       name: "Above Average",
       type: "bar",
-      marker: { color: "#28a745" },
+      marker: { color: "#A7E399" },
       hovertemplate:
-        "<b>%{x}</b><br>" +
+        "<b>Year %{x}</b><br>" +
         "Band: Above Average<br>" +
         "Percentage: %{y:.1f}%<br>" +
-        "Count: %{customdata[0]}<br>" +
+        "Count: %{customdata[0]} student(s)<br>" +
         "Total Students: %{customdata[1]}<extra></extra>"
     }
   ];
 
   const layout = {
-    title: `${examLabel} Classwise Stanine Distribution`,
+    autosize: true,
+    width: null,
     barmode: "stack",
-    xaxis: {
-      title: "Year Group"
-    },
     yaxis: {
-      title: "Percentage of Students",
+      title: "Percent of Students",
       range: [0, 100],
       ticksuffix: "%"
     },
     legend: {
       orientation: "h",
-      x: 0.5,
+      x: 0.4,
       xanchor: "center",
-      y: 1.12
+      y: -0.12,
+    //   y: 1.12 // legend above the chart
     },
-    margin: { t: 70, r: 20, b: 60, l: 60 }
+    // margin: { t: 70, r: 20, b: 60, l: 60 }
+    margin: { t: 30, r: 10, b: 50, l: 50 }
   };
 
   const config = {
@@ -88,7 +93,17 @@ async function renderNGRTClasswiseStanineChart() {
     displayModeBar: false
   };
 
-  Plotly.newPlot("chart-ngrt-classwise-stanine", traces, layout, config);
+  const el = document.getElementById("chart-ngrt-classwise-stanine");
+
+  if (el) {
+    Plotly.newPlot(el, traces, layout, config);
+
+    setTimeout(() => Plotly.Plots.resize(el), 100);
+    window.addEventListener("resize", () => Plotly.Plots.resize(el));
+
+    const ro = new ResizeObserver(() => Plotly.Plots.resize(el));
+    ro.observe(el);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", renderNGRTClasswiseStanineChart);
