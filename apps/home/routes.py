@@ -411,6 +411,94 @@ def get_sas_120_stats():
 
     return 0, 0, None
 
+# column stacked to show attainment distribution by class based on latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
+def get_latest_ngrt_classwise_stanine():
+    # datasets = exam_label, model pairs in priority order (latest dataset first)
+    datasets = [("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA),]
+
+    year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
+
+    for exam_label, model in datasets:
+        has_data = (
+            db.session.query(model.id)
+            .filter(model.stanine.isnot(None))
+            .first()
+        )
+        if not has_data:
+            continue
+
+        rows = (
+            db.session.query(
+                func.lower(Students.yrgrp).label("yrgrp"),
+                func.count(model.id).label("total"),
+                func.sum(
+                    case((model.stanine.between(1, 3), 1), else_=0)
+                ).label("below_count"),
+                func.sum(
+                    case((model.stanine.between(4, 6), 1), else_=0)
+                ).label("average_count"),
+                func.sum(
+                    case((model.stanine.between(7, 9), 1), else_=0)
+                ).label("above_count"),
+            )
+            .join(Students, model.student_id == Students.student_id)
+            .filter(
+                model.stanine.isnot(None),
+                Students.yrgrp.isnot(None)
+            )
+            .group_by(func.lower(Students.yrgrp))
+            .all()
+        )
+
+        row_map = {row.yrgrp: row for row in rows}
+
+        result = {
+            "exam_label": exam_label,
+            "year_groups": [yg.upper() for yg in year_groups],
+            "below_average_pct": [],
+            "average_pct": [],
+            "above_average_pct": [],
+            "below_average_count": [],
+            "average_count": [],
+            "above_average_count": [],
+            "totals": [],
+        }
+
+        for yg in year_groups:
+            row = row_map.get(yg)
+
+            total = int(row.total) if row and row.total is not None else 0
+            below = int(row.below_count) if row and row.below_count is not None else 0
+            average = int(row.average_count) if row and row.average_count is not None else 0
+            above = int(row.above_count) if row and row.above_count is not None else 0
+
+            below_pct = round((below / total) * 100, 1) if total > 0 else 0
+            average_pct = round((average / total) * 100, 1) if total > 0 else 0
+            above_pct = round((above / total) * 100, 1) if total > 0 else 0
+
+            result["below_average_pct"].append(below_pct)
+            result["average_pct"].append(average_pct)
+            result["above_average_pct"].append(above_pct)
+
+            result["below_average_count"].append(below)
+            result["average_count"].append(average)
+            result["above_average_count"].append(above)
+            result["totals"].append(total)
+
+        return result
+
+    return {
+        "exam_label": None,
+        "year_groups": ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F"],
+        "below_average_pct": [0, 0, 0, 0, 0, 0],
+        "average_pct": [0, 0, 0, 0, 0, 0],
+        "above_average_pct": [0, 0, 0, 0, 0, 0],
+        "below_average_count": [0, 0, 0, 0, 0, 0],
+        "average_count": [0, 0, 0, 0, 0, 0],
+        "above_average_count": [0, 0, 0, 0, 0, 0],
+        "totals": [0, 0, 0, 0, 0, 0],
+    }
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -485,6 +573,12 @@ def index():
         sas_120_percentage = sas_120_percentage,
         sas_120_dataset = sas_120_dataset,
     )
+
+@blueprint.route("/api/ngrt_classwise_stanine")
+@login_required
+def ngrt_classwise_stanine():
+    data = get_latest_ngrt_classwise_stanine()
+    return jsonify(data)
 
 #************************
 #*** Data Management ***#
