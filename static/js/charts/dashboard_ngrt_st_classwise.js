@@ -5,7 +5,7 @@ async function renderNGRTClasswiseStanineChart() {
   const yearGroups = data.year_groups || [];
   const examLabel = data.exam_label || "NGRT";
 
-  const examLabelEl = document.getElementById("ngrt-exam-label");
+  const examLabelEl = document.getElementById("ngrt-st-exam-label");
   if (examLabelEl) {
     examLabelEl.textContent = examLabel;
   }
@@ -79,10 +79,10 @@ async function renderNGRTClasswiseStanineChart() {
     },
     legend: {
       orientation: "h",
-      x: 0.4,
-      xanchor: "center",
-      y: -0.12,
-    //   y: 1.12 // legend above the chart
+      x: 0,
+      xanchor: "left",
+      y: -0.2,
+      font: { size: 11 }
     },
     // margin: { t: 70, r: 20, b: 60, l: 60 }
     margin: { t: 30, r: 10, b: 50, l: 50 }
