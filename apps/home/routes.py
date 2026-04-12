@@ -446,7 +446,7 @@ def get_latest_ngrt_classwise_stanine():
                 model.stanine.isnot(None),
                 Students.yrgrp.isnot(None)
             )
-            .group_by(func.lower(Students.yrgrp))
+            .group_by(func.lower(Students.yrgrp))   
             .all()
         )
 
@@ -496,6 +496,96 @@ def get_latest_ngrt_classwise_stanine():
         "below_average_count": [0, 0, 0, 0, 0, 0],
         "average_count": [0, 0, 0, 0, 0, 0],
         "above_average_count": [0, 0, 0, 0, 0, 0],
+        "totals": [0, 0, 0, 0, 0, 0],
+    }
+
+# column stacked to show progress distribution by class
+# based on latest available NGRT dataset with priority order: NGRT-C->NGRT-B
+def get_latest_ngrt_classwise_progress():
+    datasets = [("NGRT-C", NGRTC), ("NGRT-B", NGRTB)]
+
+    year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
+
+    for exam_label, model in datasets:
+        has_data = (
+            db.session.query(model.id)
+            .filter(model.progress_category.isnot(None))
+            .first()
+        )
+
+        if not has_data:
+            continue
+
+        rows = (
+            db.session.query(
+                func.lower(Students.yrgrp).label("yrgrp"),
+                func.count(model.id).label("total"),
+                func.sum(
+                    case ((func.lower(func.trim(model.progress_category)) == "lower than expected", 1), else_=0)
+                ).label("lower_count"),
+                func.sum(
+                    case((func.lower(func.trim(model.progress_category)) == "expected",1), else_=0)
+                ).label("expected_count"),
+                func.sum(
+                    case((func.lower(func.trim(model.progress_category)) == "better than expected",1), else_=0)
+                ).label("better_count"),
+            )
+            .join(Students, model.student_id == Students.student_id)
+            .filter(
+                model.progress_category.isnot(None),
+                Students.yrgrp.isnot(None),
+                func.trim(model.progress_category) != ""
+            )
+            .group_by(func.lower(Students.yrgrp))
+            .all()
+        )
+
+        row_map = {row.yrgrp: row for row in rows}
+
+        result = {
+            "exam_label": exam_label,
+            "year_groups": [yg.upper() for yg in year_groups],
+            "lower_pct": [],
+            "expected_pct": [],
+            "better_pct": [],
+            "lower_count": [],
+            "expected_count": [],
+            "better_count": [],
+            "totals": [],
+        }
+
+        for yg in year_groups:
+            row = row_map.get(yg)
+
+            total = int(row.total) if row and row.total is not None else 0
+            lower = int(row.lower_count) if row and row.lower_count is not None else 0
+            expected = int(row.expected_count) if row and row.expected_count is not None else 0
+            better = int(row.better_count) if row and row.better_count is not None else 0
+
+            lower_pct = round((lower / total) * 100, 1) if total > 0 else 0
+            expected_pct = round((expected / total) * 100, 1) if total > 0 else 0
+            better_pct = round((better / total) * 100, 1) if total > 0 else 0
+
+            result["lower_pct"].append(lower_pct)
+            result["expected_pct"].append(expected_pct)
+            result["better_pct"].append(better_pct)
+
+            result["lower_count"].append(lower)
+            result["expected_count"].append(expected)
+            result["better_count"].append(better)
+            result["totals"].append(total)
+
+        return result
+
+    return {
+        "exam_label": None,
+        "year_groups": ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F"],
+        "lower_pct": [0, 0, 0, 0, 0, 0],
+        "expected_pct": [0, 0, 0, 0, 0, 0],
+        "better_pct": [0, 0, 0, 0, 0, 0],
+        "lower_count": [0, 0, 0, 0, 0, 0],
+        "expected_count": [0, 0, 0, 0, 0, 0],
+        "better_count": [0, 0, 0, 0, 0, 0],
         "totals": [0, 0, 0, 0, 0, 0],
     }
 
@@ -578,6 +668,11 @@ def index():
 @login_required
 def ngrt_classwise_stanine():
     data = get_latest_ngrt_classwise_stanine()
+    return jsonify(data)
+
+@blueprint.route("/api/ngrt_classwise_progress")
+def ngrt_classwise_progress_distribution():
+    data = get_latest_ngrt_classwise_progress()
     return jsonify(data)
 
 #************************
