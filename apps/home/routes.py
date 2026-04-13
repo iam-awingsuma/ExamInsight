@@ -321,6 +321,51 @@ def get_matched_students():
 
     return (query.scalar() or 0), label
 
+# return average stanine by class based on all available NGRT datasets
+# with priority order: NGRT-C->NGRT-B->NGRT-A
+def get_classwise_avg_ngrt_stanine():
+    datasets = [("NGRT-A", NGRTA),("NGRT-B", NGRTB),("NGRT-C", NGRTC)]
+
+    year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
+
+    result = {
+        "year_groups": [yg.upper() for yg in year_groups],
+        "series": []
+    }
+
+    for exam_label, model in datasets:
+        has_data = db.session.query(model.id).filter(model.stanine.isnot(None)).first()
+        if not has_data:
+            continue
+
+        rows = (
+            db.session.query(
+                func.lower(Students.yrgrp).label("yrgrp"),
+                func.avg(model.stanine).label("avg_stanine")
+            )
+            .join(Students, model.student_id == Students.student_id)
+            .filter(
+                model.stanine.isnot(None),
+                Students.yrgrp.isnot(None)
+            )
+            .group_by(func.lower(Students.yrgrp))
+            .all()
+        )
+
+        row_map = {row.yrgrp: row.avg_stanine for row in rows}
+
+        values = []
+        for yg in year_groups:
+            avg_value = row_map.get(yg)
+            values.append(round(float(avg_value), 2) if avg_value is not None else None)
+
+        result["series"].append({
+            "name": exam_label,
+            "data": values
+        })
+
+    return result
+
 # return average stanine based on latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
 def get_latest_avg_ngrt_stanine():
     avg_stanine_c = db.session.query(func.avg(NGRTC.stanine)).filter(NGRTC.stanine.isnot(None)).scalar()
@@ -673,6 +718,11 @@ def ngrt_classwise_stanine():
 @blueprint.route("/api/ngrt_classwise_progress")
 def ngrt_classwise_progress_distribution():
     data = get_latest_ngrt_classwise_progress()
+    return jsonify(data)
+
+@blueprint.route("/api/classwise_avg_ngrt_stanine")
+def classwise_avg_ngrt_stanine():
+    data = get_classwise_avg_ngrt_stanine()
     return jsonify(data)
 
 #************************
