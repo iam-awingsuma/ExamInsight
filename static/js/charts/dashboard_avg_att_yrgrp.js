@@ -13,7 +13,7 @@ function renderLineAttainment() {
         name: "English",
         line: { color: "#0BA6DF", width: 3 },
         marker: { size: 8 },
-        hovertemplate: "English: %{y:.0f}%<extra></extra>",
+        hovertemplate: "English: <b>%{y:.0f}%</b><extra></extra>",
     };
 
     const mathsTrace = {
@@ -23,7 +23,7 @@ function renderLineAttainment() {
         name: "Maths",
         line: { color: "#FCB53B", width: 3 },
         marker: { size: 8 },
-        hovertemplate: "Maths: %{y:.0f}%<extra></extra>",
+        hovertemplate: "Maths: <b>%{y:.0f}%</b><extra></extra>",
     };
 
     const sciTrace = {
@@ -33,7 +33,7 @@ function renderLineAttainment() {
         name: "Science",
         line: { color: "#A7E399", width: 3 },
         marker: { size: 8 },
-        hovertemplate: "Science: %{y:.0f}%<extra></extra>",
+        hovertemplate: "Science: <b>%{y:.0f}%</b><extra></extra>",
     };
 
     const layout = {
