@@ -456,7 +456,9 @@ def get_sas_120_stats():
 
     return 0, 0, None
 
-# column stacked to show attainment distribution by class based on latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
+# column stacked to show attainment distribution by class based on latest available NGRT dataset
+# with priority order: NGRT-C->NGRT-B->NGRT-A
+# categorized as below avg, avg, above avg based on stanine ranges (1-3, 4-6, 7-9 respectively)
 def get_latest_ngrt_classwise_stanine():
     # datasets = exam_label, model pairs in priority order (latest dataset first)
     datasets = [("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA),]
@@ -634,6 +636,90 @@ def get_latest_ngrt_classwise_progress():
         "totals": [0, 0, 0, 0, 0, 0],
     }
 
+# column stacked to show reading literacy thresholds
+# by class based on latest available NGRT dataset
+# with priority: NGRT-C->NGRT-B->NGRT-A
+def get_latest_ngrt_classwise_reading_thresholds():
+    datasets = [("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA)]
+
+    year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
+
+    for exam_label, model in datasets:
+        has_data = (
+            db.session.query(model.id)
+            .filter(model.sas.isnot(None))
+            .first()
+        )
+
+        if not has_data:
+            continue
+
+        rows = (
+            db.session.query(
+                func.lower(Students.yrgrp).label("yrgrp"),
+                func.count(model.id).label("total"),
+                func.sum(case((model.sas >= 90, 1), else_=0)).label("sas_90_count"),
+                func.sum(case((model.sas >= 110, 1), else_=0)).label("sas_110_count"),
+                func.sum(case((model.sas >= 120, 1), else_=0)).label("sas_120_count"),
+            )
+            .join(Students, model.student_id == Students.student_id)
+            .filter(
+                model.sas.isnot(None),
+                Students.yrgrp.isnot(None)
+            )
+            .group_by(func.lower(Students.yrgrp))
+            .all()
+        )
+
+        row_map = {row.yrgrp: row for row in rows}
+
+        result = {
+            "exam_label": exam_label,
+            "year_groups": [yg.upper() for yg in year_groups],
+            "sas_90_pct": [],
+            "sas_110_pct": [],
+            "sas_120_pct": [],
+            "sas_90_count": [],
+            "sas_110_count": [],
+            "sas_120_count": [],
+            "totals": [],
+        }
+
+        for yg in year_groups:
+            row = row_map.get(yg)
+
+            total = int(row.total) if row and row.total is not None else 0
+            c90 = int(row.sas_90_count) if row and row.sas_90_count is not None else 0
+            c110 = int(row.sas_110_count) if row and row.sas_110_count is not None else 0
+            c120 = int(row.sas_120_count) if row and row.sas_120_count is not None else 0
+
+            p90 = round((c90 / total) * 100, 1) if total > 0 else 0
+            p110 = round((c110 / total) * 100, 1) if total > 0 else 0
+            p120 = round((c120 / total) * 100, 1) if total > 0 else 0
+
+            result["sas_90_pct"].append(p90)
+            result["sas_110_pct"].append(p110)
+            result["sas_120_pct"].append(p120)
+
+            result["sas_90_count"].append(c90)
+            result["sas_110_count"].append(c110)
+            result["sas_120_count"].append(c120)
+            result["totals"].append(total)
+
+        return result
+
+    return {
+        "exam_label": "No Data",
+        "year_groups": ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F"],
+        "sas_90_pct": [0, 0, 0, 0, 0, 0],
+        "sas_110_pct": [0, 0, 0, 0, 0, 0],
+        "sas_120_pct": [0, 0, 0, 0, 0, 0],
+        "sas_90_count": [0, 0, 0, 0, 0, 0],
+        "sas_110_count": [0, 0, 0, 0, 0, 0],
+        "sas_120_count": [0, 0, 0, 0, 0, 0],
+        "totals": [0, 0, 0, 0, 0, 0],
+    }
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -723,6 +809,11 @@ def ngrt_classwise_progress_distribution():
 @blueprint.route("/api/classwise_avg_ngrt_stanine")
 def classwise_avg_ngrt_stanine():
     data = get_classwise_avg_ngrt_stanine()
+    return jsonify(data)
+
+@blueprint.route("/api/ngrt_classwise_reading_thresholds")
+def ngrt_classwise_reading_thresholds():
+    data = get_latest_ngrt_classwise_reading_thresholds()
     return jsonify(data)
 
 #************************
