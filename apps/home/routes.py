@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import requests
+import json
 from openai import OpenAI
 from apps.home import blueprint
 from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort
@@ -720,6 +721,340 @@ def get_latest_ngrt_classwise_reading_thresholds():
         "totals": [0, 0, 0, 0, 0, 0],
     }
 
+# -------------------------------------------
+# NGRT Dashboard AI Interpretation
+# Reuses existing NGRT helper functions
+# -------------------------------------------
+
+def _safe_pct(part, whole):
+    # Return percentage safely, avoiding division by zero
+    return round((part / whole) * 100.0, 1) if whole else 0.0
+
+
+def _latest_ngrt_model_and_label():
+    """
+    Return the latest available NGRT model and label
+    using the dashboard priority:
+    NGRT-C -> NGRT-B -> NGRT-A
+    """
+    datasets = [
+        ("NGRT-C", NGRTC),
+        ("NGRT-B", NGRTB),
+        ("NGRT-A", NGRTA),
+    ]
+
+    # Check each dataset in priority order and return the first one with data
+    for label, model in datasets:
+        has_data = (
+            db.session.query(model.id)
+            .filter(model.id.isnot(None))
+            .first()
+        )
+        if has_data:
+            return model, label
+
+    # No dataset available
+    return None, None
+
+
+def _get_latest_ngrt_cohort_totals():
+    """
+    Return basic cohort-level metadata from the latest
+    available NGRT dataset.
+    """
+    model, label = _latest_ngrt_model_and_label()
+
+    # Fallback if no NGRT data exists
+    if not model:
+        return {
+            "exam_label": None,
+            "total": 0,
+            "avg_stanine": 0.0,
+            "avg_sas": 0.0,
+        }
+
+    # Total student count in latest dataset
+    total = db.session.query(func.count(model.id)).scalar() or 0
+
+    # Average stanine from latest dataset
+    avg_stanine = (
+        db.session.query(func.avg(model.stanine))
+        .filter(model.stanine.isnot(None))
+        .scalar() or 0
+    )
+
+    # Average SAS from latest dataset
+    avg_sas = (
+        db.session.query(func.avg(model.sas))
+        .filter(model.sas.isnot(None))
+        .scalar() or 0
+    )
+
+    return {
+        "exam_label": label,
+        "total": int(total),
+        "avg_stanine": round(float(avg_stanine or 0), 2),
+        "avg_sas": round(float(avg_sas or 0), 2),
+    }
+
+
+def _get_latest_attainment_distribution_summary():
+    """
+    Reuse existing classwise stanine helper and roll up
+    all class values into one cohort-level attainment summary.
+    """
+    # Existing helper already applies latest-dataset priority
+    data = get_latest_ngrt_classwise_stanine()
+
+    # Extract arrays from existing payload
+    totals = data.get("totals", [])
+    below_counts = data.get("below_average_count", [])
+    average_counts = data.get("average_count", [])
+    above_counts = data.get("above_average_count", [])
+
+    # Sum class totals to get cohort totals
+    cohort_total = sum(int(x or 0) for x in totals)
+    below_total = sum(int(x or 0) for x in below_counts)
+    average_total = sum(int(x or 0) for x in average_counts)
+    above_total = sum(int(x or 0) for x in above_counts)
+
+    return {
+        "exam_label": data.get("exam_label"),
+        "total": cohort_total,
+        "below_count": below_total,
+        "average_count": average_total,
+        "above_count": above_total,
+        "below_pct": _safe_pct(below_total, cohort_total),
+        "average_pct": _safe_pct(average_total, cohort_total),
+        "above_pct": _safe_pct(above_total, cohort_total),
+    }
+
+
+def _get_latest_progress_distribution_summary():
+    """
+    Reuse existing classwise progress helper and roll up
+    all class values into one cohort-level progress summary.
+    """
+    # Existing helper already computes progress distribution by class
+    data = get_latest_ngrt_classwise_progress()
+
+    totals = data.get("totals", [])
+    lower_counts = data.get("lower_count", [])
+    expected_counts = data.get("expected_count", [])
+    better_counts = data.get("better_count", [])
+
+    # Sum class values for cohort totals
+    cohort_total = sum(int(x or 0) for x in totals)
+    lower_total = sum(int(x or 0) for x in lower_counts)
+    expected_total = sum(int(x or 0) for x in expected_counts)
+    better_total = sum(int(x or 0) for x in better_counts)
+
+    return {
+        "exam_label": data.get("exam_label"),
+        "total": cohort_total,
+        "lower_count": lower_total,
+        "expected_count": expected_total,
+        "better_count": better_total,
+        "lower_pct": _safe_pct(lower_total, cohort_total),
+        "expected_pct": _safe_pct(expected_total, cohort_total),
+        "better_pct": _safe_pct(better_total, cohort_total),
+    }
+
+
+def _get_latest_reading_threshold_summary():
+    """
+    Reuse existing classwise reading-threshold helper and roll up
+    all class values into one cohort-level threshold summary.
+    """
+    # Existing helper already computes SAS >= 90, 110, 120 by class
+    data = get_latest_ngrt_classwise_reading_thresholds()
+
+    totals = data.get("totals", [])
+    c90 = data.get("sas_90_count", [])
+    c110 = data.get("sas_110_count", [])
+    c120 = data.get("sas_120_count", [])
+
+    # Sum class values into cohort totals
+    cohort_total = sum(int(x or 0) for x in totals)
+    total_90 = sum(int(x or 0) for x in c90)
+    total_110 = sum(int(x or 0) for x in c110)
+    total_120 = sum(int(x or 0) for x in c120)
+
+    return {
+        "exam_label": data.get("exam_label"),
+        "total": cohort_total,
+        "sas_90_count": total_90,
+        "sas_110_count": total_110,
+        "sas_120_count": total_120,
+        "sas_90_pct": _safe_pct(total_90, cohort_total),
+        "sas_110_pct": _safe_pct(total_110, cohort_total),
+        "sas_120_pct": _safe_pct(total_120, cohort_total),
+    }
+
+
+def _build_trend_statement_from_existing_series():
+    """
+    Reuse get_classwise_avg_ngrt_stanine() to build one
+    short interpretation statement about attainment trends.
+    """
+    # Existing helper returns:
+    # {
+    #   "year_groups": [...],
+    #   "series": [{"name": "NGRT-A", "data": [...]}, ...]
+    # }
+    data = get_classwise_avg_ngrt_stanine()
+    year_groups = data.get("year_groups", [])
+    series = data.get("series", [])
+
+    # No trend data at all
+    if not series:
+        return "No classwise stanine trend data is currently available across NGRT-A, NGRT-B, and NGRT-C."
+
+    # Convert series list into a lookup map for easier access
+    series_map = {
+        s["name"]: s["data"]
+        for s in series
+        if "name" in s and "data" in s
+    }
+
+    improving = 0
+    declining = 0
+    stable = 0
+
+    # Check trend per class/year group
+    for idx, _yg in enumerate(year_groups):
+        points = []
+
+        # Collect available class averages in test order
+        for exam_name in ["NGRT-A", "NGRT-B", "NGRT-C"]:
+            vals = series_map.get(exam_name)
+            if vals and idx < len(vals):
+                val = vals[idx]
+                if val is not None:
+                    points.append(val)
+
+        # Need at least 2 points to compare a trend
+        if len(points) < 2:
+            continue
+
+        first = points[0]
+        last = points[-1]
+
+        # Small buffer of 0.15 to avoid treating tiny changes as trends
+        if last > first + 0.15:
+            improving += 1
+        elif last < first - 0.15:
+            declining += 1
+        else:
+            stable += 1
+
+    compared_classes = improving + declining + stable
+
+    # No usable comparison found
+    if compared_classes == 0:
+        return "Insufficient class trend data is available across NGRT-A, NGRT-B, and NGRT-C to identify a reliable pattern."
+
+    # Choose the dominant overall trend
+    if improving >= max(declining, stable):
+        return "Most classes show an upward movement in average stanine across the available NGRT assessments, suggesting generally improving reading attainment over time."
+    elif declining > max(improving, stable):
+        return "More classes show a decline in average stanine across the available NGRT assessments, indicating that reading attainment should be monitored closely."
+    else:
+        return "Average stanine performance across classes is broadly stable over the NGRT assessment points, with only modest variation over time."
+
+
+def _build_attainment_statement(att):
+    """
+    Convert attainment summary numbers into one interpretation sentence.
+    """
+    if att["total"] == 0:
+        return "No latest NGRT attainment data is available."
+
+    # Identify the dominant attainment band
+    dominant = max(
+        [
+            ("below average", att["below_count"], att["below_pct"]),
+            ("average", att["average_count"], att["average_pct"]),
+            ("above average", att["above_count"], att["above_pct"]),
+        ],
+        key=lambda x: x[1]
+    )
+
+    return (
+        f"The cohort is mainly within the {dominant[0]} stanine band in {att['exam_label']}, "
+        f"with {dominant[1]} students ({dominant[2]}%), compared with "
+        f"{att['below_count']} below average, {att['average_count']} average, and {att['above_count']} above average."
+    )
+
+
+def _build_progress_statement(prog):
+    """
+    Convert progress summary numbers into one interpretation sentence.
+    """
+    if prog["total"] == 0:
+        return "No latest NGRT progress data is available."
+
+    # Identify the dominant progress category
+    dominant = max(
+        [
+            ("Lower than Expected", prog["lower_count"], prog["lower_pct"]),
+            ("Expected", prog["expected_count"], prog["expected_pct"]),
+            ("Better than Expected", prog["better_count"], prog["better_pct"]),
+        ],
+        key=lambda x: x[1]
+    )
+
+    return (
+        f"Most students in {prog['exam_label']} are in the '{dominant[0]}' category, "
+        f"representing {dominant[1]} students ({dominant[2]}%) across the cohort."
+    )
+
+
+def _build_threshold_statement(thr):
+    """
+    Convert SAS threshold summary numbers into one interpretation sentence.
+    """
+    if thr["total"] == 0:
+        return "No latest NGRT SAS threshold data is available."
+
+    return (
+        f"Based on the latest available dataset ({thr['exam_label']}), "
+        f"{thr['sas_90_count']} students ({thr['sas_90_pct']}%) achieved SAS ≥ 90, "
+        f"{thr['sas_110_count']} ({thr['sas_110_pct']}%) achieved SAS ≥ 110, and "
+        f"{thr['sas_120_count']} ({thr['sas_120_pct']}%) achieved SAS ≥ 120."
+    )
+
+
+def build_ngrt_dashboard_ai_interpretation():
+    """
+    Main helper used by the dashboard route.
+    Builds one interpretation bundle for the NGRT dashboard cards.
+    """
+    # Get latest dataset metadata
+    latest_meta = _get_latest_ngrt_cohort_totals()
+
+    # Get cohort-level summaries by reusing existing classwise helpers
+    attainment = _get_latest_attainment_distribution_summary()
+    progress = _get_latest_progress_distribution_summary()
+    thresholds = _get_latest_reading_threshold_summary()
+
+    # Build trend sentence from classwise average stanine series
+    trend_statement = _build_trend_statement_from_existing_series()
+
+    # Return one payload object for template rendering
+    return {
+        "latest_exam": latest_meta["exam_label"],
+        "latest_avg_stanine": latest_meta["avg_stanine"],
+        "latest_avg_sas": latest_meta["avg_sas"],
+        "attainment_statement": _build_attainment_statement(attainment),
+        "progress_statement": _build_progress_statement(progress),
+        "trend_statement": trend_statement,
+        "threshold_statement": _build_threshold_statement(thresholds),
+        "attainment_data": attainment,
+        "progress_data": progress,
+        "threshold_data": thresholds,
+    }
+
 #***********************************
 #*** Dashboard Analytics Routes ***#
 #***********************************
@@ -764,6 +1099,9 @@ def index():
     # Fetch count and percentage of students with SAS ≥120 based on latest available NGRT dataset
     sas_120_count, sas_120_percentage, sas_120_dataset = get_sas_120_stats()
 
+    # NEW: build NGRT AI interpretation bundle for the dashboard
+    ngrt_ai_interpretation = build_ngrt_dashboard_ai_interpretation()
+
     return render_template(
         'pages/index.html',
         segment='dashboard',
@@ -793,6 +1131,7 @@ def index():
         sas_120_count = sas_120_count,
         sas_120_percentage = sas_120_percentage,
         sas_120_dataset = sas_120_dataset,
+        ngrt_ai_interpretation = ngrt_ai_interpretation,
     )
 
 @blueprint.route("/api/ngrt_classwise_stanine")

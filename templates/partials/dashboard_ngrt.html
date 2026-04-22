@@ -18,7 +18,7 @@
                     alt="Cohort Attainment" title="Cohort Attainment"/>
                 <div class="d-flex-inline">
                     <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Attainment Distribution</h5>
-                    <div class="text-muted text-xs">Classwise | Latest NGRT Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-st-exam-label"></span> ]</span></div>
+                    <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-st-exam-label"></span> ]</span></div>
                 </div>
                 </div>
             </div>
@@ -39,7 +39,7 @@
                     alt="Progress Distribution" title="Progress Distribution"/>
                 <div class="d-flex-inline">
                     <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Progress Distribution</h5>
-                    <div class="text-muted text-xs">Classwise | Latest NGRT Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-progress-exam-label"></span> ]</span></div>
+                    <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-progress-exam-label"></span> ]</span></div>
                 </div>
                 </div>
             </div>
@@ -60,52 +60,64 @@
                         <span class="text-uppercase text-info font-weight-bolder">AI Insight Lens</span>
                     </h5>
                 </div>
-                <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-1" style="background-color: #DDF6D2; height: auto !important;">
-                    <div class="d-flex align-items-end gap-2 mb-2">
-                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=7Zk9m4C4u82V&format=png&color=000000" 
+                <div>
+                    <p class="text-muted text-xs mb-2">
+                        Latest dataset used:
+                        <span class="fw-bolder">[ <span class="text-info">{{ ngrt_ai_interpretation.latest_exam or "No data available." }}</span> ]</span>
+                        &nbsp;|&nbsp;
+                        Avg Stanine:
+                        <strong><span class="text-info">{{ "%.0f"|format(ngrt_ai_interpretation.latest_avg_stanine or 0) }}</span></strong>
+                        &nbsp;|&nbsp;
+                        Avg SAS:
+                        <strong><span class="text-info">{{ "%.0f"|format(ngrt_ai_interpretation.latest_avg_sas or 0) }}</span></strong>
+                    </p>
+                </div>
+                <div class="card-body rounded-3 pt-1 pb-0 me-3 mb-1" style="background-color: #F7F6E5; height: auto !important;">
+                    <div class="d-flex align-items-end gap-2 mt-1 mb-2">
+                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000" 
                         alt="AI Recommendations" title="AI Recommendations"/>
                         <h6 class="text-body mb-0 mt-1">
-                            <span class="text-success font-weight-bolder">Strengths</span>
+                            <span class="text-primary font-weight-bolder">Attainment Distribution</span>
                         </h6>
                     </div>
-                    <div>
-                        <ul class="text-xs text-muted lh-sm">
-                            {% for s in ai_strengths %}
-                                <li>{{ s }}</li>
-                            {% endfor %}
-                        </ul>
+                    <div class="mb-0">
+                        <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.attainment_statement }}</p>
                     </div>
                 </div>
-                <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-1" style="background-color: #FFF0CE; height: auto !important;">
-                    <div class="d-flex align-items-end gap-2 mb-2">
-                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=7svKOkN1CiaR&format=png&color=000000" 
+                <div class="card-body rounded-3 pt-1 pb-0 me-3 mb-1" style="background-color: #FFF8DE; height: auto !important;">
+                    <div class="d-flex align-items-end gap-2 mt-1 mb-2">
+                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000" 
                         alt="AI Recommendations" title="AI Recommendations"/>
                         <h6 class="text-body mb-0 mt-1">
-                            <span class="text-danger font-weight-bolder">Concerns</span>
+                            <span class="text-primary font-weight-bolder">Progress Distribution</span>
                         </h6>
                     </div>
-                    <div>
-                        <ul class="text-xs text-muted lh-sm">
-                            {% for c in ai_concerns %}
-                                <li>{{ c }}</li>
-                            {% endfor %}
-                        </ul>
+                    <div class="mb-0">
+                        <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.progress_statement }}</p>
                     </div>
                 </div>
-                <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-3" style="background-color: #FEFDDF; height: auto !important;">
-                    <div class="d-flex align-items-end gap-2 mb-2">
-                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=w5vsJopX73g7&format=png&color=000000" 
+                <div class="card-body rounded-3 pt-1 pb-0 me-3 mb-1" style="background-color: #F7F6E5; height: auto !important;">
+                    <div class="d-flex align-items-end gap-2 mt-1 mb-2">
+                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
                         alt="AI Recommendations" title="AI Recommendations"/>
                         <h6 class="text-body mb-0 mt-1">
-                            <span class="text-info font-weight-bolder">Recommendations</span>
+                            <span class="text-primary font-weight-bolder">Trends in Attainment</span>
                         </h6>
                     </div>
-                    <div>
-                        <ul class="text-xs text-muted lh-sm">
-                            {% for r in ai_recommendations %}
-                                <li>{{ r }}</li>
-                            {% endfor %}
-                        </ul>
+                    <div class="mb-0">
+                        <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.trend_statement }}</p>
+                    </div>
+                </div>
+                <div class="card-body rounded-3 pt-1 pb-0 me-3 mb-3" style="background-color: #FFF8DE; height: auto !important;">
+                    <div class="d-flex align-items-end gap-2 mt-1 mb-2">
+                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=5ZKXxNjdLtq4&format=png&color=000000" 
+                        alt="AI Recommendations" title="AI Recommendations"/>
+                        <h6 class="text-body mb-0 mt-1">
+                            <span class="text-primary font-weight-bolder">Reading Literacy Thresholds</span>
+                        </h6>
+                    </div>
+                    <div class="mb-0">
+                        <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.threshold_statement }}</p>
                     </div>
                 </div>
             </div>
@@ -144,7 +156,7 @@
                     alt="Reading Literacy Threshold" title="Reading Literacy Threshold"/>
                 <div class="d-flex-inline">
                     <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Reading Literacy Threshold</h5>
-                    <div class="text-muted text-xs">Classwise | Latest NGRT Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-threshold-exam-label"></span> ]</span></div>
+                    <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-threshold-exam-label"></span> ]</span></div>
                 </div>
                 </div>
             </div>
