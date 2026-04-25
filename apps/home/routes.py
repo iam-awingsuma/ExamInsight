@@ -38,6 +38,10 @@ from apps.authentication.forms import CreateAccountForm
 from apps.authentication.models import Users
 from apps.authentication.routes import admin_required
 
+# reports-related imports
+from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort, send_file
+from apps.reports import build_ngrt_summary_pdf
+
 # Normalize year-group/class codes for consistent matching (e.g., '2-a' -> '2-A')
 def _normalize_class_code(value):
     return (value or "").strip().upper()
@@ -1154,6 +1158,41 @@ def classwise_avg_ngrt_stanine():
 def ngrt_classwise_reading_thresholds():
     data = get_latest_ngrt_classwise_reading_thresholds()
     return jsonify(data)
+
+#************************
+#******* Reports *******#
+#************************
+@blueprint.route('/reports', methods=['GET'])
+@login_required
+@admin_required
+def display_reports():
+    return render_template(
+        'pages/reports.html',
+        segment = 'reports',
+        )
+
+@blueprint.route("/reports/ngrt-summary/<exam>")
+@login_required
+def download_ngrt_summary_report(exam):
+    allowed_exams = {
+        "ngrta": "NGRT-A",
+        "ngrtb": "NGRT-B",
+        "ngrtc": "NGRT-C",
+    }
+
+    exam_key = (exam or "").strip().lower()
+
+    if exam_key not in allowed_exams:
+        abort(404)
+
+    pdf_buffer = build_ngrt_summary_pdf(exam_key)
+
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"examinsight_{exam_key}_summary_report.pdf",
+        mimetype="application/pdf",
+    )
 
 #************************
 #*** Data Management ***#
