@@ -62,8 +62,24 @@
           <!-- Student performance over time cards -->
           {% include "partials/extl_si_perf-over-time_ngrtc.html" %}
 
-          <!-- Progress category distribution card -->
-          {% include "partials/extl_si_progcat_distribution.html" %}
+          <div class="container-fluid px-0 mb-3">
+            <div class="row g-3 align-items-stretch">
+              <div class="col-6 col-xl-6">
+                <div class="card h-100 chart-card">
+                  <!-- Attainment distribution card -->
+                  {% include "partials/extl_si_attainment_distribution.html" %}
+                </div>
+              </div>
+
+              <div class="col-6 col-xl-6">
+                <div class="card h-100 chart-card">
+                  <!-- Progress category distribution card -->
+                  {% include "partials/extl_si_progcat_distribution.html" %}
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
