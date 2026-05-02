@@ -500,6 +500,132 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // --------------------------------------------------------------------
+    // NGRT Bar Chart - Attainment Distribution (Above Avg, Avg, Below Avg)
+    // --------------------------------------------------------------------
+    function renderNgrtStanineDistribution(cohort = [], student = null) {
+        const labels = ["below average", "average", "above average"];
+
+        // Initialize counts for each stanine band
+        const counts = {
+            "below average": 0,  // Stanine 1-3
+            "average": 0,       // Stanine 4-6
+            "above average": 0  // Stanine 7-9
+        };
+
+        const displayLabels = labels.map(s => titleCase(s));
+
+        // Helper: convert stanine value into category
+        function getStanineCategory(stanine) {
+            const value = Number(stanine);
+
+            if (value >= 1 && value <= 3) return "below average";
+            if (value >= 4 && value <= 6) return "average";
+            if (value >= 7 && value <= 9) return "above average";
+
+            return null;
+        }
+
+        // Student mode - show individual student's stanine category
+        if (student && student.stanine) {
+            const cat = getStanineCategory(student.stanine);
+
+            if (cat && counts.hasOwnProperty(cat)) {
+                counts[cat] = 1; // only 1 student
+            }
+        }
+
+        // Cohort / Year Group Mode - show distribution of stanine categories
+        else if (cohort.length) {
+            cohort.forEach(s => {
+                if (!s.stanine) return;
+
+                const cat = getStanineCategory(s.stanine);
+
+                if (cat && counts.hasOwnProperty(cat)) {
+                    counts[cat]++;
+                }
+            });
+        }
+
+        const yValues = labels.map(l => counts[l]);
+        const total = yValues.reduce((a, b) => a + b, 0);
+
+        const percentages = yValues.map(v =>
+            total ? ((v / total) * 100).toFixed(1) : 0
+        );
+
+        const trace = labels.map((label, i) => ({
+            x: [displayLabels[i]],
+            y: [yValues[i]],
+            type: "bar",
+            name: displayLabels[i],
+            text: [`${percentages[i]}%`],
+            textposition: "outside",
+            marker: {
+                color: [
+                    "#FF5A5A",
+                    "#FCB53B",
+                    "#A7E399"
+                ][i]
+            },
+            customdata: [[total, percentages[i]]],
+            hovertemplate: "<b>%{y}/%{customdata[0]}</b> students<extra></extra>",
+            showlegend: true
+        }));
+
+        const layout = {
+            autosize: true,
+            width: null,
+            showlegend: true,
+            margin: { t: 10, r: 10, b: 90, l: 50 },
+
+            xaxis: {
+                // title: "Stanine Category",
+                categoryorder: "array",
+                categoryarray: displayLabels,
+                tickvals: displayLabels,
+                ticktext: displayLabels,
+                showspikes: false,
+            },
+
+            yaxis: {
+                title: "Count",
+                rangemode: "tozero",
+            },
+
+            legend: {
+                orientation: "h",
+                x: 0,
+                xanchor: "left",
+                y: -0.1
+            },
+
+            barmode: "group",
+            bargap: 0,
+            bargroupgap: 0.1,
+            hovermode: "x unified",
+            hoverlabel: {
+                bgcolor: "#fff",
+                bordercolor: "#ccc",
+                align: "left",
+                namelength: 0
+            },
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)"
+        };
+
+        const el = document.getElementById("chart_extl_stanine_dist");
+        if (el) {
+            Plotly.newPlot(el, trace, layout, { displayModeBar: false, responsive: true });
+            setTimeout(() => Plotly.Plots.resize(el), 100);
+            window.addEventListener("resize", () => Plotly.Plots.resize(el));
+
+            const observer = new ResizeObserver(() => Plotly.Plots.resize(el));
+                observer.observe(el);
+        }
+    }
+
     // -------------------------------------------------------------
     // NGRT Bar Chart - Progress over Time (Progress Categories)
     // -------------------------------------------------------------
@@ -540,52 +666,79 @@ document.addEventListener("DOMContentLoaded", function () {
         const percentages = yValues.map(v =>
             total ? ((v / total) * 100).toFixed(1) : 0
         );
-        
-        const trace = [{
-            x: labels.map(s => titleCase(s)), y: yValues, type: "bar", name: labels.map(s => titleCase(s)),
-            text: percentages.map(p => `${p}%`),
-            textposition:"outside",
+
+        const trace = labels.map((label, i) => ({
+            x: [displayLabels[i]],
+            y: [yValues[i]],
+            type: "bar",
+            name: displayLabels[i],
+            text: [`${percentages[i]}%`],
+            textposition: "outside",
             marker: {
                 color: [
                     "#FF5A5A",  // Lower → red
                     "#FCB53B",  // Expected → yellow
                     "#A7E399"   // Better → green
-                ]
+                ][i]
             },
-            customdata: yValues.map(() => total),
-            hovertemplate: "<b>%{y}/%{customdata}</b> students<extra></extra>",
-        }];
+            customdata: [[total, percentages[i]]],
+            hovertemplate: "<b>%{y}/%{customdata[0]}</b> students<extra></extra>",
+            showlegend: true
+        }));
+
         const layout = {
             autosize: true,
             width: null,
-            margin: { t: 10, r: 10, b: 50, l: 50 },
+            showlegend: true,
+            margin: { t: 10, r: 10, b: 90, l: 50 },
+
             xaxis: {
-                title: "Progress Category",
+                // title: "Progress Category",
                 categoryorder: "array",
-                categoryarray: labels,
-                tickvals: labels,
+                categoryarray: displayLabels,
+                tickvals: displayLabels,
                 ticktext: displayLabels,
                 showspikes: false,
             },
-            yaxis: {    
+
+            yaxis: {
                 title: "Count",
                 rangemode: "tozero",
             },
-            legend: { orientation: "h" },
-            barmode: 'group', bargap: 0, bargroupgap: 0.1,
+
+            legend: {
+                orientation: "h",
+                x: 0,
+                xanchor: "left",
+                y: -0.1
+            },
+
+            barmode: "group",
+            bargap: 0,
+            bargroupgap: 0.1,
+
             hovermode: "x unified",
-            hoverlabel:{ bgcolor:"#fff", bordercolor:"#ccc", align:"left", namelength:0 },
+
+            hoverlabel: {
+                bgcolor: "#fff",
+                bordercolor: "#ccc",
+                align: "left",
+                namelength: 0
+            },
+
             paper_bgcolor: "rgba(0,0,0,0)",
             plot_bgcolor: "rgba(0,0,0,0)"
         };
-        Plotly.react("chart_extl_progcat", trace, layout, {
-            displayModeBar: false, responsive: true,
-        });
 
-        setTimeout(() => {
-            const chart = document.getElementById("chart_extl_progcat");
-            if (chart) Plotly.Plots.resize(chart);
-        }, 100);
+        const el = document.getElementById("chart_extl_progcat");
+        if (el) {
+            Plotly.newPlot(el, trace, layout, { displayModeBar: false, responsive: true });
+            setTimeout(() => Plotly.Plots.resize(el), 100);
+            window.addEventListener("resize", () => Plotly.Plots.resize(el));
+
+            const observer = new ResizeObserver(() => Plotly.Plots.resize(el));
+                observer.observe(el);
+        }
     }
 
     // ---------------------------------------------------------------------
@@ -618,6 +771,8 @@ document.addEventListener("DOMContentLoaded", function () {
         renderStanineScatter();
         // Render attainment over time line graph
         renderNgrtAttainmentLine(cohort, selectedStudent);
+        // Render stanine distribution bar chart
+        renderNgrtStanineDistribution(cohort, selectedStudent);
         // Render progress category distribution bar chart
         renderNgrtProgressBar(cohort, selectedStudent);
         // Toggle reading profile card
