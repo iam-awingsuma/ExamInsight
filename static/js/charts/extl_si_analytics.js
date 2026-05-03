@@ -48,6 +48,24 @@ document.addEventListener("DOMContentLoaded", function () {
         updateDashboard();
     });
 
+    // Re-render and resize charts when Student Insights accordion opens
+    document.getElementById("c3")?.addEventListener("shown.bs.collapse", function () {
+        updateDashboard();
+        setTimeout(() => {
+            [
+                "chart_extl_stanine_dist",
+                "chart_extl_sas_threshold",
+                "chart_extl_progcat",
+                "extl_ngrt_scatter",
+                "chart_attainment_over_time",
+                "chart_progress_over_time"
+            ].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) Plotly.Plots.resize(el);
+            });
+        }, 200);
+    });
+
     // Load API Data
     async function loadData() {
         try {
@@ -474,30 +492,36 @@ document.addEventListener("DOMContentLoaded", function () {
             plot_bgcolor: "rgba(0,0,0,0)"
         };
 
-        Plotly.react("chart_attainment_over_time", traceSAS, layout, {
-            displayModeBar: false,
-            responsive: true
-        });
-
-        Plotly.react("chart_progress_over_time", traceStanine, layout, {
-            displayModeBar: false,
-            responsive: true
-        });
-
         const chart1 = document.getElementById("chart_attainment_over_time");
         const chart2 = document.getElementById("chart_progress_over_time");
 
-        [chart1, chart2].forEach(chart => {
-            if (!chart) return;
-            // Initial resize charts to ensure they fit their containers
-            if (chart) Plotly.Plots.resize(chart);
-
-            // automatically resize charts when their container size changes
-            const observer = new ResizeObserver(() => {
-                Plotly.Plots.resize(chart);
+        if (chart1) {
+            Plotly.react(chart1, traceSAS, layout, {
+                displayModeBar: false,
+                responsive: true
             });
-            observer.observe(chart);
-        });
+
+            setTimeout(() => Plotly.Plots.resize(chart1), 100);
+
+            const observer1 = new ResizeObserver(() => {
+                Plotly.Plots.resize(chart1);
+            });
+            observer1.observe(chart1);
+        }
+
+        if (chart2) {
+            Plotly.react(chart2, traceStanine, layout, {
+                displayModeBar: false,
+                responsive: true
+            });
+
+            setTimeout(() => Plotly.Plots.resize(chart2), 100);
+
+            const observer2 = new ResizeObserver(() => {
+                Plotly.Plots.resize(chart2);
+            });
+            observer2.observe(chart2);
+        }
     }
 
     // --------------------------------------------------------------------
@@ -741,6 +765,139 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    // ---------------------------------------------------------------
+    // NGRT Reading Literacy Threshold Bar Chart (SAS >= 90, 110, 120)
+    // ---------------------------------------------------------------
+    function renderNgrtReadingLiteracyThreshold(cohort = [], student = null) {
+         const labels = ["sas >= 90", "sas >= 110", "sas >= 120"];
+
+        const counts = {
+            "sas >= 90": 0,
+            "sas >= 110": 0,
+            "sas >= 120": 0
+        };
+
+        const displayLabels = ["SAS ≥ 90", "SAS ≥ 110", "SAS ≥ 120"];
+
+        // Safely get SAS whether your API uses SAS or sas
+        function getStudentSas(obj) {
+            if (!obj) return null;
+
+            const raw = obj.SAS ?? obj.sas;
+            const value = Number(raw);
+
+            return Number.isFinite(value) ? value : null;
+        }
+
+        // Student mode
+        if (student) {
+            const sas = getStudentSas(student);
+
+            if (sas !== null) {
+                if (sas >= 90) counts["sas >= 90"] = 1;
+                if (sas >= 110) counts["sas >= 110"] = 1;
+                if (sas >= 120) counts["sas >= 120"] = 1;
+            }
+        }
+
+        // Cohort / Year Group mode
+        else if (cohort.length) {
+            cohort.forEach(s => {
+                const sas = getStudentSas(s);
+                if (sas === null) return;
+
+                if (sas >= 90) counts["sas >= 90"]++;
+                if (sas >= 110) counts["sas >= 110"]++;
+                if (sas >= 120) counts["sas >= 120"]++;
+            });
+        }
+
+        const yValues = labels.map(l => counts[l]);
+
+        const total = student
+            ? (getStudentSas(student) !== null ? 1 : 0)
+            : cohort.filter(s => getStudentSas(s) !== null).length;
+
+        const percentages = yValues.map(v =>
+            total ? ((v / total) * 100).toFixed(1) : "0.0"
+        );
+
+        const trace = labels.map((label, i) => ({
+            x: [displayLabels[i]],
+            y: [yValues[i]],
+            type: "bar",
+            name: displayLabels[i],
+            text: [`${percentages[i]}%`],
+            textposition: "outside",
+            marker: {
+                color: [
+                    "#89D4FF",
+                    "#44ACFF",
+                    "#5478FF"
+                ][i]
+            },
+            customdata: [[total, percentages[i]]],
+            hovertemplate: "<b>%{y}/%{customdata[0]}</b> students<extra></extra>",
+            showlegend: true
+        }));
+
+        const layout = {
+            autosize: true,
+            width: null,
+            showlegend: true,
+            margin: { t: 10, r: 10, b: 90, l: 50 },
+
+            xaxis: {
+                categoryorder: "array",
+                categoryarray: displayLabels,
+                tickvals: displayLabels,
+                ticktext: displayLabels,
+                showspikes: false,
+            },
+
+            yaxis: {
+                title: "Count",
+                rangemode: "tozero",
+                showticklabels: false,
+            },
+
+            legend: {
+                orientation: "h",
+                x: 0,
+                xanchor: "left",
+                y: -0.1
+            },
+
+            barmode: "group",
+            bargap: 0,
+            bargroupgap: 0.1,
+
+            hovermode: "x unified",
+
+            hoverlabel: {
+                bgcolor: "#fff",
+                bordercolor: "#ccc",
+                align: "left",
+                namelength: 0
+            },
+
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)"
+        };
+
+        const el = document.getElementById("chart_extl_sas_threshold");
+
+        if (!el) {
+            console.warn("Missing chart container: chart_extl_sas_threshold");
+            return;
+        }
+        Plotly.react(el, trace, layout, { displayModeBar: false, responsive: true });
+        setTimeout(() => { Plotly.Plots.resize(el); }, 100);
+        window.addEventListener("resize", () => Plotly.Plots.resize(el));
+        const observer = new ResizeObserver(() => Plotly.Plots.resize(el));
+        observer.observe(el);
+    }
+
     // ---------------------------------------------------------------------
     // Update Dashboard (KPIs + Chart + Student Icon + Reading Profile card)
     // ---------------------------------------------------------------------
@@ -775,6 +932,8 @@ document.addEventListener("DOMContentLoaded", function () {
         renderNgrtStanineDistribution(cohort, selectedStudent);
         // Render progress category distribution bar chart
         renderNgrtProgressBar(cohort, selectedStudent);
+        // Render reading literacy threshold bar chart
+        renderNgrtReadingLiteracyThreshold(cohort, selectedStudent);
         // Toggle reading profile card
         toggleReadingProfileCard();
     }
