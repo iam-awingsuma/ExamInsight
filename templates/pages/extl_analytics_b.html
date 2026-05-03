@@ -79,6 +79,11 @@
               </div>
             </div>
           </div>
+
+          <div class="card h-100 chart-card">
+            <!-- Reading Literacy Threshold card -->
+            {% include "partials/extl_si_reading_literacy_threshold.html" %}
+          </div>
           
         </div>
       </div>
@@ -90,5 +95,5 @@
 
 {% block extra_js %}
   <script src="{{ url_for('static', filename='js/extl_ai_interpretation.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/charts/extl_si_analytics.js') }}?v=4"></script>
+  <script src="{{ url_for('static', filename='js/charts/extl_si_analytics.js') }}?v=5"></script>
 {% endblock %}
