@@ -1,9 +1,12 @@
 # apps/reports.py
 
+import os
+
 from io import BytesIO
 from datetime import datetime
 
 from reportlab.lib import colors
+from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
@@ -12,6 +15,8 @@ from reportlab.platypus import (
     Spacer,
     Table,
     TableStyle,
+    Image,
+    HRFlowable,
 )
 
 from sqlalchemy import func
@@ -39,27 +44,20 @@ def get_ngrt_model_by_exam(exam):
     """
     Return the NGRT model based on the selected report option.
 
-    Allowed values:
-    - ngrta
-    - ngrtb
-    - ngrtc
+    Allowed values: ngrta, ngrtb, ngrtc
     """
-
     exam = (exam or "").strip().lower()
 
+    # label, model pairs for each NGRT exam type
     exam_map = {
-        "ngrta": ("NGRT-A", NGRTA),
-        "ngrtb": ("NGRT-B", NGRTB),
-        "ngrtc": ("NGRT-C", NGRTC),
+        "ngrta": ("NGRT-A", NGRTA), "ngrtb": ("NGRT-B", NGRTB), "ngrtc": ("NGRT-C", NGRTC),
     }
 
     return exam_map.get(exam)
 
-
 # --------------------------------------------------
 # Report data builder
 # --------------------------------------------------
-
 def build_ngrt_report_data(exam):
     """
     Builds all summary values needed for the selected NGRT PDF report.
@@ -195,7 +193,7 @@ def build_ngrt_report_data(exam):
 
     # ------------------------------------------
     # Progress distribution
-    # NGRT-A may not have progress_category.
+    # NGRT-A have no progress_category
     # ------------------------------------------
     lower_count = 0
     expected_count = 0
@@ -341,7 +339,6 @@ def build_ngrt_report_data(exam):
 # --------------------------------------------------
 # PDF builder
 # --------------------------------------------------
-
 def build_ngrt_summary_pdf(exam):
     """
     Builds the downloadable ExamInsight NGRT PDF report
@@ -357,8 +354,8 @@ def build_ngrt_summary_pdf(exam):
         pagesize=A4,
         rightMargin=40,
         leftMargin=40,
-        topMargin=40,
-        bottomMargin=40,
+        topMargin=60,
+        bottomMargin=60,
     )
 
     styles = getSampleStyleSheet()
@@ -374,12 +371,21 @@ def build_ngrt_summary_pdf(exam):
 
     story = []
 
+    # header title and logo path for consistent branding in header/footer function
+    report_title = f"ExamInsight: {report['latest_exam']} Summary Report"
+
+    logo_path = os.path.abspath(
+        os.path.join(
+            "static",
+            "assets",
+            "images",
+            "examinsight-logo.png"
+        )
+    )
+
     # ------------------------------------------
     # Title
     # ------------------------------------------
-    story.append(Paragraph(f"ExamInsight {report['latest_exam']} Summary Report", styles["Title"]))
-    story.append(Spacer(1, 8))
-
     generated_date = datetime.now().strftime("%d %B %Y")
     story.append(Paragraph(f"<b>Date Generated:</b> {generated_date}", styles["Normal"]))
     story.append(Spacer(1, 14))
@@ -391,7 +397,7 @@ def build_ngrt_summary_pdf(exam):
         )
     )
 
-    story.append(Spacer(1, 18))
+    story.append(Spacer(1, 12))
 
     # ------------------------------------------
     # KPI Summary Table
@@ -421,7 +427,7 @@ def build_ngrt_summary_pdf(exam):
     )
 
     story.append(summary_table)
-    story.append(Spacer(1, 20))
+    story.append(Spacer(1, 4))
 
     # ------------------------------------------
     # Attainment Table
@@ -440,10 +446,10 @@ def build_ngrt_summary_pdf(exam):
     attainment_table = Table(attainment_data, colWidths=[130, 110, 100, 120])
     attainment_table.setStyle(_default_table_style())
     story.append(attainment_table)
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 6))
 
     story.append(Paragraph(report["statements"]["attainment"], styles["SmallText"]))
-    story.append(Spacer(1, 18))
+    story.append(Spacer(1, 4))
 
     # ------------------------------------------
     # Progress Table
@@ -462,10 +468,10 @@ def build_ngrt_summary_pdf(exam):
     progress_table = Table(progress_data, colWidths=[230, 110, 120])
     progress_table.setStyle(_default_table_style())
     story.append(progress_table)
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 6))
 
     story.append(Paragraph(report["statements"]["progress"], styles["SmallText"]))
-    story.append(Spacer(1, 18))
+    story.append(Spacer(1, 4))
 
     # ------------------------------------------
     # Reading Threshold Table
@@ -484,17 +490,106 @@ def build_ngrt_summary_pdf(exam):
     threshold_table = Table(threshold_data, colWidths=[230, 110, 120])
     threshold_table.setStyle(_default_table_style())
     story.append(threshold_table)
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 6))
 
     story.append(Paragraph(report["statements"]["threshold"], styles["SmallText"]))
 
     # Build PDF
-    doc.build(story)
+    # doc.build(story)
+    doc.build(
+        story,
+        onFirstPage=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title=report_title,
+            logo_path=logo_path,
+        ),
+        onLaterPages=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title=report_title,
+            logo_path=logo_path,
+        ),
+    )
 
     buffer.seek(0)
     return buffer
 
+# header and footer function to be called on each page of the PDF report for consistent branding and formatting
+def add_header_footer(canvas, doc, report_title, logo_path=None):
+    """
+    Adds a fixed header and footer to every PDF page.
+    Header:
+      - title on upper-left
+      - logo on upper-right
+      - separator line under both
 
+    Footer:
+      - separator line
+      - small footnote text
+    """
+    canvas.saveState()
+
+    page_width, page_height = A4
+
+    left_margin = doc.leftMargin
+    right_margin = doc.rightMargin
+
+    # -----------------------------
+    # Header positions
+    # -----------------------------
+    header_y = page_height - 45
+    line_y = page_height - 57
+
+    # Title on upper-left
+    canvas.setFont("Helvetica-Bold", 14)
+    canvas.drawString(left_margin, header_y, report_title)
+
+    # Logo on upper-right
+    if logo_path and os.path.exists(logo_path):
+        logo_width = 1.4 * inch
+        logo_height = 0.65 * inch
+
+        logo_x = page_width - right_margin - logo_width
+        logo_y = page_height - 55
+
+        canvas.drawImage(
+            logo_path,
+            logo_x,
+            logo_y,
+            width=logo_width,
+            height=logo_height,
+            preserveAspectRatio=True,
+            mask="auto",
+        )
+    
+    # Horizontal line below title/logo
+    canvas.setStrokeColor(colors.HexColor("#1F2937"))
+    canvas.setLineWidth(0.75)
+    canvas.line(left_margin, line_y, page_width - right_margin, line_y)
+
+    # -----------------------------
+    # Footer
+    # -----------------------------
+    footer_line_y = 42
+    footer_text_y = 25
+
+    canvas.setStrokeColor(colors.HexColor("#9CA3AF"))
+    canvas.setLineWidth(0.5)
+    canvas.line(left_margin, footer_line_y, page_width - right_margin, footer_line_y)
+
+    footnote = (
+        "ExamInsight: Attainment and Progress Tracking in Year 2 Internal Assessments "
+        "and External Benchmark Tests at Pristine Private School"
+    )
+
+    canvas.setFont("Helvetica", 7.5)
+    canvas.setFillColor(colors.HexColor("#4B5563"))
+    canvas.drawString(left_margin, footer_text_y, footnote)
+
+    canvas.restoreState()
+
+# defines the table style of all tables in the PDF report for a consistent look and feel
 def _default_table_style():
     return TableStyle(
         [
