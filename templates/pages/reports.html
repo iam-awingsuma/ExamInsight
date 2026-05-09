@@ -10,19 +10,19 @@
       <div class="card shadow-sm border-0">
         <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
-            <h4 class="mb-0">Reports Centre</h4>
-            <small class="text-muted mb-0">
-              Generate downloadable reports for internal and external assessment data.
+            <h4 class="mb-0" id="reports-centre-title">Reports Centre - Internal Assessments</h4>
+            <small class="text-muted mb-0" id="reports-centre-description">
+              Generate downloadable reports for internal assessment data.
             </small>
           </div>
-          <span class="badge bg-gradient-warning">Downloadable PDF Reports</span>
+          <span class="badge bg-dark">Downloadable PDF Reports</span>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Report tabs -->
-  <div class="ei-tabs-container mx-4 my-2">
+  <div class="ei-tabs-container mx-0 my-2">
     <div class="ei-tabs">
       <button class="ei-tab active" data-tab="internal">Internal Assessment Reports</button>
       <button class="ei-tab" data-tab="external">External Assessment Reports</button>
@@ -33,140 +33,162 @@
     <!-- =======================================================
           INTERNAL ASSESSMENT REPORTS
     ======================================================== -->
-      <!-- Internal Summary Reports -->
-      <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Summary Reports</h5>
-          <small class="text-muted">
-            High-level reports summarising internal assessment attainment and progress.
-          </small>
-        </div>
+    <!-- Internal Summary Reports -->
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-header bg-white mb-0">
+        <h5 class="mb-0">Summary Reports</h5>
+        <small class="text-muted">
+          High-level reports summarising internal assessment attainment and progress.
+        </small>
+      </div>
 
-        <div class="card-body">
-          <div class="row">
-
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_internal_cohort_summary_report') }}"
-                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
-                <strong>Internal Cohort Summary Report</strong><br>
-                <small>
-                  Whole-cohort summary showing overall attainment, progress, subject averages,
-                  and key internal assessment trends.
+      <div class="card-body mt-n4">
+        <div class="row g-2 align-items-stretch">
+          
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_internal_cohort_summary_report') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
+                <span class="badge bg-gradient-warning text-end mb-n4 fs-6">Cohort Summary Report</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=Zc6vYRqU6eMn&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Whole-cohort summary showing overall attainment, progress, subject averages, and key internal assessment trends.
                 </small>
-              </a>
-            </div>
+              </div>
+            </a>
+          </div>
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_internal_class_summary_report') }}"
-                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
-                <strong>Internal Class Summary Report</strong><br>
-                <small>
-                  Class-level summary showing English, Maths, and Science attainment,
-                  progress categories, and areas for support.
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_internal_class_summary_report') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
+                <span class="badge bg-gradient-info text-end mb-n4 fs-6">Class Summary Report</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=ENxtXoyL3doy&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Class-level summary showing English, Maths, and Science attainment, progress categories, and areas for support.
                 </small>
-              </a>
-            </div>
+              </div>
+            </a>
+          </div>
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_internal_comparison_report') }}"
-                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
-                <strong>Internal Comparison Report</strong><br>
-                <small>
-                  Compares classes, subjects, attainment thresholds, and progress patterns
-                  across internal assessment data.
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_internal_comparison_report') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #4ED99C">
+                <span class="badge bg-gradient-success text-end mb-n4 fs-6">Comparison Report</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=JiezRbINEu5M&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Compares classes, subjects, attainment thresholds, and progress patterns across internal assessment data.
                 </small>
-              </a>
-            </div>
-
+              </div>
+            </a>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Internal Listings -->
-      <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Listings</h5>
-          <small class="text-muted">
-            Printable lists of students and classes based on internal assessment records.
-          </small>
-        </div>
+    <!-- Internal Listing Reports -->
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-header bg-white mb-0">
+        <h5 class="mb-0">Listing Reports</h5>
+        <small class="text-muted">
+          Printable lists of students and classes based on internal assessment records.
+        </small>
+      </div>
 
-        <div class="card-body">
-          <div class="row">
-
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_internal_cohort_listing') }}"
-                  class="btn btn-outline-secondary w-100 h-100 text-start p-3">
-                <strong>Internal Cohort Listing</strong><br>
-                <small>
-                  Complete student listing for the internal assessment cohort with available
-                  English, Maths, and Science records.
+      <div class="card-body mt-n4">
+        <div class="row g-2 align-items-stretch">
+          
+          <div class="col-6 col-md-6">
+            <a href="{{ url_for('home_blueprint.download_internal_cohort_listing') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
+                <span class="badge bg-gradient-warning text-end mb-n4 fs-6">Cohort Listing</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=Zc6vYRqU6eMn&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Complete student listing for the internal assessment cohort with available English, Maths, and Science records.
                 </small>
-              </a>
-            </div>
+              </div>
+            </a>
+          </div>
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_internal_class_listing') }}"
-                  class="btn btn-outline-secondary w-100 h-100 text-start p-3">
-                <strong>Internal Class Listing</strong><br>
-                <small>
-                  Class-level student list showing internal assessment information for
-                  tracking and review.
+          <div class="col-6 col-md-6">
+            <a href="{{ url_for('home_blueprint.download_internal_class_listing') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
+                <span class="badge bg-gradient-info text-end mb-n4 fs-6">Class Listing Report</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=ENxtXoyL3doy&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Class-level student list showing internal assessment information for tracking and review.
                 </small>
-              </a>
-            </div>
-
+              </div>
+            </a>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Internal Assessment Data -->
-      <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Assessment Data</h5>
-          <small class="text-muted">
-            Detailed internal assessment data reports for analysis and record keeping.
-          </small>
-        </div>
+    <!-- Assessment Data Reports -->
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-header bg-white mb-0">
+        <h5 class="mb-0">Assessment Data Reports</h5>
+        <small class="text-muted">
+          Detailed internal assessment data reports for analysis and record keeping.
+        </small>
+      </div>
 
-        <div class="card-body">
-          <div class="row">
-
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_internal_cohort_assessment_data') }}"
-                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
-                <strong>Internal Cohort Assessment Data</strong><br>
-                <small>
-                  Full cohort data extract including internal assessment marks, grades,
-                  and progress categories.
+      <div class="card-body mt-n4">
+        <div class="row g-2 align-items-stretch">
+          
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_internal_cohort_assessment_data') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
+                <span class="badge bg-gradient-warning text-end mb-n4 fs-6">Cohort Data</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=Zc6vYRqU6eMn&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Full cohort data extract including internal assessment marks, grades, and progress categories.
                 </small>
-              </a>
-            </div>
+              </div>
+            </a>
+          </div>
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_internal_classwise_assessment_data') }}"
-                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
-                <strong>Internal Classwise Assessment Data</strong><br>
-                <small>
-                  Class-by-class internal assessment data showing subject averages,
-                  thresholds, and progress patterns.
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_internal_classwise_assessment_data') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
+                <span class="badge bg-gradient-info text-end mb-n4 fs-6">Classwise Data</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=ENxtXoyL3doy&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Class-by-class internal assessment data showing subject averages, thresholds, and progress patterns.
                 </small>
-              </a>
-            </div>
+              </div>
+            </a>
+          </div>
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_internal_individual_assessment_data') }}"
-                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
-                <strong>Internal Individual Assessment Data</strong><br>
-                <small>
-                  Individual student internal assessment data for English, Maths, and Science.
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_internal_individual_assessment_data') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #4ED99C">
+                <span class="badge bg-gradient-success text-end mb-n4 fs-6">Individual Data</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=JiezRbINEu5M&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Individual student internal assessment data for English, Maths, and Science attainment & progress records.
                 </small>
-              </a>
-            </div>
-
+              </div>
+            </a>
           </div>
         </div>
       </div>
+    </div>
   </div>
 
   <div id="section-external" class="tab-section d-none">
@@ -174,53 +196,61 @@
           EXTERNAL ASSESSMENT REPORTS
     ======================================================== -->    
     <!-- External Summary Reports -->
-      <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Summary Reports</h5>
-          <small class="text-muted">
-            High-level reports summarising external assessment performance.
-          </small>
-        </div>
+    <div class="card shadow-sm border-0 mb-3">
+      <div class="card-header bg-white mb-0">
+        <h5 class="mb-0">Summary Reports</h5>
+        <small class="text-muted">
+          High-level reports summarising external assessment performance.
+        </small>
+      </div>
 
-        <div class="card-body">
-          <div class="row">
-
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_external_cohort_summary_report') }}"
-                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
-                <strong>External Cohort Summary Report</strong><br>
-                <small>
-                  Whole-cohort external assessment summary showing SAS, stanine,
-                  attainment distribution, progress, and reading thresholds.
+      <div class="card-body mt-n4">
+        <div class="row g-2 align-items-stretch">
+          
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrta') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
+                <span class="badge bg-gradient-warning text-end mb-n4 fs-6">NGRT-A Summary Report</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=Zc6vYRqU6eMn&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Whole-cohort external assessment summary for NGRT-A showing SAS, stanine, attainment distribution, progress, and reading thresholds.
                 </small>
-              </a>
-            </div>
+              </div>
+            </a>
+          </div>
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_external_class_summary_report') }}"
-                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
-                <strong>External Class Summary Report</strong><br>
-                <small>
-                  Class-level external assessment summary showing attainment, progress,
-                  SAS thresholds, and reading performance patterns.
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtb') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
+                <span class="badge bg-gradient-info text-end mb-n4 fs-6">NGRT-B Summary Report</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=ENxtXoyL3doy&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Whole-cohort external assessment summary for NGRT-B showing SAS, stanine, attainment distribution, progress, and reading thresholds.
                 </small>
-              </a>
-            </div>
+              </div>
+            </a>
+          </div>
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_external_comparison_report') }}"
-                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
-                <strong>External Comparison Report</strong><br>
-                <small>
-                  Compares external assessment performance across classes, tests,
-                  attainment bands, progress categories, or reading thresholds.
+          <div class="col-4 col-md-4">
+            <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtc') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #4ED99C">
+                <span class="badge bg-gradient-success text-end mb-n4 fs-6">NGRT-C Summary Report</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=JiezRbINEu5M&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Whole-cohort external assessment summary for NGRT-C showing SAS, stanine, attainment distribution, progress, and reading thresholds.
                 </small>
-              </a>
-            </div>
-
+              </div>
+            </a>
           </div>
         </div>
       </div>
+    </div>
 
       <!-- External Listings -->
       <div class="card shadow-sm border-0 mb-4">
@@ -317,10 +347,28 @@
       // Tab switching logic
       const tabs = document.querySelectorAll(".ei-tab");
       const sections = document.querySelectorAll(".tab-section");
+      const title = document.getElementById("reports-centre-title");
+      const description = document.getElementById("reports-centre-description");
+
+      if (!title || !tabs.length) return;
+      if (!description) return;
 
       tabs.forEach(tab => {
         tab.addEventListener("click", function () {
           const target = this.getAttribute("data-tab");
+          const selectedTab = this.dataset.tab;
+
+          // auto-change title and description based on selected tab - internal
+          if (selectedTab === "internal") {
+            title.textContent = "Reports Centre - Internal Assessments";
+            description.textContent = "Generate downloadable reports for internal assessment data.";
+          }
+
+          // auto-change title and description based on selected tab - external
+          if (selectedTab === "external") {
+            title.textContent = "Reports Centre - External Assessments";
+            description.textContent = "Generate downloadable reports for external assessment data.";
+          }
 
           // Toggle active class on tabs
           tabs.forEach(t => t.classList.remove("active"));
