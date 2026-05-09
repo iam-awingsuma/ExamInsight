@@ -1,63 +1,341 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Reports {% endblock %} 
-
-<!-- Specific CSS goes HERE -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block title %} Reports Centre {% endblock %}
 
 {% block content %}
-
 <div class="container-fluid py-2">
-  <div class="row">
-    <div class="col-sm-12">
-      <div class="card">
-        
-        <div class="card-header">
-          <div class="d-flex align-items-start gap-1">
-            <img class="me-1 mt-n2" width="42" height="42" src="https://img.icons8.com/?size=100&id=93GdqgOETvkz&format=png&color=000000" 
-                alt="Edit User Information" title="Edit User Information"/>
-            <h5>NGRT Cohort Report</h5>
+  <!-- Page Header -->
+  <div class="row mb-2">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <h4 class="mb-0">Reports Centre</h4>
+            <small class="text-muted mb-0">
+              Generate downloadable reports for internal and external assessment data.
+            </small>
           </div>
+          <span class="badge bg-gradient-warning">Downloadable PDF Reports</span>
         </div>
-
-        <form class="row" method="GET" action="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtc') }}">
-          <div class="card-block px-4">
-            <div class="row">
-              <div class="col-sm-12 mb-2">
-                <div class="form-group">
-                    <button type="submit" class="btn btn-sm btn-primary shadow-2 mx-auto">Download NGRT-C Report</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-
-        <form class="row" method="GET" action="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtb') }}">
-          <div class="card-block px-4">
-            <div class="row">
-              <div class="col-sm-12 mb-2">
-                <div class="form-group">
-                    <button type="submit" class="btn btn-sm btn-primary shadow-2 mx-auto">Download NGRT-B Report</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-
-        <form class="row" method="GET" action="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrta') }}">
-          <div class="card-block px-4">
-            <div class="row">
-              <div class="col-sm-12 mb-2">
-                <div class="form-group">
-                    <button type="submit" class="btn btn-sm btn-primary shadow-2 mx-auto">Download NGRT-A Report</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-
       </div>
     </div>
   </div>
+
+  <!-- Report tabs -->
+  <div class="ei-tabs-container mx-4 my-2">
+    <div class="ei-tabs">
+      <button class="ei-tab active" data-tab="internal">Internal Assessment Reports</button>
+      <button class="ei-tab" data-tab="external">External Assessment Reports</button>
+    </div>
+  </div>
+
+  <div id="section-internal" class="tab-section">
+    <!-- =======================================================
+          INTERNAL ASSESSMENT REPORTS
+    ======================================================== -->
+      <!-- Internal Summary Reports -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Summary Reports</h5>
+          <small class="text-muted">
+            High-level reports summarising internal assessment attainment and progress.
+          </small>
+        </div>
+
+        <div class="card-body">
+          <div class="row">
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_internal_cohort_summary_report') }}"
+                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
+                <strong>Internal Cohort Summary Report</strong><br>
+                <small>
+                  Whole-cohort summary showing overall attainment, progress, subject averages,
+                  and key internal assessment trends.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_internal_class_summary_report') }}"
+                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
+                <strong>Internal Class Summary Report</strong><br>
+                <small>
+                  Class-level summary showing English, Maths, and Science attainment,
+                  progress categories, and areas for support.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_internal_comparison_report') }}"
+                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
+                <strong>Internal Comparison Report</strong><br>
+                <small>
+                  Compares classes, subjects, attainment thresholds, and progress patterns
+                  across internal assessment data.
+                </small>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Internal Listings -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Listings</h5>
+          <small class="text-muted">
+            Printable lists of students and classes based on internal assessment records.
+          </small>
+        </div>
+
+        <div class="card-body">
+          <div class="row">
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_internal_cohort_listing') }}"
+                  class="btn btn-outline-secondary w-100 h-100 text-start p-3">
+                <strong>Internal Cohort Listing</strong><br>
+                <small>
+                  Complete student listing for the internal assessment cohort with available
+                  English, Maths, and Science records.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_internal_class_listing') }}"
+                  class="btn btn-outline-secondary w-100 h-100 text-start p-3">
+                <strong>Internal Class Listing</strong><br>
+                <small>
+                  Class-level student list showing internal assessment information for
+                  tracking and review.
+                </small>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Internal Assessment Data -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Assessment Data</h5>
+          <small class="text-muted">
+            Detailed internal assessment data reports for analysis and record keeping.
+          </small>
+        </div>
+
+        <div class="card-body">
+          <div class="row">
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_internal_cohort_assessment_data') }}"
+                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
+                <strong>Internal Cohort Assessment Data</strong><br>
+                <small>
+                  Full cohort data extract including internal assessment marks, grades,
+                  and progress categories.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_internal_classwise_assessment_data') }}"
+                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
+                <strong>Internal Classwise Assessment Data</strong><br>
+                <small>
+                  Class-by-class internal assessment data showing subject averages,
+                  thresholds, and progress patterns.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_internal_individual_assessment_data') }}"
+                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
+                <strong>Internal Individual Assessment Data</strong><br>
+                <small>
+                  Individual student internal assessment data for English, Maths, and Science.
+                </small>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div id="section-external" class="tab-section d-none">
+    <!-- =======================================================
+          EXTERNAL ASSESSMENT REPORTS
+    ======================================================== -->    
+    <!-- External Summary Reports -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Summary Reports</h5>
+          <small class="text-muted">
+            High-level reports summarising external assessment performance.
+          </small>
+        </div>
+
+        <div class="card-body">
+          <div class="row">
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_external_cohort_summary_report') }}"
+                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
+                <strong>External Cohort Summary Report</strong><br>
+                <small>
+                  Whole-cohort external assessment summary showing SAS, stanine,
+                  attainment distribution, progress, and reading thresholds.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_external_class_summary_report') }}"
+                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
+                <strong>External Class Summary Report</strong><br>
+                <small>
+                  Class-level external assessment summary showing attainment, progress,
+                  SAS thresholds, and reading performance patterns.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_external_comparison_report') }}"
+                  class="btn btn-outline-primary w-100 h-100 text-start p-3">
+                <strong>External Comparison Report</strong><br>
+                <small>
+                  Compares external assessment performance across classes, tests,
+                  attainment bands, progress categories, or reading thresholds.
+                </small>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- External Listings -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Listings</h5>
+          <small class="text-muted">
+            Printable lists of students and classes based on external assessment records.
+          </small>
+        </div>
+
+        <div class="card-body">
+          <div class="row">
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_external_cohort_listing') }}"
+                  class="btn btn-outline-secondary w-100 h-100 text-start p-3">
+                <strong>External Cohort Listing</strong><br>
+                <small>
+                  Complete external assessment student listing with available NGRT records.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_external_class_listing') }}"
+                  class="btn btn-outline-secondary w-100 h-100 text-start p-3">
+                <strong>External Class Listing</strong><br>
+                <small>
+                  Class-level student list showing external assessment data such as SAS,
+                  stanine, reading age, and progress.
+                </small>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- External Assessment Data -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">Assessment Data</h5>
+          <small class="text-muted">
+            Detailed external assessment data reports for analysis and tracking.
+          </small>
+        </div>
+
+        <div class="card-body">
+          <div class="row">
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_external_cohort_assessment_data') }}"
+                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
+                <strong>External Cohort Assessment Data</strong><br>
+                <small>
+                  Full cohort data extract for external assessments, including SAS,
+                  stanine, reading age, and progress information.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_external_classwise_assessment_data') }}"
+                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
+                <strong>External Classwise Assessment Data</strong><br>
+                <small>
+                  Class-by-class external assessment data showing average SAS, average
+                  stanine, attainment bands, progress, and reading thresholds.
+                </small>
+              </a>
+            </div>
+
+            <div class="col-md-6 col-xl-4 mb-3">
+              <a href="{{ url_for('home_blueprint.download_external_individual_assessment_data') }}"
+                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
+                <strong>External Individual Assessment Data</strong><br>
+                <small>
+                  Individual student external assessment data including SAS, stanine,
+                  reading age, reader profile, and progress category.
+                </small>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+  </div>
 </div>
+
 {% endblock content %}
+{% block extra_js %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Tab switching logic
+      const tabs = document.querySelectorAll(".ei-tab");
+      const sections = document.querySelectorAll(".tab-section");
+
+      tabs.forEach(tab => {
+        tab.addEventListener("click", function () {
+          const target = this.getAttribute("data-tab");
+
+          // Toggle active class on tabs
+          tabs.forEach(t => t.classList.remove("active"));
+          this.classList.add("active");
+
+          // Show/hide sections
+          sections.forEach(section => {
+            if (section.id === `section-${target}`) {
+              section.classList.remove("d-none");
+            } else {
+              section.classList.add("d-none");
+            }
+          });
+        });
+      });
+    });
+  </script>
+{% endblock extra_js %}

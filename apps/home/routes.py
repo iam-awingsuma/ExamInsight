@@ -1166,10 +1166,34 @@ def ngrt_classwise_reading_thresholds():
 @login_required
 @admin_required
 def display_reports():
+    # year_groups = (
+    #     db.session.query(Students.yrgrp)
+    #     .filter(Students.yrgrp.isnot(None))
+    #     .distinct()
+    #     .order_by(Students.yrgrp)
+    #     .all()
+    # )
+
+    # year_groups = [yg[0] for yg in year_groups if yg[0]]
+
+    # students = (
+    #     db.session.query(
+    #         Students.student_id,
+    #         Students.forename,
+    #         Students.surname,
+    #         Students.yrgrp
+    #     )
+    #     .order_by(Students.yrgrp, Students.forename)
+    #     .all()
+    # )
+
     return render_template(
-        'pages/reports.html',
-        segment = 'reports',
-        )
+        "pages/reports.html",
+        segment="reports",
+        parent="reports",
+        # year_groups=year_groups,
+        # students=students,
+    )
 
 @blueprint.route("/reports/ngrt-summary/<exam>")
 @login_required
@@ -1193,6 +1217,124 @@ def download_ngrt_summary_report(exam):
         download_name=f"examinsight_{exam_key}_summary_report.pdf",
         mimetype="application/pdf",
     )
+
+# ============================================================
+# External Assessment Report Routes
+# ============================================================
+
+@blueprint.route("/reports/external/cohort-summary", methods=["GET"])
+@login_required
+def download_external_cohort_summary_report():
+    flash("External Cohort Summary Report is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/external/class-summary", methods=["GET"])
+@login_required
+def download_external_class_summary_report():
+    flash("External Class Summary Report is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/external/comparison", methods=["GET"])
+@login_required
+def download_external_comparison_report():
+    flash("External Comparison Report is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/external/cohort-listing", methods=["GET"])
+@login_required
+def download_external_cohort_listing():
+    flash("External Cohort Listing is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/external/class-listing", methods=["GET"])
+@login_required
+def download_external_class_listing():
+    flash("External Class Listing is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/external/cohort-assessment-data", methods=["GET"])
+@login_required
+def download_external_cohort_assessment_data():
+    flash("External Cohort Assessment Data is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/external/classwise-assessment-data", methods=["GET"])
+@login_required
+def download_external_classwise_assessment_data():
+    flash("External Classwise Assessment Data is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/external/individual-assessment-data", methods=["GET"])
+@login_required
+def download_external_individual_assessment_data():
+    flash("External Individual Assessment Data is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+# ============================================================
+# Internal Assessment Report Routes
+# ============================================================
+
+@blueprint.route("/reports/internal/cohort-summary", methods=["GET"])
+@login_required
+def download_internal_cohort_summary_report():
+    flash("Internal Cohort Summary Report is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/internal/class-summary", methods=["GET"])
+@login_required
+def download_internal_class_summary_report():
+    flash("Internal Class Summary Report is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/internal/comparison", methods=["GET"])
+@login_required
+def download_internal_comparison_report():
+    flash("Internal Comparison Report is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/internal/cohort-listing", methods=["GET"])
+@login_required
+def download_internal_cohort_listing():
+    flash("Internal Cohort Listing is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/internal/class-listing", methods=["GET"])
+@login_required
+def download_internal_class_listing():
+    flash("Internal Class Listing is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/internal/cohort-assessment-data", methods=["GET"])
+@login_required
+def download_internal_cohort_assessment_data():
+    flash("Internal Cohort Assessment Data is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/internal/classwise-assessment-data", methods=["GET"])
+@login_required
+def download_internal_classwise_assessment_data():
+    flash("Internal Classwise Assessment Data is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
+
+
+@blueprint.route("/reports/internal/individual-assessment-data", methods=["GET"])
+@login_required
+def download_internal_individual_assessment_data():
+    flash("Internal Individual Assessment Data is not connected yet.", "warning")
+    return redirect(url_for("home_blueprint.display_reports"))
 
 #************************
 #*** Data Management ***#
