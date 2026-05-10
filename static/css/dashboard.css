@@ -77,7 +77,7 @@
 .ei-button {
   border: none;
   padding: 8px 14px;
-  background: #FFE8BE;
+  background: #FAFFCB;
   color: #2c3947;
   cursor: pointer;
   text-decoration: none;
@@ -105,12 +105,12 @@
 
 /* Hover inactive buttons only */
 .ei-button:hover:not(.active) {
-  background: #F7DD7D;
+  background: #A8DF8E;
   color: #2c3947;
 }
 
 /* Hover active button */
 .ei-button:hover {
-  background: #F7DD7D;
+  background: #A8DF8E;
   color: #2c3947;
 }
