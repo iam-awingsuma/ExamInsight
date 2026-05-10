@@ -339,14 +339,98 @@ def build_ngrt_report_data(exam):
         },
     }
 
+# header and footer function to be called on each page of the PDF report for consistent branding and formatting
+# header and footer function to be called on each page of the PDF report
+def add_header_footer(canvas, doc, report_title, logo_path=None):
+    """
+    Adds a fixed header and footer to every PDF page.
+    Works for both portrait and landscape pages.
+    """
+
+    canvas.saveState()
+
+    # Use the actual page size of the document
+    page_width, page_height = doc.pagesize
+
+    left_margin = doc.leftMargin
+    right_margin = doc.rightMargin
+
+    # -----------------------------
+    # Header positions
+    # -----------------------------
+    header_y = page_height - 35
+    line_y = page_height - 52
+
+    # Title on upper-left
+    canvas.setFillColor(colors.HexColor("#111827"))
+    canvas.setFont("Helvetica-Bold", 14)
+    canvas.drawString(left_margin, header_y, report_title)
+
+    # Logo on upper-right
+    if logo_path and os.path.exists(logo_path):
+        logo_width = 1.4 * inch
+        logo_height = 0.65 * inch
+
+        logo_x = page_width - right_margin - logo_width
+        logo_y = page_height - 50
+
+        canvas.drawImage(
+            logo_path,
+            logo_x,
+            logo_y,
+            width=logo_width,
+            height=logo_height,
+            preserveAspectRatio=True,
+            mask="auto",
+        )
+
+    # Horizontal line below title/logo
+    canvas.setStrokeColor(colors.HexColor("#1F2937"))
+    canvas.setLineWidth(0.75)
+    canvas.line(left_margin, line_y, page_width - right_margin, line_y)
+
+    # -----------------------------
+    # Footer
+    # -----------------------------
+    footer_line_y = 34
+    footer_text_y = 20
+
+    canvas.setStrokeColor(colors.HexColor("#9CA3AF"))
+    canvas.setLineWidth(0.5)
+    canvas.line(left_margin, footer_line_y, page_width - right_margin, footer_line_y)
+
+    footnote = (
+        "ExamInsight: Attainment and Progress Tracking in Year 2 Internal Assessments "
+        "and External Benchmark Tests at Pristine Private School."
+    )
+
+    canvas.setFont("Helvetica", 7.5)
+    canvas.setFillColor(colors.HexColor("#4B5563"))
+    canvas.drawString(left_margin, footer_text_y, footnote)
+
+    canvas.restoreState()
+
+# defines the table style of all tables in the PDF report for a consistent look and feel
+def _default_table_style():
+    return TableStyle(
+        [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F2937")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
+            ("TOPPADDING", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ]
+    )
 
 # --------------------------------------------------
 # PDF builder
 # --------------------------------------------------
 def build_ngrt_summary_pdf(exam):
     """
-    Builds the downloadable ExamInsight NGRT PDF report
-    for NGRT-A, NGRT-B, or NGRT-C.
+    Builds the downloadable ExamInsight NGRT PDF report for NGRT-A, NGRT-B, or NGRT-C.
     """
 
     report = build_ngrt_report_data(exam)
@@ -390,7 +474,7 @@ def build_ngrt_summary_pdf(exam):
     # ------------------------------------------
     # Title
     # ------------------------------------------
-    generated_date = datetime.now().strftime("%d %B %Y")
+    generated_date = datetime.now().strftime("%A, %d-%b-%Y")
     story.append(Paragraph(f"<b>Date Generated:</b> {generated_date}", styles["Normal"]))
     story.append(Spacer(1, 14))
 
@@ -519,8 +603,12 @@ def build_ngrt_summary_pdf(exam):
     buffer.seek(0)
     return buffer
 
-# Builds the downloadable NGRT-A listing PDF report showing all students
+# Builds the downloadable NGRT listing PDF report showing all students
 def build_ngrt_listing_pdf(combined_data, exam_label):
+    """
+    Builds the downloadable NGRT listing PDF report for NGRT-A, NGRT-B, and NGRT-C.
+    """
+
     buffer = BytesIO()
 
     doc = SimpleDocTemplate(
@@ -528,22 +616,11 @@ def build_ngrt_listing_pdf(combined_data, exam_label):
         pagesize=landscape(A4),
         rightMargin=28,
         leftMargin=28,
-        topMargin=40,
-        bottomMargin=35,
+        topMargin=58,
+        bottomMargin=50,
     )
 
     styles = getSampleStyleSheet()
-
-    styles.add(
-        ParagraphStyle(
-            name="ReportTitle",
-            parent=styles["Title"],
-            fontName="Helvetica-Bold",
-            fontSize=14,
-            leading=18,
-            textColor=colors.HexColor("#111827"),
-        )
-    )
 
     styles.add(
         ParagraphStyle(
@@ -566,21 +643,45 @@ def build_ngrt_listing_pdf(combined_data, exam_label):
         )
     )
 
-    story = []
-
-    story.append(
-        Paragraph(
-            f"ExamInsight: {exam_label} Cohort Listing",
-            styles["ReportTitle"]
+    styles.add(
+        ParagraphStyle(
+            name="SmallText",
+            parent=styles["Normal"],
+            fontSize=7.5,
+            leading=9,
+            textColor=colors.HexColor("#4B587C"),
         )
     )
-    story.append(Spacer(1, 6))
 
-    generated_date = datetime.now().strftime("%d %B %Y")
+    story = []
+
+    # Header title and logo path
+    report_title = f"ExamInsight: {exam_label} Cohort Listing Report"
+
+    logo_path = os.path.abspath(
+        os.path.join(
+            "static",
+            "assets",
+            "images",
+            "examinsight-logo.png"
+        )
+    )
+
+    # Do not add the title here because the header already draws it.
+    generated_date = datetime.now().strftime("%A, %d-%b-%Y")
+
     story.append(
         Paragraph(
             f"<b>Date Generated:</b> {generated_date}",
-            styles["TableText"]
+            styles["SmallText"]
+        )
+    )
+    story.append(Spacer(1, 4))
+
+    story.append(
+        Paragraph(
+            f"This report lists students with available <b>{exam_label}</b> assessment data.",
+            styles["SmallText"]
         )
     )
     story.append(Spacer(1, 10))
@@ -588,7 +689,7 @@ def build_ngrt_listing_pdf(combined_data, exam_label):
     table_data = [
         [
             Paragraph("STUDENT INFORMATION", styles["TableHeader"]),
-            Paragraph("LATEST EXAM", styles["TableHeader"]),
+            Paragraph("NGRT EXAM", styles["TableHeader"]),
             Paragraph("READER PROFILE & DESCRIPTION", styles["TableHeader"]),
         ]
     ]
@@ -652,18 +753,24 @@ def build_ngrt_listing_pdf(combined_data, exam_label):
     table.setStyle(
         TableStyle(
             [
+                # Header row
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#111827")),
                 ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+                ("TOPPADDING", (0, 0), (-1, 0), 8),
 
+                # Body
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#E5E7EB")),
 
+                # Padding
                 ("LEFTPADDING", (0, 0), (-1, -1), 8),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 8),
-                ("TOPPADDING", (0, 0), (-1, -1), 8),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 1), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 1), (-1, -1), 8),
 
+                # Alternating row colours
                 ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
                     colors.white,
                     colors.HexColor("#FAFAFA"),
@@ -674,96 +781,21 @@ def build_ngrt_listing_pdf(combined_data, exam_label):
 
     story.append(table)
 
-    doc.build(story)
+    doc.build(
+        story,
+        onFirstPage=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title=report_title,
+            logo_path=logo_path,
+        ),
+        onLaterPages=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title=report_title,
+            logo_path=logo_path,
+        ),
+    )
 
     buffer.seek(0)
     return buffer
-
-# header and footer function to be called on each page of the PDF report for consistent branding and formatting
-def add_header_footer(canvas, doc, report_title, logo_path=None):
-    """
-    Adds a fixed header and footer to every PDF page.
-    Header:
-      - title on upper-left
-      - logo on upper-right
-      - separator line under both
-
-    Footer:
-      - separator line
-      - small footnote text
-    """
-    canvas.saveState()
-
-    page_width, page_height = A4
-
-    left_margin = doc.leftMargin
-    right_margin = doc.rightMargin
-
-    # -----------------------------
-    # Header positions
-    # -----------------------------
-    header_y = page_height - 45
-    line_y = page_height - 57
-
-    # Title on upper-left
-    canvas.setFont("Helvetica-Bold", 14)
-    canvas.drawString(left_margin, header_y, report_title)
-
-    # Logo on upper-right
-    if logo_path and os.path.exists(logo_path):
-        logo_width = 1.4 * inch
-        logo_height = 0.65 * inch
-
-        logo_x = page_width - right_margin - logo_width
-        logo_y = page_height - 55
-
-        canvas.drawImage(
-            logo_path,
-            logo_x,
-            logo_y,
-            width=logo_width,
-            height=logo_height,
-            preserveAspectRatio=True,
-            mask="auto",
-        )
-    
-    # Horizontal line below title/logo
-    canvas.setStrokeColor(colors.HexColor("#1F2937"))
-    canvas.setLineWidth(0.75)
-    canvas.line(left_margin, line_y, page_width - right_margin, line_y)
-
-    # -----------------------------
-    # Footer
-    # -----------------------------
-    footer_line_y = 42
-    footer_text_y = 25
-
-    canvas.setStrokeColor(colors.HexColor("#9CA3AF"))
-    canvas.setLineWidth(0.5)
-    canvas.line(left_margin, footer_line_y, page_width - right_margin, footer_line_y)
-
-    footnote = (
-        "ExamInsight: Attainment and Progress Tracking in Year 2 Internal Assessments "
-        "and External Benchmark Tests at Pristine Private School"
-    )
-
-    canvas.setFont("Helvetica", 7.5)
-    canvas.setFillColor(colors.HexColor("#4B5563"))
-    canvas.drawString(left_margin, footer_text_y, footnote)
-
-    canvas.restoreState()
-
-# defines the table style of all tables in the PDF report for a consistent look and feel
-def _default_table_style():
-    return TableStyle(
-        [
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1F2937")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.whitesmoke),
-            ("TOPPADDING", (0, 0), (-1, -1), 7),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
-        ]
-    )
