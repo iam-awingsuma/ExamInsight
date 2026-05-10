@@ -103,12 +103,6 @@
   border-bottom-right-radius: 12px;
 }
 
-/* Active button */
-/* .ei-button.active {
-  background: #3b82f6;
-  color: white;
-} */
-
 /* Hover inactive buttons only */
 .ei-button:hover:not(.active) {
   background: #F7DD7D;
