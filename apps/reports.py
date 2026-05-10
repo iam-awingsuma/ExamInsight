@@ -4,10 +4,11 @@ import os
 
 from io import BytesIO
 from datetime import datetime
+from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -35,10 +36,8 @@ def safe_number(value, decimal_places=0, default="N/A"):
     except (TypeError, ValueError):
         return default
 
-
 def safe_pct(part, whole):
     return round((part / whole) * 100.0, 1) if whole else 0.0
-
 
 def get_ngrt_model_by_exam(exam):
     """
@@ -54,6 +53,11 @@ def get_ngrt_model_by_exam(exam):
     }
 
     return exam_map.get(exam)
+
+def clean_pdf_text(value, default=""):
+    if value is None:
+        return default
+    return escape(str(value).strip())
 
 # --------------------------------------------------
 # Report data builder
@@ -511,6 +515,166 @@ def build_ngrt_summary_pdf(exam):
             logo_path=logo_path,
         ),
     )
+
+    buffer.seek(0)
+    return buffer
+
+# Builds the downloadable NGRT-A listing PDF report showing all students
+def build_ngrt_listing_pdf(combined_data, exam_label):
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        rightMargin=28,
+        leftMargin=28,
+        topMargin=40,
+        bottomMargin=35,
+    )
+
+    styles = getSampleStyleSheet()
+
+    styles.add(
+        ParagraphStyle(
+            name="ReportTitle",
+            parent=styles["Title"],
+            fontName="Helvetica-Bold",
+            fontSize=14,
+            leading=18,
+            textColor=colors.HexColor("#111827"),
+        )
+    )
+
+    styles.add(
+        ParagraphStyle(
+            name="TableHeader",
+            parent=styles["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=8.5,
+            leading=10,
+            textColor=colors.HexColor("#111827"),
+        )
+    )
+
+    styles.add(
+        ParagraphStyle(
+            name="TableText",
+            parent=styles["Normal"],
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor("#4B587C"),
+        )
+    )
+
+    story = []
+
+    story.append(
+        Paragraph(
+            f"ExamInsight: {exam_label} Cohort Listing",
+            styles["ReportTitle"]
+        )
+    )
+    story.append(Spacer(1, 6))
+
+    generated_date = datetime.now().strftime("%d %B %Y")
+    story.append(
+        Paragraph(
+            f"<b>Date Generated:</b> {generated_date}",
+            styles["TableText"]
+        )
+    )
+    story.append(Spacer(1, 10))
+
+    table_data = [
+        [
+            Paragraph("STUDENT INFORMATION", styles["TableHeader"]),
+            Paragraph("LATEST EXAM", styles["TableHeader"]),
+            Paragraph("READER PROFILE & DESCRIPTION", styles["TableHeader"]),
+        ]
+    ]
+
+    for student, ngrt_result in combined_data:
+        student_id = clean_pdf_text(student.student_id)
+        forename = clean_pdf_text(student.forename)
+        surname = clean_pdf_text(student.surname)
+        gender = clean_pdf_text(student.gender)
+        nationality = clean_pdf_text(student.nationality)
+        status = clean_pdf_text(student.status)
+        yrgrp = clean_pdf_text((student.yrgrp or "").upper())
+        sped = clean_pdf_text(getattr(student, "sped", ""))
+
+        sen_line = ""
+        if sped and sped.lower() != "no":
+            sen_line = f"<br/><b>SEN Details:</b> {sped}"
+
+        student_info = Paragraph(
+            f"""
+            <b>{student_id}</b>&nbsp;&nbsp;
+            <font color="#F05A28"><b>{forename} {surname}</b></font><br/>
+            {gender}, {nationality}<br/>
+            {status}, Year {yrgrp}
+            {sen_line}
+            """,
+            styles["TableText"],
+        )
+
+        latest_exam = Paragraph(
+            f"""
+            {exam_label}<br/>
+            SAS: {clean_pdf_text(getattr(ngrt_result, "sas", ""))}<br/>
+            Stanine: {clean_pdf_text(getattr(ngrt_result, "stanine", ""))}
+            """,
+            styles["TableText"],
+        )
+
+        reader_profile = clean_pdf_text(getattr(ngrt_result, "reader_profile", ""))
+        profile_desc = clean_pdf_text(getattr(ngrt_result, "profile_desc", ""))
+
+        if reader_profile and profile_desc:
+            profile_text = f"<b>{reader_profile}</b><br/>{profile_desc}"
+        elif profile_desc:
+            profile_text = profile_desc
+        elif reader_profile:
+            profile_text = reader_profile
+        else:
+            profile_text = "No reader profile description available."
+
+        profile_info = Paragraph(profile_text, styles["TableText"])
+
+        table_data.append([student_info, latest_exam, profile_info])
+
+    table = Table(
+        table_data,
+        colWidths=[3.9 * inch, 1.25 * inch, 5.0 * inch],
+        repeatRows=1,
+    )
+
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F3F4F6")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#111827")),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#E5E7EB")),
+
+                ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                ("TOPPADDING", (0, 0), (-1, -1), 8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
+                    colors.white,
+                    colors.HexColor("#FAFAFA"),
+                ]),
+            ]
+        )
+    )
+
+    story.append(table)
+
+    doc.build(story)
 
     buffer.seek(0)
     return buffer

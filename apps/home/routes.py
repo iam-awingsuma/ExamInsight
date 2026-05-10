@@ -14,7 +14,6 @@ from apps import db
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, case, func, String, and_, or_
 
-
 from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
 from apps.authentication.util import verify_pass, hash_pass
 
@@ -22,6 +21,10 @@ from apps.home import make_list_context, _build_predicates
 
 from apps.helpers import fetch_extl_asst_payload
 from apps.helpers import per_class_metrics, cohort_progress, class_progress
+
+# Reports-related imports
+from apps.helpers import get_filtered_ngrt_combined_data
+from apps.reports import build_ngrt_listing_pdf
 
 from urllib.parse import urlencode
 
@@ -1666,14 +1669,16 @@ def display_ngrta():
         )
     # If both tables have data
     else:
-        preds = ctx["predicates"]
-        combined_data = (
-            db.session.query(Students, NGRTA)
-            .join(Students, NGRTA.student_id == Students.student_id)
-            .filter(*preds) # same filters/search applied
-            .order_by(Students.yrgrp, Students.forename)
-            .all()
-        )
+        # preds = ctx["predicates"]
+        # combined_data = (
+        #     db.session.query(Students, NGRTA)
+        #     .join(Students, NGRTA.student_id == Students.student_id)
+        #     .filter(*preds) # same filters/search applied
+        #     .order_by(Students.yrgrp, Students.forename)
+        #     .all()
+        # )
+        combined_data = get_filtered_ngrt_combined_data("ngrta")
+
         return render_template(
             'pages/display_ngrta.html',
             segment='external data - NGRT (Form-A)',
@@ -1686,7 +1691,7 @@ def display_ngrta():
             filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
             combined_data=combined_data,
         )
-
+    
 @blueprint.route('/display_ngrtb', methods=['POST'])
 def upload_ngrtb():
     if 'file' not in request.files:
@@ -1856,14 +1861,16 @@ def display_ngrtb():
         )
     # If both tables have data
     else:
-        preds = ctx["predicates"]
-        combined_data = (
-            db.session.query(Students, NGRTB)
-            .join(Students, NGRTB.student_id == Students.student_id)
-            .filter(*preds) # same filters/search applied
-            .order_by(Students.yrgrp, Students.forename)
-            .all()
-        )
+        # preds = ctx["predicates"]
+        # combined_data = (
+        #     db.session.query(Students, NGRTB)
+        #     .join(Students, NGRTB.student_id == Students.student_id)
+        #     .filter(*preds) # same filters/search applied
+        #     .order_by(Students.yrgrp, Students.forename)
+        #     .all()
+        # )
+        combined_data = get_filtered_ngrt_combined_data("ngrtb")
+
         return render_template(
             'pages/display_ngrtb.html',
             segment='external data - NGRT (Form-B)',
@@ -2033,14 +2040,16 @@ def display_ngrtc():
         )
     # If both tables have data
     else:
-        preds = ctx["predicates"]
-        combined_data = (
-            db.session.query(Students, NGRTC)
-            .join(Students, NGRTC.student_id == Students.student_id)
-            .filter(*preds) # same filters/search applied
-            .order_by(Students.yrgrp, Students.forename)
-            .all()
-        )
+        # preds = ctx["predicates"]
+        # combined_data = (
+        #     db.session.query(Students, NGRTC)
+        #     .join(Students, NGRTC.student_id == Students.student_id)
+        #     .filter(*preds) # same filters/search applied
+        #     .order_by(Students.yrgrp, Students.forename)
+        #     .all()
+        # )
+        combined_data = get_filtered_ngrt_combined_data("ngrtc")
+
         return render_template(
             'pages/display_ngrtc.html',
             segment='external data - NGRT (Form-C)', parent='extBTest',
@@ -2054,6 +2063,29 @@ def display_ngrtc():
             combined_data=combined_data
         )
 
+# Route to download NGRT listing reports as PDF
+@blueprint.route("/reports/external/ngrt-listing/<exam>", methods=["GET"])
+@login_required
+def download_ngrt_listing_report(exam):
+    allowed_exams = { "ngrta": "NGRT-A", "ngrtb": "NGRT-B", "ngrtc": "NGRT-C", }
+    exam_key = (exam or "").strip().lower()
+
+    if exam_key not in allowed_exams:
+        abort(404)
+
+    combined_data = get_filtered_ngrt_combined_data(exam_key)
+
+    pdf_buffer = build_ngrt_listing_pdf(
+        combined_data=combined_data,
+        exam_label=allowed_exams[exam_key],
+    )
+
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"examinsight_{exam_key}_listing_report.pdf",
+        mimetype="application/pdf",
+    )
 
 #***********************************
 #*** Internal Assessment Routes ***#

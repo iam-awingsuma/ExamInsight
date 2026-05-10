@@ -101,7 +101,6 @@
 
       <div class="card-body mt-n4">
         <div class="row g-2 align-items-stretch">
-          
           <div class="col-6 col-md-6">
             <a href="{{ url_for('home_blueprint.download_internal_cohort_listing') }}">
               <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
@@ -204,9 +203,10 @@
         </small>
       </div>
 
+      <!-- Buttons for downloadable PDF reports summarising external assessment performance, including whole-cohort summaries for NGRT-A, NGRT-B, and NGRT-C. -->
       <div class="card-body mt-n4">
-        <div class="row g-2 align-items-stretch">
-          
+        <div class="row g-2 align-items-stretch">  
+          <!-- NGRT-A whole cohort summary report showing SAS, stanine, attainment distribution, progress, and reading thresholds. -->
           <div class="col-4 col-md-4">
             <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrta') }}">
               <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
@@ -221,6 +221,7 @@
             </a>
           </div>
 
+          <!-- NGRT-B whole cohort summary report showing SAS, stanine, attainment distribution, progress, and reading thresholds. -->
           <div class="col-4 col-md-4">
             <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtb') }}">
               <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
@@ -235,6 +236,7 @@
             </a>
           </div>
 
+          <!-- NGRT-C whole cohort summary report showing SAS, stanine, attainment distribution, progress, and reading thresholds. -->
           <div class="col-4 col-md-4">
             <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtc') }}">
               <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #4ED99C">
@@ -252,91 +254,111 @@
       </div>
     </div>
 
-      <!-- External Listings -->
-      <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Listings</h5>
-          <small class="text-muted">
-            Printable lists of students and classes based on external assessment records.
-          </small>
-        </div>
+    <!-- External Listings -->
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Listings</h5>
+        <small class="text-muted">
+          Printable lists of students and classes based on external assessment records.
+        </small>
+      </div>
 
-        <div class="card-body">
-          <div class="row">
-
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_external_cohort_listing') }}"
-                  class="btn btn-outline-secondary w-100 h-100 text-start p-3">
-                <strong>External Cohort Listing</strong><br>
-                <small>
+      <div class="card-body mt-n4">
+        <div class="row g-2 align-items-stretch">
+          <div class="col-6 col-md-6">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
+                <span class="badge bg-gradient-warning text-end mb-n4 fs-6">Cohort Listing</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=Zc6vYRqU6eMn&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
                   Complete external assessment student listing with available NGRT records.
                 </small>
-              </a>
-            </div>
+                <div class="text-center mt-2 ei-buttons">
+                  <button class="ei-button text-xs font-weight-bold">
+                    <a href="{{ url_for('home_blueprint.download_ngrt_listing_report', exam='ngrta') }}">
+                      NGRT-A Cohort Listing
+                    </a>
+                  </button>
+                  <button class="ei-button text-xs font-weight-bold">
+                    <a href="{{ url_for('home_blueprint.download_ngrt_listing_report', exam='ngrtb') }}">
+                      NGRT-B Cohort Listing
+                    </a>
+                  </button>
+                  <button class="ei-button text-xs font-weight-bold">
+                    <a href="{{ url_for('home_blueprint.download_ngrt_listing_report', exam='ngrtc') }}">
+                      NGRT-C Cohort Listing
+                    </a>
+                  </button>
+                </div>
+              </div>
+          </div>
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_external_class_listing') }}"
-                  class="btn btn-outline-secondary w-100 h-100 text-start p-3">
-                <strong>External Class Listing</strong><br>
-                <small>
-                  Class-level student list showing external assessment data such as SAS,
-                  stanine, reading age, and progress.
+          <div class="col-6 col-md-6">
+            <a href="{{ url_for('home_blueprint.download_external_class_listing') }}">
+              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
+                <span class="badge bg-gradient-info text-end mb-n4 fs-6">Class Listing Report</span>
+                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                    <img src="https://img.icons8.com/?size=100&id=ENxtXoyL3doy&format=png&color=000000" alt="Icon" width="38" height="auto">
+                </div>
+                <small class="text-start text-sm">
+                  Class-level student list showing external assessment data such as SAS, stanine, reading age, and progress.
                 </small>
-              </a>
-            </div>
-
+              </div>
+            </a>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- External Assessment Data -->
-      <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">Assessment Data</h5>
-          <small class="text-muted">
-            Detailed external assessment data reports for analysis and tracking.
-          </small>
-        </div>
+    <!-- External Assessment Data -->
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white">
+        <h5 class="mb-0">Assessment Data</h5>
+        <small class="text-muted">
+          Detailed external assessment data reports for analysis and tracking.
+        </small>
+      </div>
 
-        <div class="card-body">
-          <div class="row">
+      <div class="card-body">
+        <div class="row">
 
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_external_cohort_assessment_data') }}"
-                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
-                <strong>External Cohort Assessment Data</strong><br>
-                <small>
-                  Full cohort data extract for external assessments, including SAS,
-                  stanine, reading age, and progress information.
-                </small>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_external_classwise_assessment_data') }}"
-                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
-                <strong>External Classwise Assessment Data</strong><br>
-                <small>
-                  Class-by-class external assessment data showing average SAS, average
-                  stanine, attainment bands, progress, and reading thresholds.
-                </small>
-              </a>
-            </div>
-
-            <div class="col-md-6 col-xl-4 mb-3">
-              <a href="{{ url_for('home_blueprint.download_external_individual_assessment_data') }}"
-                  class="btn btn-outline-dark w-100 h-100 text-start p-3">
-                <strong>External Individual Assessment Data</strong><br>
-                <small>
-                  Individual student external assessment data including SAS, stanine,
-                  reading age, reader profile, and progress category.
-                </small>
-              </a>
-            </div>
-
+          <div class="col-md-6 col-xl-4 mb-3">
+            <a href="{{ url_for('home_blueprint.download_external_cohort_assessment_data') }}"
+                class="btn btn-outline-dark w-100 h-100 text-start p-3">
+              <strong>External Cohort Assessment Data</strong><br>
+              <small>
+                Full cohort data extract for external assessments, including SAS,
+                stanine, reading age, and progress information.
+              </small>
+            </a>
           </div>
+
+          <div class="col-md-6 col-xl-4 mb-3">
+            <a href="{{ url_for('home_blueprint.download_external_classwise_assessment_data') }}"
+                class="btn btn-outline-dark w-100 h-100 text-start p-3">
+              <strong>External Classwise Assessment Data</strong><br>
+              <small>
+                Class-by-class external assessment data showing average SAS, average
+                stanine, attainment bands, progress, and reading thresholds.
+              </small>
+            </a>
+          </div>
+
+          <div class="col-md-6 col-xl-4 mb-3">
+            <a href="{{ url_for('home_blueprint.download_external_individual_assessment_data') }}"
+                class="btn btn-outline-dark w-100 h-100 text-start p-3">
+              <strong>External Individual Assessment Data</strong><br>
+              <small>
+                Individual student external assessment data including SAS, stanine,
+                reading age, reader profile, and progress category.
+              </small>
+            </a>
+          </div>
+
         </div>
       </div>
+    </div>
   </div>
 </div>
 

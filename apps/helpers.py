@@ -4,10 +4,11 @@ import uuid
 import re
 from colorama import Fore, Style
 from apps import db
-from apps.authentication.models import Users
+from apps.authentication.models import Users, NGRTA, NGRTB, NGRTC, InternalExam, Students
 from apps.config import Config
-from marshmallow import ValidationError
+# from apps.home import make_list_context
 from apps.messages import Messages
+from marshmallow import ValidationError
 from functools import wraps
 from urllib.parse import urlencode
 from flask import request, url_for
@@ -338,3 +339,122 @@ def fetch_extl_asst_payload(db, Students, NGRTA, NGRTB, NGRTC):
         "ngrtb": fetch_ngrt_asst_json(db, Students, NGRTB),
         "ngrtc": fetch_ngrt_asst_json(db, Students, NGRTC),
     }
+
+# Reusable query helper for displaying NGRT-A data
+# def get_filtered_ngrta_combined_data(args=None):
+#     args = args or request.args
+
+#     q = (args.get("q", "") or "").strip()
+#     gender = (args.get("gender", "") or "").strip()
+#     yrgrp = (args.get("yrgrp", "") or "").strip()
+#     status = (args.get("status", "") or "").strip()
+#     sped = (args.get("sped", "") or "").strip()
+
+#     query = (
+#         db.session.query(Students, NGRTA)
+#         .join(NGRTA, NGRTA.student_id == Students.student_id)
+#     )
+
+#     # Search by forename, surname, or student_id
+#     if q:
+#         like = f"%{q}%"
+#         query = query.filter(
+#             or_(
+#                 Students.forename.ilike(like),
+#                 Students.surname.ilike(like),
+#                 Students.student_id.cast(String).ilike(like),
+#             )
+#         )
+
+#     # Filter by gender
+#     if gender:
+#         query = query.filter(Students.gender == gender)
+
+#     # Filter by year group/class
+#     if yrgrp:
+#         query = query.filter(Students.yrgrp == yrgrp)
+
+#     # Filter by status
+#     if status:
+#         query = query.filter(Students.status == status)
+
+#     # Filter by SEN/SPED
+#     if sped:
+#         if sped == "Any SEN Support":
+#             query = query.filter(Students.sped != "No")
+#         elif sped == "No SEN/SPED Support":
+#             query = query.filter(Students.sped == "No")
+
+#     combined_data = (
+#         query
+#         .order_by(Students.yrgrp, Students.forename)
+#         .all()
+#     )
+
+#     return combined_data
+
+# Convert exam key into the corresponding NGRT model class
+def get_ngrt_model_by_exam(exam):
+    exam = (exam or "").strip().lower().replace("-", "")
+
+    exam_map = { "ngrta": NGRTA, "ngrtb": NGRTB, "ngrtc": NGRTC, }
+
+    return exam_map.get(exam)
+
+# Reusable query helper for NGRT-A, NGRT-B, and NGRT-C, with dynamic model selection based on the exam parameter
+def get_filtered_ngrt_combined_data(exam, args=None):
+    args = args or request.args
+
+    Model = get_ngrt_model_by_exam(exam)
+
+    if Model is None:
+        return []
+
+    q = (args.get("q", "") or "").strip()
+    gender = (args.get("gender", "") or "").strip()
+    yrgrp = (args.get("yrgrp", "") or "").strip()
+    status = (args.get("status", "") or "").strip()
+    sped = (args.get("sped", "") or "").strip()
+
+    query = (
+        db.session.query(Students, Model)
+        .join(Model, Model.student_id == Students.student_id)
+    )
+
+    # Search by forename, surname, or student_id
+    if q:
+        like = f"%{q}%"
+        query = query.filter(
+            or_(
+                Students.forename.ilike(like),
+                Students.surname.ilike(like),
+                Students.student_id.cast(String).ilike(like),
+            )
+        )
+
+    # Filter by gender
+    if gender:
+        query = query.filter(Students.gender == gender)
+
+    # Filter by year group/class
+    if yrgrp:
+        query = query.filter(Students.yrgrp == yrgrp)
+
+    # Filter by status
+    if status:
+        query = query.filter(Students.status == status)
+
+    # Filter by SEN/SPED
+    if sped:
+        if sped == "Any SEN Support":
+            query = query.filter(Students.sped != "No")
+        elif sped == "No SEN/SPED Support":
+            query = query.filter(Students.sped == "No")
+
+    combined_data = (
+        query
+        .order_by(Students.yrgrp, Students.forename)
+        .all()
+    )
+
+    return combined_data
