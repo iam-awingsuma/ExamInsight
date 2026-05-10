@@ -106,11 +106,11 @@
 /* Hover inactive buttons only */
 .ei-button:hover:not(.active) {
   background: #A8DF8E;
-  color: #2c3947;
+  color: #000;
 }
 
 /* Hover active button */
 .ei-button:hover {
   background: #A8DF8E;
-  color: #2c3947;
+  color: #000;
 }
