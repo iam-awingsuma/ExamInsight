@@ -1169,33 +1169,10 @@ def ngrt_classwise_reading_thresholds():
 @login_required
 @admin_required
 def display_reports():
-    # year_groups = (
-    #     db.session.query(Students.yrgrp)
-    #     .filter(Students.yrgrp.isnot(None))
-    #     .distinct()
-    #     .order_by(Students.yrgrp)
-    #     .all()
-    # )
-
-    # year_groups = [yg[0] for yg in year_groups if yg[0]]
-
-    # students = (
-    #     db.session.query(
-    #         Students.student_id,
-    #         Students.forename,
-    #         Students.surname,
-    #         Students.yrgrp
-    #     )
-    #     .order_by(Students.yrgrp, Students.forename)
-    #     .all()
-    # )
-
     return render_template(
         "pages/reports.html",
         segment="reports",
         parent="reports",
-        # year_groups=year_groups,
-        # students=students,
     )
 
 @blueprint.route("/reports/ngrt-summary/<exam>")
@@ -2084,6 +2061,40 @@ def download_ngrt_listing_report(exam):
         pdf_buffer,
         as_attachment=True,
         download_name=f"examinsight_{exam_key}_listing_report.pdf",
+        mimetype="application/pdf",
+    )
+
+# Route to download NGRT listing reports filtered by year group as PDF
+@blueprint.route("/reports/external/ngrt-listing/<exam>/<yrgrp>", methods=["GET"])
+@login_required
+def download_ngrt_listing_report_by_year_group(exam, yrgrp):
+    allowed_exams = { "ngrta": "NGRT-A", "ngrtb": "NGRT-B", "ngrtc": "NGRT-C", }
+
+    exam_key = (exam or "").strip().lower()
+    selected_yrgrp = (yrgrp or "").strip().lower()
+
+    if exam_key not in allowed_exams:
+        abort(404)
+
+    combined_data = get_filtered_ngrt_combined_data(exam_key)
+
+    # Filter based on the year group from the button URL
+    filtered_data = [
+        (student, ngrt_result)
+        for student, ngrt_result in combined_data
+        if (student.yrgrp or "").strip().lower() == selected_yrgrp
+    ]
+
+    pdf_buffer = build_ngrt_listing_pdf(
+        combined_data=filtered_data,
+        exam_label=allowed_exams[exam_key],
+        selected_yrgrp=selected_yrgrp,
+    )
+
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"examinsight_{exam_key}_{selected_yrgrp}_listing_report.pdf",
         mimetype="application/pdf",
     )
 

@@ -7,7 +7,7 @@ from datetime import datetime
 from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
-from reportlab.lib.units import inch
+from reportlab.lib.units import inch, mm
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
@@ -18,7 +18,9 @@ from reportlab.platypus import (
     TableStyle,
     Image,
     HRFlowable,
+    PageBreak,
 )
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 from sqlalchemy import func
 
@@ -59,6 +61,54 @@ def clean_pdf_text(value, default=""):
         return default
     return escape(str(value).strip())
 
+def clean_value(value, default="-"):
+    """
+    Safely display empty/null values in the PDF.
+    """
+    if value is None:
+        return default
+
+    value = str(value).strip()
+
+    if value == "":
+        return default
+
+    return value
+
+def format_year_group(yrgrp):
+    """
+    Converts values like 2-a or 2-A into 2-A.
+    """
+    yrgrp = clean_value(yrgrp)
+
+    if yrgrp == "-":
+        return "Unknown Year Group"
+
+    return yrgrp.upper()
+
+def format_student_name(row):
+    """
+    Builds full student name from forename and surname.
+    """
+    forename = clean_value(row.get("forename"), "")
+    surname = clean_value(row.get("surname"), "")
+
+    full_name = f"{forename} {surname}".strip()
+
+    return full_name if full_name else "-"
+
+def sort_year_group_key(yrgrp):
+    """
+    Sorts year groups naturally: 2-A, 2-B, 2-C, etc.
+    """
+    label = format_year_group(yrgrp)
+
+    try:
+        year, section = label.split("-")
+        return int(year), section
+    except Exception:
+        return 999, label
+    
 # --------------------------------------------------
 # Report data builder
 # --------------------------------------------------
@@ -604,9 +654,13 @@ def build_ngrt_summary_pdf(exam):
     return buffer
 
 # Builds the downloadable NGRT listing PDF report showing all students
-def build_ngrt_listing_pdf(combined_data, exam_label):
+# def build_ngrt_listing_pdf(combined_data, exam_label):
+def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
     """
     Builds the downloadable NGRT listing PDF report for NGRT-A, NGRT-B, and NGRT-C.
+    Generates:
+    - full cohort listing report
+    - class/year group listing report (2-A, 2-B, etc.)
     """
 
     buffer = BytesIO()
@@ -655,8 +709,22 @@ def build_ngrt_listing_pdf(combined_data, exam_label):
 
     story = []
 
-    # Header title and logo path
-    report_title = f"ExamInsight: {exam_label} Cohort Listing Report"
+    """ Header title and logo path """
+    # report tile changes depending on selected year group
+    if selected_yrgrp:
+        yrgrp_label = selected_yrgrp.upper()
+        report_title = f"ExamInsight: {exam_label} Listing Report for Year {yrgrp_label}"
+        report_description = (
+            f"This report lists students from <b>Year {yrgrp_label}</b> with "
+            f"available data from <b>{exam_label}</b> external benchmark test."
+        )
+    else:
+        yrgrp_label = None
+        report_title = f"ExamInsight: {exam_label} Cohort Listing Report"
+        report_description = (
+            f"This report lists students with available data from <b>{exam_label}</b> "
+            f"external benchmark test."
+        )
 
     logo_path = os.path.abspath(
         os.path.join(
@@ -680,12 +748,51 @@ def build_ngrt_listing_pdf(combined_data, exam_label):
 
     story.append(
         Paragraph(
-            f"This report lists students with available <b>{exam_label}</b> assessment data.",
+            # f"This report lists students with available <b>{exam_label}</b> assessment data.",
+            report_description,
             styles["SmallText"]
         )
     )
     story.append(Spacer(1, 10))
 
+    # --------------------------------------------------
+    # Empty result message
+    # --------------------------------------------------
+    if not combined_data:
+        if selected_yrgrp:
+            empty_message = (
+                f"No <b>{exam_label}</b> records found for "
+                f"<b>Year {selected_yrgrp.upper()}</b>."
+            )
+        else:
+            empty_message = f"No <b>{exam_label}</b> records found."
+
+        story.append(
+            Paragraph(
+                empty_message,
+                styles["TableText"]
+            )
+        )
+
+        doc.build(
+            story,
+            onFirstPage=lambda canvas, doc: add_header_footer(
+                canvas,
+                doc,
+                report_title=report_title,
+                logo_path=logo_path,
+            ),
+            onLaterPages=lambda canvas, doc: add_header_footer(
+                canvas,
+                doc,
+                report_title=report_title,
+                logo_path=logo_path,
+            ),
+        )
+
+        buffer.seek(0)
+        return buffer
+    
     table_data = [
         [
             Paragraph("STUDENT INFORMATION", styles["TableHeader"]),

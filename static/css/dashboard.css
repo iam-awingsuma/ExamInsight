@@ -114,3 +114,19 @@
   background: #A8DF8E;
   color: #000;
 }
+
+/* Dropdown select styling - year group selector */
+.ei-select {
+  border: 1px solid #44ACFF;
+  border-radius: 10px;
+  padding: 5px 10px;
+  background-color: #d2f4fa;
+  color: #111827;
+  cursor: pointer;
+  outline: none;
+}
+
+.ei-select:focus {
+  border-color: #44ACFF;
+  box-shadow: 0 0 0 3px rgba(68, 172, 255, 0.18);
+}
