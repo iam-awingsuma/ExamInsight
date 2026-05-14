@@ -49,7 +49,11 @@
         </div>
 
         <div class="col-12 d-flex gap-2">
-            <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home_blueprint.display_ngrta') }}">Clear</a>
+            {% if segment == 'internal assessment (final term)' %}
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home_blueprint.display_intlexam') }}">Clear</a>
+            {% else %}
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home_blueprint.display_ngrta') }}">Clear</a>
+            {% endif %}
         </div>
         </form>
 
