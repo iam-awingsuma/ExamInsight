@@ -118,8 +118,8 @@
 /* Dropdown select styling - year group selector */
 .ei-select {
   border: 1px solid #44ACFF;
-  border-radius: 10px;
-  padding: 5px 10px;
+  border-radius: 8px;
+  padding: 5px 5px;
   background-color: #d2f4fa;
   color: #111827;
   cursor: pointer;

@@ -312,14 +312,11 @@
                   ('ngrtb', 'NGRT-B'),
                   ('ngrtc', 'NGRT-C')
                 ] %}
-                <div class="text-center mt-2 col-2 col-md-2 col-lg-2 d-flex align-items-center justify-content-center">
+                <div class="text-center mt-2 mx-0 col-2 col-md-2 col-lg-2 d-flex align-items-center justify-content-center">
                   <select id="ngrtExamSelect" class="ei-select text-xs font-weight-bold">
                     {% for exam_value, exam_label in exam_labels %}
                       <option value="{{ exam_value }}">{{ exam_label }}</option>
                     {% endfor %}
-                    <!-- <option value="ngrta">NGRT-A</option>
-                    <option value="ngrtb">NGRT-B</option>
-                    <option value="ngrtc">NGRT-C</option> -->
                   </select>
                 </div>
                 <!-- Year group buttons -->
