@@ -1646,14 +1646,6 @@ def display_ngrta():
         )
     # If both tables have data
     else:
-        # preds = ctx["predicates"]
-        # combined_data = (
-        #     db.session.query(Students, NGRTA)
-        #     .join(Students, NGRTA.student_id == Students.student_id)
-        #     .filter(*preds) # same filters/search applied
-        #     .order_by(Students.yrgrp, Students.forename)
-        #     .all()
-        # )
         combined_data = get_filtered_ngrt_combined_data("ngrta")
 
         return render_template(
@@ -1838,14 +1830,6 @@ def display_ngrtb():
         )
     # If both tables have data
     else:
-        # preds = ctx["predicates"]
-        # combined_data = (
-        #     db.session.query(Students, NGRTB)
-        #     .join(Students, NGRTB.student_id == Students.student_id)
-        #     .filter(*preds) # same filters/search applied
-        #     .order_by(Students.yrgrp, Students.forename)
-        #     .all()
-        # )
         combined_data = get_filtered_ngrt_combined_data("ngrtb")
 
         return render_template(

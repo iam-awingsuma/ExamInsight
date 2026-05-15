@@ -450,6 +450,9 @@ def get_filtered_ngrt_combined_data(exam, args=None):
             query = query.filter(Students.sped != "No")
         elif sped == "No SEN/SPED Support":
             query = query.filter(Students.sped == "No")
+    
+    if progress_category := (args.get("progress_category", "") or "").strip():
+        query = query.filter(getattr(Model, "progress_category").ilike(progress_category))
 
     combined_data = (
         query

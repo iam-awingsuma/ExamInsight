@@ -797,7 +797,7 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         [
             Paragraph("STUDENT INFORMATION", styles["TableHeader"]),
             Paragraph("NGRT EXAM", styles["TableHeader"]),
-            Paragraph("READER PROFILE & DESCRIPTION", styles["TableHeader"]),
+            Paragraph("PROGRESS CATEGORY / READER PROFILE & DESCRIPTION", styles["TableHeader"]),
         ]
     ]
 
@@ -835,17 +835,23 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
             styles["TableText"],
         )
 
+        progress_category = clean_pdf_text(getattr(ngrt_result, "progress_category", ""))
         reader_profile = clean_pdf_text(getattr(ngrt_result, "reader_profile", ""))
         profile_desc = clean_pdf_text(getattr(ngrt_result, "profile_desc", ""))
 
-        if reader_profile and profile_desc:
-            profile_text = f"<b>{reader_profile}</b><br/>{profile_desc}"
+        progcat = (progress_category or "").upper()
+
+        if progress_category and reader_profile and profile_desc:
+            profile_text = f"<b>{progcat}</b><br/>{reader_profile}<br/>{profile_desc}"
+
+        elif progress_category:
+            profile_text = f"<b>{progcat}</b>"
         elif profile_desc:
             profile_text = profile_desc
         elif reader_profile:
             profile_text = reader_profile
         else:
-            profile_text = "No reader profile description available."
+            profile_text = "No progress category, reader profile, or description available."
 
         profile_info = Paragraph(profile_text, styles["TableText"])
 
