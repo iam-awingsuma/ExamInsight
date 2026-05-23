@@ -1,0 +1,131 @@
+<div class="mb-3">
+  <div class="bg-light p-3 rounded">
+    <h6 class="text-uppercase font-weight-bold mb-3 text-xs">
+      Search Filters
+    </h6>
+
+    <div class="row g-2 align-items-end">
+      <!-- Student Name or ID -->
+      <div class="col-12 col-md-4">
+        <input
+          type="text"
+          id="ngrtStudentSearch"
+          class="form-control text-xs"
+          placeholder="Student Name or ID..."
+        >
+      </div>
+
+      <!-- Gender -->
+      <div class="col-12 col-md-2">
+        <select id="ngrtGenderFilter" class="form-control text-xs">
+          <option>All Genders</option>
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+      </div>
+
+      <!-- Year Group -->
+      <div class="col-12 col-md-2">
+        <select id="ngrtYrgrpFilter" class="form-control text-xs">
+          <option>All Year Groups</option>
+          <option value="2-A">2-A</option>
+          <option value="2-B">2-B</option>
+          <option value="2-C">2-C</option>
+          <option value="2-D">2-D</option>
+          <option value="2-E">2-E</option>
+          <option value="2-F">2-F</option>
+        </select>
+      </div>
+
+      <!-- Registration Status -->
+      <div class="col-12 col-md-2">
+        <select id="ngrtStatusFilter" class="form-control text-xs">
+          <option>All Registration Status</option>
+          <option>New Student</option>
+          <option>Re-registered</option>
+        </select>
+      </div>
+
+      <!-- SEN/SPED -->
+      <div class="col-12 col-md-2">
+        <select id="ngrtSenFilter" class="form-control text-xs">
+          <option>All SEN/SPED</option>
+          <option>Any SEN Support</option>
+          <option>No SEN/SPED Support</option>
+        </select>
+      </div>
+
+      <!-- Clear -->
+      <div class="col-12 col-md-2 mt-2">
+        <button
+          type="button"
+          id="clearNgrtFiltersBtn"
+          class="btn btn-outline-secondary btn-sm"
+        >
+          Clear
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<div class="card text-xs">
+  <div class="card-body">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="text-uppercase font-weight-bold mb-0 text-xs">
+        RESULTS&nbsp;
+        [&nbsp;<small id="ngrtResultCount" class="text-muted">
+            No records loaded
+        </small>&nbsp;]
+      </h6>
+
+      
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-bordered align-middle" id="ngrtCombinedTable">
+        <thead class="table-light text-xs">
+          <tr>
+            <th rowspan="2">Download Report</th>
+            <th rowspan="2">Student Information</th>
+            <th colspan="4" class="text-center">NGRT-A</th>
+            <th colspan="4" class="text-center">NGRT-B</th>
+            <th colspan="4" class="text-center">NGRT-C</th>
+          </tr>
+
+          <tr>
+            <th>SAS</th>
+            <th>Stanine</th>
+            <th>Reading Age</th>
+            <th>Progress</th>
+
+            <th>SAS</th>
+            <th>Stanine</th>
+            <th>Reading Age</th>
+            <th>Progress</th>
+
+            <th>SAS</th>
+            <th>Stanine</th>
+            <th>Reading Age</th>
+            <th>Progress</th>
+          </tr>
+        </thead>
+
+        <tbody id="ngrtCombinedTableBody">
+          <tr>
+            <td colspan="17" class="text-center text-muted py-4">
+              Select filters to view NGRT data.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/ngrt_combined_report_filters.js') }}"></script>
+{% endblock extra_js %}

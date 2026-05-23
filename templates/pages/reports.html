@@ -346,51 +346,13 @@
     <!-- External Assessment Data -->
     <div class="card shadow-sm border-0 mb-4">
       <div class="card-header bg-white">
-        {% include "partials/search_filters_a.html" %}
-
         <h5 class="mb-0">Assessment Data</h5>
         <small class="text-muted">
           Detailed external assessment data reports for analysis and tracking.
         </small>
       </div>
-
-      <div class="card-body">
-        <div class="row">
-
-          <div class="col-md-6 col-xl-4 mb-3">
-            <a href="{{ url_for('home_blueprint.download_external_cohort_assessment_data') }}"
-                class="btn btn-outline-dark w-100 h-100 text-start p-3">
-              <strong>External Cohort Assessment Data</strong><br>
-              <small>
-                Full cohort data extract for external assessments, including SAS,
-                stanine, reading age, and progress information.
-              </small>
-            </a>
-          </div>
-
-          <div class="col-md-6 col-xl-4 mb-3">
-            <a href="{{ url_for('home_blueprint.download_external_classwise_assessment_data') }}"
-                class="btn btn-outline-dark w-100 h-100 text-start p-3">
-              <strong>External Classwise Assessment Data</strong><br>
-              <small>
-                Class-by-class external assessment data showing average SAS, average
-                stanine, attainment bands, progress, and reading thresholds.
-              </small>
-            </a>
-          </div>
-
-          <div class="col-md-6 col-xl-4 mb-3">
-            <a href="{{ url_for('home_blueprint.download_external_individual_assessment_data') }}"
-                class="btn btn-outline-dark w-100 h-100 text-start p-3">
-              <strong>External Individual Assessment Data</strong><br>
-              <small>
-                Individual student external assessment data including SAS, stanine,
-                reading age, reader profile, and progress category.
-              </small>
-            </a>
-          </div>
-
-        </div>
+      <div class="card-header mt-n4">
+        {% include "partials/extl_rpt_tbl.html" %}
       </div>
     </div>
   </div>

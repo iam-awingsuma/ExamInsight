@@ -4,15 +4,17 @@ import requests
 import json
 from openai import OpenAI
 from apps.home import blueprint
-from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort
+
 from flask import current_app
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
 from flask_login import login_required, current_user
-from apps import db
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, case, func, String, and_, or_
+
+from apps import db
 
 from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
 from apps.authentication.util import verify_pass, hash_pass
@@ -1197,6 +1199,138 @@ def download_ngrt_summary_report(exam):
         download_name=f"examinsight_{exam_key}_summary_report.pdf",
         mimetype="application/pdf",
     )
+
+# Individual student report
+@blueprint.route("/api/reports/external/ngrt-combined-data")
+def api_ngrt_combined_data():
+    """
+    Returns filtered student data with NGRT-A, NGRT-B, and NGRT-C results.
+
+    Filters are based on Students model:
+    - q: student name or ID
+    - gender
+    - yrgrp
+    - status
+    - sen/sped
+    """
+
+    q = request.args.get("q", "").strip()
+    gender = request.args.get("gender", "").strip()
+    yrgrp = request.args.get("yrgrp", "").strip()
+    status = request.args.get("status", "").strip()
+    sen = request.args.get("sen", "").strip()
+
+    query = Students.query
+
+    # Search by student name or student ID.
+    if q:
+        search_text = f"%{q.lower()}%"
+
+        query = query.filter(
+            or_(
+                func.lower(Students.forename).like(search_text),
+                func.lower(Students.surname).like(search_text),
+                func.cast(Students.student_id, db.String).like(f"%{q}%")
+            )
+        )
+
+    # Filter by gender.
+    if gender and gender != "All Genders":
+        query = query.filter(func.lower(Students.gender) == gender.lower())
+
+    # Filter by year group.
+    if yrgrp and yrgrp != "All Year Groups":
+        query = query.filter(func.lower(Students.yrgrp) == yrgrp.lower())
+    
+    # Filter by registration status if this column exists.
+    if status and status != "All Registration Status":
+        if hasattr(Students, "status"):
+            query = query.filter(func.lower(Students.status) == status.lower())
+
+    # Filter by SEN/SPED if this column exists.
+    if sen and sen != "All SEN/SPED":
+        if hasattr(Students, "sped"):
+            if sen == "Any SEN Support":
+                query = query.filter(Students.sped != "No")
+            elif sen == "No SEN Support":
+                query = query.filter(Students.sped == "No")
+
+    students = (
+        query
+        .order_by(Students.yrgrp.asc(), Students.forename.asc(), Students.surname.asc())
+        .all()
+    )
+
+    results = []
+
+    for student in students:
+        # Get NGRT-A result for this student.
+        ngrta = (
+            NGRTA.query
+            .filter(NGRTA.student_id == student.student_id)
+            .first()
+        )
+
+        # Get NGRT-B result for this student.
+        ngrtb = (
+            NGRTB.query
+            .filter(NGRTB.student_id == student.student_id)
+            .first()
+        )
+
+        # Get NGRT-C result for this student.
+        ngrtc = (
+            NGRTC.query
+            .filter(NGRTC.student_id == student.student_id)
+            .first()
+        )
+
+        full_name = f"{student.forename or ''} {student.surname or ''}".strip()
+
+        results.append({
+            "student_id": student.student_id,
+            "name": full_name,
+            "gender": student.gender or "",
+            "status": student.status or "",
+            "yrgrp": student.yrgrp.upper() if student.yrgrp else "",
+            "nationality": student.nationality or "",
+
+            "ngrta": serialize_ngrt_result(ngrta),
+            "ngrtb": serialize_ngrt_result(ngrtb),
+            "ngrtc": serialize_ngrt_result(ngrtc),
+        })
+
+    return jsonify(results)
+
+
+def serialize_ngrt_result(result):
+    """
+    Converts one NGRT model result into a JSON-safe dictionary.
+    """
+
+    if not result:
+        return {
+            "has_data": False,
+            "sas": "-",
+            "stanine": "-",
+            "reading_age": "-",
+            "progress_category": "-",
+            "reader_profile": "-",
+            "profile_desc": "-"
+        }
+
+    # Some projects use SAS uppercase, some use sas lowercase.
+    sas_value = getattr(result, "SAS", None) or getattr(result, "sas", None)
+
+    return {
+        "has_data": True,
+        "sas": sas_value if sas_value is not None else "-",
+        "stanine": getattr(result, "stanine", "-") or "-",
+        "reading_age": getattr(result, "reading_age", "-") or "-",
+        "progress_category": getattr(result, "progress_category", "-") or "-",
+        "reader_profile": getattr(result, "reader_profile", "-") or "-",
+        "profile_desc": getattr(result, "profile_desc", "-") or "-"
+    }
 
 # ============================================================
 # External Assessment Report Routes
