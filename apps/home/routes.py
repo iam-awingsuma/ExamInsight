@@ -1294,6 +1294,7 @@ def api_ngrt_combined_data():
             "status": student.status or "",
             "yrgrp": student.yrgrp.upper() if student.yrgrp else "",
             "nationality": student.nationality or "",
+            "sped": student.sped if hasattr(student, "sped") else "",
 
             "ngrta": serialize_ngrt_result(ngrta),
             "ngrtb": serialize_ngrt_result(ngrtb),
