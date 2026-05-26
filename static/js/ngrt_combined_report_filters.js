@@ -234,7 +234,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <a
                     class="btn btn-sm btn-primary"
                     href="/reports/external/ngrt-individual/${student.student_id}"
-                    target="_blank"
                 >
                     PDF
                 </a>

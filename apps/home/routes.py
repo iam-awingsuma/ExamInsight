@@ -1355,8 +1355,8 @@ def download_ngrt_indv_extl_rpt(student_id):
 
     return send_file(
         pdf_path,
-        as_attachment=False,
-        download_name=f"ExamInsight_Individual_NGRT_Report_{student_id}.pdf",
+        as_attachment=True,
+        download_name=f"examInsight_individual_ngrt_report_{student_id}.pdf",
         mimetype="application/pdf"
     )
 
