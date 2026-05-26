@@ -101,17 +101,95 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ---------------------------------------------------------
+  //   Apply color to class based on progress category
+  //   lower than expected = below, expected = expected, better than expected = above
+  // ---------------------------------------------------------
+  function getProgressClass(progress) {
+    if (!progress) return "";
+
+    switch (progress.toLowerCase()) {
+      case "lower than expected":
+        return "ngrt-progress-below";
+      case "expected":
+        return "ngrt-progress-expected";
+      case "better than expected":
+        return "ngrt-progress-above";
+      default:
+        return "";
+    }
+  }
+
+  // ---------------------------------------------------------
+  //   Apply gender icon based on gender value
+  // ---------------------------------------------------------
+  function getGenderIcon(gender) {
+    const value = String(gender || "").trim().toLowerCase();
+
+    if (value === "male") {
+        return `
+        <img
+            class="me-1"
+            width="50"
+            height="50"
+            src="https://img.icons8.com/?size=100&id=4V1nG4SioGjp&format=png&color=000000"
+            alt="Male"
+            title="Male"
+        />
+        `;
+    }
+
+    if (value === "female") {
+        return `
+        <img
+            class="me-1"
+            width="50"
+            height="50"
+            src="https://img.icons8.com/?size=100&id=Sz1FlYHdFpV4&format=png&color=000000"
+            alt="Female"
+            title="Female"
+        />
+        `;
+    }
+
+    return "";
+  }
+
+  // ---------------------------------------------------------
+  //   Display the SEN/SPED status as text based on boolean value
+  // ---------------------------------------------------------
+  function getSenValue(sped) {
+    // Convert the database value into a clean string.
+    const value = String(sped || "").trim();
+
+    // If blank, No, None, null, or undefined, show nothing.
+    if (
+        value === "" ||
+        value.toLowerCase() === "no" ||
+        value.toLowerCase() === "none" ||
+        value.toLowerCase() === "null" ||
+        value.toLowerCase() === "undefined"
+    ) {
+        return "";
+    }
+
+    // Otherwise, show the actual database value from the sped column.
+    return `SEN Details:&nbsp;<span class="badge bg-gradient-danger">${value}</span>`;
+  }
+
+  // ---------------------------------------------------------
   // Render one NGRT assessment set of cells
   // Example: NGRT-A SAS, Stanine, Reading Age, Progress
   // ---------------------------------------------------------
   function renderNgrtCells(result) {
     const bandClass = getStanineBandClass(result.stanine);
+    const progressClass = getProgressClass(result.progress_category);
 
     return `
-      <td>${formatValue(result.sas)}</td>
-      <td class="${bandClass}">${formatValue(result.stanine)}</td>
-      <td>${formatValue(result.reading_age)}</td>
-      <td>${formatValue(result.progress_category)}</td>
+      <td>
+        SAS: ${formatValue(result.sas)} | Stanine: <span class="${bandClass}">${formatValue(result.stanine)}</span><br/>
+        Reading Age: ${formatValue(result.reading_age)}<br/>
+        Progress: <span class="${progressClass}">${formatValue(result.progress_category)}</span>
+      </td>
     `;
   }
 
@@ -162,14 +240,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 </a>
             </td>
             <td>
-                <span class="text-dark font-weight-bold">
-                    ${formatValue(student.student_id)}
-                </span>
-                <span class="text-primary font-weight-bold">
-                    ${formatValue(student.name)}
-                </span><br/>
-                ${formatValue(student.gender)},&nbsp;${formatValue(student.nationality)}<br/>
-                ${formatValue(student.status)},&nbsp;${formatValue(student.yrgrp)}
+                <div class="d-inline-flex align-items-center justify-content-center gap-1 text-nowrap">
+                    <div>
+                        ${getGenderIcon(student.gender)}
+                    </div>
+                    <div>
+                        <span class="text-dark font-weight-bold">
+                            ${formatValue(student.student_id)}
+                        </span>
+                        <span class="text-primary font-weight-bold">
+                            ${formatValue(student.name)}
+                        </span><br/>
+                        ${formatValue(student.gender)},&nbsp;${formatValue(student.nationality)}<br/>
+                        ${formatValue(student.status)},&nbsp;${formatValue(student.yrgrp)}<br/>
+                        ${getSenValue(student.sped)}
+                    </div>
+                </div>
             </td>
 
             ${renderNgrtCells(student.ngrta)}
