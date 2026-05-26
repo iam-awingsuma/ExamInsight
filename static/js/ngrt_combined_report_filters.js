@@ -157,17 +157,17 @@ document.addEventListener("DOMContentLoaded", function () {
   // ---------------------------------------------------------
   //   Display the SEN/SPED status as text based on boolean value
   // ---------------------------------------------------------
-  function getSenValue(sped) {
+  function getSenValue(sen) {
     // Convert the database value into a clean string.
-    const value = String(sped || "").trim();
+    const value = String(sen || "").trim();
 
-    // If blank, No, None, null, or undefined, show nothing.
+    // If No, show nothing.
     if (
-        value === "" ||
-        value.toLowerCase() === "no" ||
-        value.toLowerCase() === "none" ||
-        value.toLowerCase() === "null" ||
-        value.toLowerCase() === "undefined"
+        // value === "" ||
+        value.toLowerCase() === "no"
+        // value.toLowerCase() === "none" ||
+        // value.toLowerCase() === "null" ||
+        // value.toLowerCase() === "undefined"
     ) {
         return "";
     }

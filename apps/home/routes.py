@@ -1252,7 +1252,7 @@ def api_ngrt_combined_data():
         if hasattr(Students, "sped"):
             if sen == "Any SEN Support":
                 query = query.filter(Students.sped != "No")
-            elif sen == "No SEN Support":
+            elif sen == "No SEN/SPED Support":
                 query = query.filter(Students.sped == "No")
 
     students = (
@@ -1337,60 +1337,62 @@ def serialize_ngrt_result(result):
 # External Assessment Report Routes
 # ============================================================
 
-@blueprint.route("/reports/external/cohort-summary", methods=["GET"])
-@login_required
-def download_external_cohort_summary_report():
-    flash("External Cohort Summary Report is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
 
 
-@blueprint.route("/reports/external/class-summary", methods=["GET"])
-@login_required
-def download_external_class_summary_report():
-    flash("External Class Summary Report is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+# @blueprint.route("/reports/external/cohort-summary", methods=["GET"])
+# @login_required
+# def download_external_cohort_summary_report():
+#     flash("External Cohort Summary Report is not connected yet.", "warning")
+#     return redirect(url_for("home_blueprint.display_reports"))
 
 
-@blueprint.route("/reports/external/comparison", methods=["GET"])
-@login_required
-def download_external_comparison_report():
-    flash("External Comparison Report is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+# @blueprint.route("/reports/external/class-summary", methods=["GET"])
+# @login_required
+# def download_external_class_summary_report():
+#     flash("External Class Summary Report is not connected yet.", "warning")
+#     return redirect(url_for("home_blueprint.display_reports"))
 
 
-@blueprint.route("/reports/external/cohort-listing", methods=["GET"])
-@login_required
-def download_external_cohort_listing():
-    flash("External Cohort Listing is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+# @blueprint.route("/reports/external/comparison", methods=["GET"])
+# @login_required
+# def download_external_comparison_report():
+#     flash("External Comparison Report is not connected yet.", "warning")
+#     return redirect(url_for("home_blueprint.display_reports"))
 
 
-@blueprint.route("/reports/external/class-listing", methods=["GET"])
-@login_required
-def download_external_class_listing():
-    flash("External Class Listing is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+# @blueprint.route("/reports/external/cohort-listing", methods=["GET"])
+# @login_required
+# def download_external_cohort_listing():
+#     flash("External Cohort Listing is not connected yet.", "warning")
+#     return redirect(url_for("home_blueprint.display_reports"))
 
 
-@blueprint.route("/reports/external/cohort-assessment-data", methods=["GET"])
-@login_required
-def download_external_cohort_assessment_data():
-    flash("External Cohort Assessment Data is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+# @blueprint.route("/reports/external/class-listing", methods=["GET"])
+# @login_required
+# def download_external_class_listing():
+#     flash("External Class Listing is not connected yet.", "warning")
+#     return redirect(url_for("home_blueprint.display_reports"))
 
 
-@blueprint.route("/reports/external/classwise-assessment-data", methods=["GET"])
-@login_required
-def download_external_classwise_assessment_data():
-    flash("External Classwise Assessment Data is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+# @blueprint.route("/reports/external/cohort-assessment-data", methods=["GET"])
+# @login_required
+# def download_external_cohort_assessment_data():
+#     flash("External Cohort Assessment Data is not connected yet.", "warning")
+#     return redirect(url_for("home_blueprint.display_reports"))
 
 
-@blueprint.route("/reports/external/individual-assessment-data", methods=["GET"])
-@login_required
-def download_external_individual_assessment_data():
-    flash("External Individual Assessment Data is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+# @blueprint.route("/reports/external/classwise-assessment-data", methods=["GET"])
+# @login_required
+# def download_external_classwise_assessment_data():
+#     flash("External Classwise Assessment Data is not connected yet.", "warning")
+#     return redirect(url_for("home_blueprint.display_reports"))
+
+
+# @blueprint.route("/reports/external/individual-assessment-data", methods=["GET"])
+# @login_required
+# def download_external_individual_assessment_data():
+#     flash("External Individual Assessment Data is not connected yet.", "warning")
+#     return redirect(url_for("home_blueprint.display_reports"))
 
 # ============================================================
 # Internal Assessment Report Routes
