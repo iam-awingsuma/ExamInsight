@@ -208,47 +208,49 @@
         <div class="row g-2 align-items-stretch">  
           <!-- NGRT-A whole cohort summary report showing SAS, stanine, attainment distribution, progress, and reading thresholds. -->
           <div class="col-4 col-md-4">
-            <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrta') }}">
+            <!-- <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrta') }}"> -->
               <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
                 <span class="badge bg-gradient-warning text-end mb-n4 fs-6">NGRT-A Summary Report</span>
                 <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
-                    <img src="https://img.icons8.com/?size=100&id=Zc6vYRqU6eMn&format=png&color=000000" alt="Icon" width="38" height="auto">
+                  <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrta') }}">
+                    <img src="https://img.icons8.com/?size=100&id=WTtEHNdDRYwj&format=png&color=000000" alt="Icon" title="Download NGRT-A Summary Report" width="38" height="auto">
+                  </a>
                 </div>
                 <small class="text-start text-xs">
                   Whole-cohort external assessment summary for NGRT-A showing SAS, stanine, attainment distribution, progress, and reading thresholds.
                 </small>
               </div>
-            </a>
+            <!-- </a> -->
           </div>
 
           <!-- NGRT-B whole cohort summary report showing SAS, stanine, attainment distribution, progress, and reading thresholds. -->
           <div class="col-4 col-md-4">
-            <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtb') }}">
-              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
-                <span class="badge bg-gradient-info text-end mb-n4 fs-6">NGRT-B Summary Report</span>
-                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
-                    <img src="https://img.icons8.com/?size=100&id=ENxtXoyL3doy&format=png&color=000000" alt="Icon" width="38" height="auto">
-                </div>
-                <small class="text-start text-xs">
-                  Whole-cohort external assessment summary for NGRT-B showing SAS, stanine, attainment distribution, progress, and reading thresholds.
-                </small>
+            <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
+              <span class="badge bg-gradient-info text-end mb-n4 fs-6">NGRT-B Summary Report</span>
+              <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtb') }}">
+                  <img src="https://img.icons8.com/?size=100&id=WTtEHNdDRYwj&format=png&color=000000" alt="Icon" title="Download NGRT-B Summary Report" width="38" height="auto">
+                </a>
               </div>
-            </a>
+              <small class="text-start text-xs">
+                Whole-cohort external assessment summary for NGRT-B showing SAS, stanine, attainment distribution, progress, and reading thresholds.
+              </small>
+            </div>
           </div>
 
           <!-- NGRT-C whole cohort summary report showing SAS, stanine, attainment distribution, progress, and reading thresholds. -->
           <div class="col-4 col-md-4">
-            <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtc') }}">
-              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #4ED99C">
-                <span class="badge bg-gradient-success text-end mb-n4 fs-6">NGRT-C Summary Report</span>
-                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
-                    <img src="https://img.icons8.com/?size=100&id=JiezRbINEu5M&format=png&color=000000" alt="Icon" width="38" height="auto">
-                </div>
-                <small class="text-start text-xs">
-                  Whole-cohort external assessment summary for NGRT-C showing SAS, stanine, attainment distribution, progress, and reading thresholds.
-                </small>
+            <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #4ED99C">
+              <span class="badge bg-gradient-success text-end mb-n4 fs-6">NGRT-C Summary Report</span>
+              <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                <a href="{{ url_for('home_blueprint.download_ngrt_summary_report', exam='ngrtc') }}">
+                  <img src="https://img.icons8.com/?size=100&id=WTtEHNdDRYwj&format=png&color=000000" alt="Icon" title="Download NGRT-C Summary Report" width="38" height="auto">
+                </a>
               </div>
-            </a>
+              <small class="text-start text-xs">
+                Whole-cohort external assessment summary for NGRT-C showing SAS, stanine, attainment distribution, progress, and reading thresholds.
+              </small>
+            </div>
           </div>
         </div>
       </div>

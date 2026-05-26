@@ -340,59 +340,6 @@ def fetch_extl_asst_payload(db, Students, NGRTA, NGRTB, NGRTC):
         "ngrtc": fetch_ngrt_asst_json(db, Students, NGRTC),
     }
 
-# Reusable query helper for displaying NGRT-A data
-# def get_filtered_ngrta_combined_data(args=None):
-#     args = args or request.args
-
-#     q = (args.get("q", "") or "").strip()
-#     gender = (args.get("gender", "") or "").strip()
-#     yrgrp = (args.get("yrgrp", "") or "").strip()
-#     status = (args.get("status", "") or "").strip()
-#     sped = (args.get("sped", "") or "").strip()
-
-#     query = (
-#         db.session.query(Students, NGRTA)
-#         .join(NGRTA, NGRTA.student_id == Students.student_id)
-#     )
-
-#     # Search by forename, surname, or student_id
-#     if q:
-#         like = f"%{q}%"
-#         query = query.filter(
-#             or_(
-#                 Students.forename.ilike(like),
-#                 Students.surname.ilike(like),
-#                 Students.student_id.cast(String).ilike(like),
-#             )
-#         )
-
-#     # Filter by gender
-#     if gender:
-#         query = query.filter(Students.gender == gender)
-
-#     # Filter by year group/class
-#     if yrgrp:
-#         query = query.filter(Students.yrgrp == yrgrp)
-
-#     # Filter by status
-#     if status:
-#         query = query.filter(Students.status == status)
-
-#     # Filter by SEN/SPED
-#     if sped:
-#         if sped == "Any SEN Support":
-#             query = query.filter(Students.sped != "No")
-#         elif sped == "No SEN/SPED Support":
-#             query = query.filter(Students.sped == "No")
-
-#     combined_data = (
-#         query
-#         .order_by(Students.yrgrp, Students.forename)
-#         .all()
-#     )
-
-#     return combined_data
-
 # Convert exam key into the corresponding NGRT model class
 def get_ngrt_model_by_exam(exam):
     exam = (exam or "").strip().lower().replace("-", "")
