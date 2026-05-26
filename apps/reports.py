@@ -3,11 +3,12 @@
 import os
 
 from io import BytesIO
+import tempfile
 from datetime import datetime
 from xml.sax.saxutils import escape
 
 from reportlab.lib import colors
-from reportlab.lib.units import inch, mm
+from reportlab.lib.units import inch, mm, cm
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
@@ -19,14 +20,23 @@ from reportlab.platypus import (
     Image,
     HRFlowable,
     PageBreak,
+    Flowable,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 from sqlalchemy import func
 
 from apps import db
-from apps.authentication.models import NGRTA, NGRTB, NGRTC
+from apps.authentication.models import NGRTA, NGRTB, NGRTC, Students
 
+logo_path = os.path.abspath(
+        os.path.join(
+            "static",
+            "assets",
+            "images",
+            "examinsight-logo.png"
+        )
+    )
 
 # --------------------------------------------------
 # Small formatting helpers
@@ -390,7 +400,6 @@ def build_ngrt_report_data(exam):
     }
 
 # header and footer function to be called on each page of the PDF report for consistent branding and formatting
-# header and footer function to be called on each page of the PDF report
 def add_header_footer(canvas, doc, report_title, logo_path=None):
     """
     Adds a fixed header and footer to every PDF page.
@@ -735,7 +744,7 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         )
     )
 
-    # Do not add the title here because the header already draws it.
+    # Title not added here, the header already draws it.
     generated_date = datetime.now().strftime("%A, %d-%b-%Y")
 
     story.append(
@@ -912,3 +921,910 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
 
     buffer.seek(0)
     return buffer
+
+
+#***********************************************
+#******* Extl Assmt - Individual Report *******#
+#***********************************************
+
+# =========================================================
+# ExamInsight colours
+# =========================================================
+
+EI_BLUE = colors.HexColor("#0BA6DF")
+EI_ORANGE = colors.HexColor("#FF6600")
+EI_DARK = colors.HexColor("#1F2937")
+EI_MUTED = colors.HexColor("#667085")
+EI_LIGHT = colors.HexColor("#F8FAFC")
+EI_BORDER = colors.HexColor("#D0D5DD")
+EI_GREEN = colors.HexColor("#16A34A")
+EI_RED = colors.HexColor("#DC2626")
+EI_YELLOW = colors.HexColor("#F59E0B")
+
+PAGE_WIDTH, PAGE_HEIGHT = A4
+
+
+# =========================================================
+# NGRT model map
+# =========================================================
+
+NGRT_MODELS = {
+    "ngrta": {
+        "model": NGRTA,
+        "label": "NGRT-A"
+    },
+    "ngrtb": {
+        "model": NGRTB,
+        "label": "NGRT-B"
+    },
+    "ngrtc": {
+        "model": NGRTC,
+        "label": "NGRT-C"
+    }
+}
+
+LATEST_PRIORITY = ["ngrtc", "ngrtb", "ngrta"]
+
+
+# =========================================================
+# Safe helper functions
+# =========================================================
+
+def safe_text(value, default="-"):
+    """
+    Returns a safe text value for PDF display.
+    """
+    if value is None:
+        return default
+
+    value = str(value).strip()
+
+    return value if value else default
+
+
+def safe_float(value, default=0):
+    """
+    Converts a value safely into float.
+    """
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def safe_int(value, default=0):
+    """
+    Converts a value safely into integer.
+    """
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return default
+
+
+def full_name(student):
+    """
+    Builds full name using Students.forename and Students.surname.
+    """
+    return f"{student.forename or ''} {student.surname or ''}".strip()
+
+
+def get_sas(result):
+    """
+    Handles either SAS or sas field name.
+    """
+    if not result:
+        return None
+
+    return getattr(result, "SAS", None) or getattr(result, "sas", None)
+
+
+def get_stanine_band(stanine):
+    """
+    Returns NGRT stanine band.
+    """
+    value = safe_int(stanine)
+
+    if value <= 3:
+        return "Below Average"
+
+    if value <= 6:
+        return "Average"
+
+    return "Above Average"
+
+
+def get_threshold_status(sas):
+    """
+    Returns SAS threshold achievement.
+    """
+    sas = safe_float(sas)
+
+    return [
+        ["SAS >= 90", "Foundation reading threshold", "Achieved" if sas >= 90 else "Not yet"],
+        ["SAS >= 110", "Strong performance", "Achieved" if sas >= 110 else "Not yet"],
+        ["SAS >= 120", "Very high performance", "Achieved" if sas >= 120 else "Not yet"],
+    ]
+
+
+# =========================================================
+# Data functions
+# =========================================================
+
+def get_student(student_id):
+    """
+    Gets one student using Students.student_id.
+    """
+    return Students.query.filter_by(student_id=student_id).first()
+
+
+def get_student_ngrt(student_id, exam_key):
+    """
+    Gets one NGRT result for one student.
+    """
+    model = NGRT_MODELS[exam_key]["model"]
+
+    return model.query.filter(model.student_id == student_id).first()
+
+
+def get_latest_ngrt_result(student_id):
+    """
+    Gets the latest available NGRT result.
+    Priority:
+    NGRT-C -> NGRT-B -> NGRT-A
+    """
+    for exam_key in LATEST_PRIORITY:
+        result = get_student_ngrt(student_id, exam_key)
+
+        if result:
+            return exam_key, result
+
+    return None, None
+
+
+def get_ngrt_history(student_id):
+    """
+    Gets NGRT-A, NGRT-B, and NGRT-C history for the student.
+    """
+    history = []
+
+    for exam_key in ["ngrta", "ngrtb", "ngrtc"]:
+        result = get_student_ngrt(student_id, exam_key)
+
+        if result:
+            history.append({
+                "exam_key": exam_key,
+                "exam_label": NGRT_MODELS[exam_key]["label"],
+                "sas": safe_float(get_sas(result)),
+                "stanine": safe_float(getattr(result, "stanine", None)),
+                "reading_age": safe_text(getattr(result, "reading_age", None)),
+                "progress": safe_text(getattr(result, "progress_category", None))
+            })
+
+    return history
+
+
+def get_class_and_cohort_average(student, latest_exam_key):
+    """
+    Computes student class average and cohort average using latest NGRT model.
+    """
+    model = NGRT_MODELS[latest_exam_key]["model"]
+
+    student_yrgrp = safe_text(student.yrgrp, "").lower()
+
+    class_students = Students.query.filter(db.func.lower(Students.yrgrp) == student_yrgrp).all()
+    class_ids = [s.student_id for s in class_students]
+
+    class_results = model.query.filter(model.student_id.in_(class_ids)).all()
+    cohort_results = model.query.all()
+
+    def average_sas(rows):
+        values = [safe_float(get_sas(row), None) for row in rows]
+        values = [value for value in values if value is not None]
+        return sum(values) / len(values) if values else 0
+
+    def average_stanine(rows):
+        values = [safe_float(getattr(row, "stanine", None), None) for row in rows]
+        values = [value for value in values if value is not None]
+        return sum(values) / len(values) if values else 0
+
+    return {
+        "class_avg_sas": average_sas(class_results),
+        "cohort_avg_sas": average_sas(cohort_results),
+        "class_avg_stanine": average_stanine(class_results),
+        "cohort_avg_stanine": average_stanine(cohort_results),
+    }
+
+
+def build_individual_report_data(student_id):
+    """
+    Creates one clean dictionary for the PDF.
+    """
+    student = get_student(student_id)
+
+    if not student:
+        return None
+
+    latest_exam_key, latest_result = get_latest_ngrt_result(student_id)
+
+    if not latest_result:
+        return None
+
+    latest_sas = safe_float(get_sas(latest_result))
+    latest_stanine = safe_float(getattr(latest_result, "stanine", None))
+
+    profile = (
+        getattr(latest_result, "profile_desc", None)
+        or getattr(latest_result, "reader_profile", None)
+        or "Reader profile is not available for this student."
+    )
+
+    data = {
+        "student_id": student.student_id,
+        "name": full_name(student),
+        "yrgrp": safe_text(student.yrgrp).upper(),
+        "gender": safe_text(student.gender),
+        "nationality": safe_text(getattr(student, "nationality", None)),
+        "status": safe_text(getattr(student, "status", None)),
+        "sped": safe_text(getattr(student, "sped", None)),
+        "latest_exam_key": latest_exam_key,
+        "latest_exam_label": NGRT_MODELS[latest_exam_key]["label"],
+        "sas": latest_sas,
+        "stanine": latest_stanine,
+        "reading_age": safe_text(getattr(latest_result, "reading_age", None)),
+        "progress": safe_text(getattr(latest_result, "progress_category", None)),
+        "band": get_stanine_band(latest_stanine),
+        "reader_profile": profile,
+        "history": get_ngrt_history(student_id),
+        "thresholds": get_threshold_status(latest_sas),
+        "date_generated": datetime.now().strftime("%A, %d-%B-%Y"),
+    }
+
+    data["averages"] = get_class_and_cohort_average(student, latest_exam_key)
+
+    return data
+
+
+# =========================================================
+# Header and footer
+# =========================================================
+
+def draw_header_footer(canvas_obj, doc):
+    """
+    Draws the ExamInsight header and footer.
+    """
+    canvas_obj.saveState()
+
+    left = doc.leftMargin
+    right = PAGE_WIDTH - doc.rightMargin
+
+    # Header title
+    canvas_obj.setFillColor(EI_DARK)
+    canvas_obj.setFont("Helvetica-Bold", 13)
+    canvas_obj.drawString(left, PAGE_HEIGHT - 35, "ExamInsight")
+
+    canvas_obj.setFillColor(EI_MUTED)
+    canvas_obj.setFont("Helvetica", 8)
+    canvas_obj.drawString(left, PAGE_HEIGHT - 47, "Attainment and Progress Tracking")
+
+    # Simple EI mark
+    canvas_obj.setFillColor(EI_BLUE)
+    canvas_obj.roundRect(right - 35, PAGE_HEIGHT - 52, 32, 32, 8, stroke=0, fill=1)
+    canvas_obj.setFillColor(colors.white)
+    canvas_obj.setFont("Helvetica-Bold", 12)
+    canvas_obj.drawCentredString(right - 19, PAGE_HEIGHT - 40, "EI")
+
+    # Header line
+    canvas_obj.setStrokeColor(EI_BORDER)
+    canvas_obj.line(left, PAGE_HEIGHT - 62, right, PAGE_HEIGHT - 62)
+
+    # Footer
+    canvas_obj.setStrokeColor(EI_BORDER)
+    canvas_obj.line(left, 35, right, 35)
+
+    canvas_obj.setFillColor(EI_MUTED)
+    canvas_obj.setFont("Helvetica", 7)
+    canvas_obj.drawString(
+        left,
+        22,
+        f"ExamInsight: Individual NGRT external assessment report. Page {doc.page}"
+    )
+
+    canvas_obj.restoreState()
+
+
+# =========================================================
+# Custom visual elements
+# =========================================================
+
+class KPIBox(Flowable):
+    """
+    Draws a KPI card.
+    """
+    def __init__(self, title, value, subtitle, width=4.2 * cm, height=2.4 * cm):
+        Flowable.__init__(self)
+        self.title = title
+        self.value = value
+        self.subtitle = subtitle
+        self.width = width
+        self.height = height
+
+    def draw(self):
+        self.canv.setFillColor(colors.white)
+        self.canv.setStrokeColor(EI_BORDER)
+        self.canv.roundRect(0, 0, self.width, self.height, 8, stroke=1, fill=1)
+
+        self.canv.setFillColor(EI_MUTED)
+        self.canv.setFont("Helvetica", 7)
+        self.canv.drawCentredString(self.width / 2, self.height - 16, self.title)
+
+        self.canv.setFillColor(EI_DARK)
+        self.canv.setFont("Helvetica-Bold", 18)
+        self.canv.drawCentredString(self.width / 2, self.height / 2 - 2, str(self.value))
+
+        self.canv.setFillColor(EI_MUTED)
+        self.canv.setFont("Helvetica", 6.5)
+        self.canv.drawCentredString(self.width / 2, 10, self.subtitle)
+
+
+class StanineScale(Flowable):
+    """
+    Draws stanine 1-9 scale and marks the student stanine.
+    """
+    def __init__(self, stanine, width=17 * cm, height=2.2 * cm):
+        Flowable.__init__(self)
+        self.stanine = safe_int(stanine)
+        self.width = width
+        self.height = height
+
+    def draw(self):
+        segment = self.width / 9
+
+        for i in range(1, 10):
+            x = (i - 1) * segment
+
+            if i <= 3:
+                fill = colors.HexColor("#FEE2E2")
+            elif i <= 6:
+                fill = colors.HexColor("#FEF3C7")
+            else:
+                fill = colors.HexColor("#DCFCE7")
+
+            self.canv.setFillColor(fill)
+            self.canv.setStrokeColor(colors.white)
+            self.canv.rect(x, 28, segment, 20, stroke=1, fill=1)
+
+            self.canv.setFillColor(EI_DARK)
+            self.canv.setFont("Helvetica-Bold", 8)
+            self.canv.drawCentredString(x + segment / 2, 34, str(i))
+
+        if 1 <= self.stanine <= 9:
+            marker_x = (self.stanine - 0.5) * segment
+
+            self.canv.setFillColor(EI_BLUE)
+            self.canv.circle(marker_x, 58, 5, stroke=0, fill=1)
+
+            self.canv.setFillColor(colors.white)
+            self.canv.setFont("Helvetica-Bold", 6)
+            self.canv.drawCentredString(marker_x, 56, "S")
+
+            self.canv.setFillColor(EI_MUTED)
+            self.canv.setFont("Helvetica", 7)
+            self.canv.drawCentredString(marker_x, 68, "Student stanine")
+
+        self.canv.setFillColor(EI_MUTED)
+        self.canv.setFont("Helvetica", 7)
+        self.canv.drawCentredString(segment * 1.5, 13, "Below Average")
+        self.canv.drawCentredString(segment * 4.5, 13, "Average")
+        self.canv.drawCentredString(segment * 7.5, 13, "Above Average")
+
+
+class SimpleSASLineChart(Flowable):
+    """
+    Draws a simple SAS progress line chart.
+    """
+    def __init__(self, history, width=17 * cm, height=5.2 * cm):
+        Flowable.__init__(self)
+        self.history = history
+        self.width = width
+        self.height = height
+
+    def draw(self):
+        if not self.history:
+            return
+
+        labels = [item["exam_label"] for item in self.history]
+        values = [item["sas"] for item in self.history]
+
+        x0 = 45
+        y0 = 35
+        chart_w = self.width - 70
+        chart_h = self.height - 65
+
+        y_min = 80
+        y_max = 110
+
+        self.canv.setFillColor(EI_DARK)
+        self.canv.setFont("Helvetica-Bold", 9)
+        self.canv.drawString(0, self.height - 12, "SAS progress over NGRT assessments")
+
+        self.canv.setStrokeColor(EI_BORDER)
+        self.canv.rect(x0, y0, chart_w, chart_h, stroke=1, fill=0)
+
+        # Y-axis labels and grid
+        for y_value in [80, 85, 90, 95, 100, 105, 110]:
+            y = y0 + ((y_value - y_min) / (y_max - y_min)) * chart_h
+
+            self.canv.setStrokeColor(colors.HexColor("#E5E7EB"))
+            self.canv.line(x0, y, x0 + chart_w, y)
+
+            self.canv.setFillColor(EI_MUTED)
+            self.canv.setFont("Helvetica", 6.5)
+            self.canv.drawRightString(x0 - 5, y - 2, str(y_value))
+
+        # SAS 100 guide
+        y100 = y0 + ((100 - y_min) / (y_max - y_min)) * chart_h
+        self.canv.setStrokeColor(EI_ORANGE)
+        self.canv.setDash(3, 3)
+        self.canv.line(x0, y100, x0 + chart_w, y100)
+        self.canv.setDash()
+
+        points = []
+
+        for i, value in enumerate(values):
+            if len(values) == 1:
+                x = x0 + chart_w / 2
+            else:
+                x = x0 + (i / (len(values) - 1)) * chart_w
+
+            y = y0 + ((value - y_min) / (y_max - y_min)) * chart_h
+            points.append((x, y))
+
+        self.canv.setStrokeColor(EI_BLUE)
+        self.canv.setLineWidth(2)
+
+        for i in range(len(points) - 1):
+            self.canv.line(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
+
+        for i, point in enumerate(points):
+            x, y = point
+
+            self.canv.setFillColor(EI_BLUE)
+            self.canv.circle(x, y, 4, stroke=0, fill=1)
+
+            self.canv.setFillColor(EI_DARK)
+            self.canv.setFont("Helvetica-Bold", 7)
+            self.canv.drawCentredString(x, y + 9, f"{values[i]:.0f}")
+
+            self.canv.setFillColor(EI_MUTED)
+            self.canv.setFont("Helvetica", 7)
+            self.canv.drawCentredString(x, y0 - 14, labels[i])
+
+        self.canv.setFillColor(EI_MUTED)
+        self.canv.setFont("Helvetica", 7)
+        self.canv.drawString(x0 + chart_w - 65, y100 + 4, "SAS 100 guide")
+
+
+class SimpleComparisonBarChart(Flowable):
+    """
+    Draws Student vs Class Avg vs Cohort Avg chart.
+    """
+    def __init__(self, student_sas, class_avg, cohort_avg, width=17 * cm, height=5.2 * cm):
+        Flowable.__init__(self)
+        self.labels = ["Student", "Class Avg", "Cohort Avg"]
+        self.values = [student_sas, class_avg, cohort_avg]
+        self.width = width
+        self.height = height
+
+    def draw(self):
+        x0 = 45
+        y0 = 35
+        chart_w = self.width - 70
+        chart_h = self.height - 65
+
+        y_min = 80
+        y_max = 110
+
+        self.canv.setFillColor(EI_DARK)
+        self.canv.setFont("Helvetica-Bold", 9)
+        self.canv.drawString(0, self.height - 12, "Student vs class and cohort comparison")
+
+        self.canv.setStrokeColor(EI_BORDER)
+        self.canv.rect(x0, y0, chart_w, chart_h, stroke=1, fill=0)
+
+        for y_value in [80, 85, 90, 95, 100, 105, 110]:
+            y = y0 + ((y_value - y_min) / (y_max - y_min)) * chart_h
+            self.canv.setStrokeColor(colors.HexColor("#E5E7EB"))
+            self.canv.line(x0, y, x0 + chart_w, y)
+
+            self.canv.setFillColor(EI_MUTED)
+            self.canv.setFont("Helvetica", 6.5)
+            self.canv.drawRightString(x0 - 5, y - 2, str(y_value))
+
+        bar_gap = 35
+        bar_w = 45
+
+        for i, value in enumerate(self.values):
+            x = x0 + 55 + i * (bar_w + bar_gap)
+            bar_h = ((value - y_min) / (y_max - y_min)) * chart_h
+
+            self.canv.setFillColor(EI_BLUE if i == 0 else colors.HexColor("#A7DDF4"))
+            self.canv.rect(x, y0, bar_w, bar_h, stroke=0, fill=1)
+
+            self.canv.setFillColor(EI_DARK)
+            self.canv.setFont("Helvetica-Bold", 7)
+            self.canv.drawCentredString(x + bar_w / 2, y0 + bar_h + 6, f"{value:.0f}")
+
+            self.canv.setFillColor(EI_MUTED)
+            self.canv.setFont("Helvetica", 7)
+            self.canv.drawCentredString(x + bar_w / 2, y0 - 14, self.labels[i])
+
+
+# =========================================================
+# PDF table helpers
+# =========================================================
+
+def section_title(text, styles):
+    return Paragraph(text, styles["SectionTitle"])
+
+
+def make_student_info_table(data):
+    rows = [
+        ["Student Name", data["name"], "Student ID", data["student_id"]],
+        ["Year Group", data["yrgrp"], "Gender", data["gender"]],
+        ["Latest Assessment", data["latest_exam_label"], "Date Generated", data["date_generated"]],
+    ]
+
+    table = Table(rows, colWidths=[3.2 * cm, 5.2 * cm, 3.2 * cm, 5.2 * cm])
+
+    table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#F1F5F9")),
+        ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#F1F5F9")),
+        ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+        ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
+        ("FONTNAME", (1, 0), (1, -1), "Helvetica"),
+        ("FONTNAME", (3, 0), (3, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("TEXTCOLOR", (0, 0), (-1, -1), EI_DARK),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+
+    return table
+
+
+def make_kpi_table(data):
+    kpis = [
+        KPIBox("Standard Age Score", f"{data['sas']:.0f}", "SAS around 100 is average"),
+        KPIBox("Stanine", f"{data['stanine']:.0f}", "Average range: 4-6"),
+        KPIBox("Reading Age", data["reading_age"], "Estimated reading level"),
+        KPIBox("Progress", data["progress"], "Latest NGRT category"),
+    ]
+
+    table = Table([kpis], colWidths=[4.25 * cm, 4.25 * cm, 4.25 * cm, 4.25 * cm])
+
+    table.setStyle(TableStyle([
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 2),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+    ]))
+
+    return table
+
+
+def make_threshold_table(data):
+    rows = [["Threshold", "Meaning", "Status"]] + data["thresholds"]
+
+    table = Table(rows, colWidths=[4.0 * cm, 8.2 * cm, 4.8 * cm])
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 7.8),
+        ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("ALIGN", (2, 1), (2, -1), "CENTER"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F8FAFC")]),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+
+    return table
+
+
+def make_history_table(data):
+    rows = [["Exam", "SAS", "Stanine", "Reading Age", "Progress"]]
+
+    for item in data["history"]:
+        rows.append([
+            item["exam_label"],
+            f"{item['sas']:.0f}",
+            f"{item['stanine']:.0f}",
+            item["reading_age"],
+            item["progress"]
+        ])
+
+    table = Table(rows, colWidths=[3.2 * cm, 2.2 * cm, 2.2 * cm, 3.0 * cm, 6.4 * cm])
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("ALIGN", (1, 1), (2, -1), "CENTER"),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F8FAFC")]),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+
+    return table
+
+
+def paragraph_list(title, items, styles):
+    """
+    Creates a titled bullet list.
+    """
+    content = [Paragraph(title, styles["BoxTitle"])]
+
+    for item in items:
+        content.append(Paragraph(f"- {item}", styles["SmallText"]))
+
+    return content
+
+
+# =========================================================
+# Interpretation helpers
+# =========================================================
+
+def score_interpretation(data):
+    return (
+        f"{data['name']} achieved a SAS of {data['sas']:.0f} and a stanine of "
+        f"{data['stanine']:.0f} in the latest NGRT assessment. "
+        f"This places the student within the {data['band'].lower()} stanine range. "
+        f"The reading age is {data['reading_age']}, which gives teachers a useful "
+        f"estimate of the reading level shown in the assessment."
+    )
+
+
+def progress_interpretation(data):
+    if len(data["history"]) < 2:
+        return "Interpretation: There is currently limited historical NGRT data available for this student."
+
+    first = data["history"][0]["sas"]
+    latest = data["history"][-1]["sas"]
+
+    if latest > first:
+        return (
+            f"Interpretation: {data['name']} has improved from {data['history'][0]['exam_label']} "
+            f"to {data['history'][-1]['exam_label']} and is moving closer to the age-related average benchmark."
+        )
+
+    if latest == first:
+        return (
+            f"Interpretation: {data['name']} has maintained a stable SAS across the available NGRT assessments."
+        )
+
+    return (
+        f"Interpretation: {data['name']} has a lower SAS in the latest assessment compared with the first available result. "
+        "This should be reviewed alongside classroom reading evidence."
+    )
+
+
+def strengths(data):
+    items = []
+
+    if data["stanine"] >= 4:
+        items.append("Working within the average stanine range.")
+    else:
+        items.append("Assessment data clearly identifies reading support needs.")
+
+    if len(data["history"]) >= 2 and data["history"][-1]["sas"] >= data["history"][0]["sas"]:
+        items.append("Shows steady improvement across the assessment cycle.")
+
+    if data["progress"].lower() == "expected":
+        items.append("Maintained expected progress in the latest NGRT assessment.")
+    elif "better" in data["progress"].lower():
+        items.append("Achieved better than expected progress in the latest NGRT assessment.")
+    else:
+        items.append("Progress category can help guide targeted reading intervention.")
+
+    return items
+
+
+def development_points(data):
+    return [
+        "Build reading fluency through daily reading practice.",
+        "Strengthen vocabulary understanding in fiction and non-fiction texts.",
+        "Answer why, how, and evidence-based comprehension questions."
+    ]
+
+
+def next_steps(data):
+    return [
+        "Read for 15 minutes daily at home.",
+        "Use guided reading questions before, during, and after reading.",
+        "Monitor fluency and comprehension weekly in class."
+    ]
+
+
+# =========================================================
+# Main PDF builder
+# =========================================================
+
+def generate_ngrt_indv_extl_rpt(student_id):
+    """
+    Generates the individual NGRT PDF report.
+    This is called by the route in routess.py.
+    """
+    data = build_individual_report_data(student_id)
+
+    if not data:
+        return None
+
+    output_path = os.path.join(
+        tempfile.gettempdir(),
+        f"examinsight_individual_ngrt_external_{student_id}.pdf"
+    )
+
+    doc = SimpleDocTemplate(
+        output_path,
+        pagesize=A4,
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=2.0 * cm,
+        bottomMargin=1.6 * cm
+    )
+
+    styles = getSampleStyleSheet()
+
+    styles.add(ParagraphStyle(
+        name="ReportTitle",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=15,
+        leading=18,
+        textColor=EI_DARK,
+        alignment=TA_LEFT,
+        spaceAfter=4
+    ))
+
+    styles.add(ParagraphStyle(
+        name="SubTitle",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=12,
+        textColor=EI_MUTED,
+        spaceAfter=10
+    ))
+
+    styles.add(ParagraphStyle(
+        name="SectionTitle",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=10.5,
+        leading=13,
+        textColor=EI_BLUE,
+        spaceBefore=8,
+        spaceAfter=5
+    ))
+
+    styles.add(ParagraphStyle(
+        name="SmallText",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=8,
+        leading=10,
+        textColor=EI_DARK,
+        spaceAfter=3
+    ))
+
+    styles.add(ParagraphStyle(
+        name="BoxTitle",
+        parent=styles["BodyText"],
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=11,
+        textColor=EI_DARK,
+        spaceAfter=5
+    ))
+
+    story = []
+
+    # =====================================================
+    # Page 1
+    # =====================================================
+
+    story.append(Paragraph("NGRT Individual Student Report", styles["ReportTitle"]))
+    story.append(Paragraph("External Assessment - Parent and Teacher Summary", styles["SubTitle"]))
+
+    story.append(make_student_info_table(data))
+    story.append(Spacer(1, 10))
+
+    story.append(make_kpi_table(data))
+    story.append(Spacer(1, 10))
+
+    story.append(section_title("Score Interpretation", styles))
+    story.append(Paragraph(score_interpretation(data), styles["SmallText"]))
+
+    story.append(section_title("Attainment Band", styles))
+    story.append(StanineScale(data["stanine"]))
+    story.append(Spacer(1, 5))
+
+    story.append(make_threshold_table(data))
+    story.append(Spacer(1, 8))
+
+    story.append(section_title("Reader Profile", styles))
+    story.append(Paragraph(data["reader_profile"], styles["SmallText"]))
+
+    story.append(PageBreak())
+
+    # =====================================================
+    # Page 2
+    # =====================================================
+
+    story.append(Paragraph("Progress and Recommended Support", styles["ReportTitle"]))
+    story.append(Paragraph(
+        "This page supports teacher planning, intervention tracking, and parent communication.",
+        styles["SubTitle"]
+    ))
+
+    story.append(make_history_table(data))
+    story.append(Spacer(1, 12))
+
+    story.append(SimpleSASLineChart(data["history"]))
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph(progress_interpretation(data), styles["SmallText"]))
+    story.append(Spacer(1, 8))
+
+    story.append(SimpleComparisonBarChart(
+        student_sas=data["sas"],
+        class_avg=data["averages"]["class_avg_sas"],
+        cohort_avg=data["averages"]["cohort_avg_sas"]
+    ))
+
+    story.append(Spacer(1, 8))
+    story.append(Paragraph(
+        "The comparison chart shows the student's latest SAS against the class and cohort averages.",
+        styles["SmallText"]
+    ))
+
+    story.append(Spacer(1, 8))
+
+    # Three support columns
+    support_table = Table(
+        [[
+            paragraph_list("Strengths", strengths(data), styles),
+            paragraph_list("Areas for Development", development_points(data), styles),
+            paragraph_list("Recommended Next Steps", next_steps(data), styles),
+        ]],
+        colWidths=[5.5 * cm, 5.5 * cm, 5.5 * cm]
+    )
+
+    support_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
+        ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(support_table)
+
+    doc.build(
+        story,
+        onFirstPage=draw_header_footer,
+        onLaterPages=draw_header_footer
+    )
+
+    return output_path

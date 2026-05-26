@@ -26,7 +26,7 @@ from apps.helpers import per_class_metrics, cohort_progress, class_progress
 
 # Reports-related imports
 from apps.helpers import get_filtered_ngrt_combined_data
-from apps.reports import build_ngrt_listing_pdf
+from apps.reports import build_ngrt_listing_pdf, generate_ngrt_indv_extl_rpt
 
 from urllib.parse import urlencode
 
@@ -1167,6 +1167,10 @@ def ngrt_classwise_reading_thresholds():
 #************************
 #******* Reports *******#
 #************************
+
+# ============================================================
+# External Assessment Report Routes
+# ============================================================
 @blueprint.route('/reports', methods=['GET'])
 @login_required
 @admin_required
@@ -1200,7 +1204,7 @@ def download_ngrt_summary_report(exam):
         mimetype="application/pdf",
     )
 
-# Individual student report
+# Individual student report filter-related code and route for NGRT combined data
 @blueprint.route("/api/reports/external/ngrt-combined-data")
 def api_ngrt_combined_data():
     """
@@ -1333,9 +1337,28 @@ def serialize_ngrt_result(result):
         "profile_desc": getattr(result, "profile_desc", "-") or "-"
     }
 
-# ============================================================
-# External Assessment Report Routes
-# ============================================================
+# Route for Individual Student Report download
+@blueprint.route("/reports/external/ngrt-individual/<student_id>")
+def download_ngrt_indv_extl_rpt(student_id):
+    """
+    Generates an individual NGRT external assessment PDF report.
+
+    This route is used by the PDF button in the NGRT combined data table.
+    Example:
+    /reports/external/ngrt-individual/Y2-048
+    """
+
+    pdf_path = generate_ngrt_indv_extl_rpt(student_id)
+
+    if not pdf_path:
+        abort(404)
+
+    return send_file(
+        pdf_path,
+        as_attachment=False,
+        download_name=f"ExamInsight_Individual_NGRT_Report_{student_id}.pdf",
+        mimetype="application/pdf"
+    )
 
 
 
