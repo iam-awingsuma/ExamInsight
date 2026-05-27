@@ -1,6 +1,7 @@
 # apps/reports.py
 
 import os
+from openai import OpenAI
 
 from io import BytesIO
 import tempfile
@@ -460,10 +461,10 @@ def add_header_footer(canvas, doc, report_title, logo_path=None):
 
     footnote = (
         "ExamInsight: Attainment and Progress Tracking in Year 2 Internal Assessments "
-        "and External Benchmark Tests at Pristine Private School."
+        "and External Benchmark Tests at Pristine Private School. | Page %d" % doc.page
     )
 
-    canvas.setFont("Helvetica", 7.5)
+    canvas.setFont("Helvetica", 7)
     canvas.setFillColor(colors.HexColor("#4B5563"))
     canvas.drawString(left_margin, footer_text_y, footnote)
 
@@ -1041,12 +1042,11 @@ def get_threshold_status(sas):
     sas = safe_float(sas)
 
     return [
-        ["SAS >= 90", "Foundation reading threshold", "Achieved" if sas >= 90 else "Not yet"],
-        ["SAS >= 110", "Strong performance", "Achieved" if sas >= 110 else "Not yet"],
-        ["SAS >= 120", "Very high performance", "Achieved" if sas >= 120 else "Not yet"],
+        ["SAS >= 90", "Working within reach of age-related expectations", "Achieved" if sas >= 90 else "Target"],
+        ["SAS >= 110", "Above-average reading attainment", "Achieved" if sas >= 110 else "Target"],
+        ["SAS >= 120", "High-performing reader requiring enrichment", "Achieved" if sas >= 120 else "Target"],
     ]
-
-
+    
 # =========================================================
 # Data functions
 # =========================================================
@@ -1186,54 +1186,6 @@ def build_individual_report_data(student_id):
 
 
 # =========================================================
-# Header and footer
-# =========================================================
-
-def draw_header_footer(canvas_obj, doc):
-    """
-    Draws the ExamInsight header and footer.
-    """
-    canvas_obj.saveState()
-
-    left = doc.leftMargin
-    right = PAGE_WIDTH - doc.rightMargin
-
-    # Header title
-    canvas_obj.setFillColor(EI_DARK)
-    canvas_obj.setFont("Helvetica-Bold", 13)
-    canvas_obj.drawString(left, PAGE_HEIGHT - 35, "ExamInsight")
-
-    canvas_obj.setFillColor(EI_MUTED)
-    canvas_obj.setFont("Helvetica", 8)
-    canvas_obj.drawString(left, PAGE_HEIGHT - 47, "Attainment and Progress Tracking")
-
-    # Simple EI mark
-    canvas_obj.setFillColor(EI_BLUE)
-    canvas_obj.roundRect(right - 35, PAGE_HEIGHT - 52, 32, 32, 8, stroke=0, fill=1)
-    canvas_obj.setFillColor(colors.white)
-    canvas_obj.setFont("Helvetica-Bold", 12)
-    canvas_obj.drawCentredString(right - 19, PAGE_HEIGHT - 40, "EI")
-
-    # Header line
-    canvas_obj.setStrokeColor(EI_BORDER)
-    canvas_obj.line(left, PAGE_HEIGHT - 62, right, PAGE_HEIGHT - 62)
-
-    # Footer
-    canvas_obj.setStrokeColor(EI_BORDER)
-    canvas_obj.line(left, 35, right, 35)
-
-    canvas_obj.setFillColor(EI_MUTED)
-    canvas_obj.setFont("Helvetica", 7)
-    canvas_obj.drawString(
-        left,
-        22,
-        f"ExamInsight: Individual NGRT external assessment report. Page {doc.page}"
-    )
-
-    canvas_obj.restoreState()
-
-
-# =========================================================
 # Custom visual elements
 # =========================================================
 
@@ -1254,14 +1206,41 @@ class KPIBox(Flowable):
         self.canv.setStrokeColor(EI_BORDER)
         self.canv.roundRect(0, 0, self.width, self.height, 8, stroke=1, fill=1)
 
+        # KPI title at the top
         self.canv.setFillColor(EI_MUTED)
         self.canv.setFont("Helvetica", 7)
         self.canv.drawCentredString(self.width / 2, self.height - 16, self.title)
 
-        self.canv.setFillColor(EI_DARK)
-        self.canv.setFont("Helvetica-Bold", 18)
-        self.canv.drawCentredString(self.width / 2, self.height / 2 - 2, str(self.value))
+        # KPI value in the middle with wrapping
+        value_style = ParagraphStyle(
+            name="KPIValueWrapped",
+            fontName="Helvetica-Bold",
+            fontSize=13,
+            leading=14,
+            textColor=EI_DARK,
+            alignment=TA_CENTER,
+        )
 
+        value_paragraph = Paragraph(str(self.value), value_style)
+
+        # Leave padding on left and right
+        available_width = self.width - 12
+
+        # Limit available height so it does not overlap title/subtitle
+        available_height = self.height - 32
+
+        wrapped_width, wrapped_height = value_paragraph.wrap(
+            available_width,
+            available_height
+        )
+
+        # Center the wrapped value between title and subtitle
+        x = 6
+        y = (self.height / 2) - (wrapped_height / 2) - 2
+
+        value_paragraph.drawOn(self.canv, x, y)
+
+        # KPI subtitle at the bottom
         self.canv.setFillColor(EI_MUTED)
         self.canv.setFont("Helvetica", 6.5)
         self.canv.drawCentredString(self.width / 2, 10, self.subtitle)
@@ -1500,7 +1479,7 @@ def make_kpi_table(data):
         KPIBox("Standard Age Score", f"{data['sas']:.0f}", "SAS around 100 is average"),
         KPIBox("Stanine", f"{data['stanine']:.0f}", "Average range: 4-6"),
         KPIBox("Reading Age", data["reading_age"], "Estimated reading level"),
-        KPIBox("Progress", data["progress"], "Latest NGRT category"),
+        KPIBox("Progress Category", data["progress"], "Latest NGRT"),
     ]
 
     table = Table([kpis], colWidths=[4.25 * cm, 4.25 * cm, 4.25 * cm, 4.25 * cm])
@@ -1516,9 +1495,9 @@ def make_kpi_table(data):
 
 
 def make_threshold_table(data):
-    rows = [["Threshold", "Meaning", "Status"]] + data["thresholds"]
+    rows = [["Reading Literacy Thresholds", "Meaning", "Status"]] + data["thresholds"]
 
-    table = Table(rows, colWidths=[4.0 * cm, 8.2 * cm, 4.8 * cm])
+    table = Table(rows, colWidths=[5.0 * cm, 8.2 * cm, 4.0 * cm])
 
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
@@ -1582,14 +1561,105 @@ def paragraph_list(title, items, styles):
 # Interpretation helpers
 # =========================================================
 
-def score_interpretation(data):
+def get_sas_description(sas):
+    """
+    Returns a friendly SAS interpretation based on the student's score.
+    """
+    sas = safe_float(sas)
+
+    if sas >= 120:
+        return (
+            "The SAS result indicates exceptionally high reading performance. "
+            "This suggests that the student is working well above the typical age-related range. "
+            "The student may benefit from enrichment activities, challenging texts, and higher-order comprehension tasks."
+        )
+
+    if sas >= 110:
+        return (
+            "The SAS result indicates strong reading performance above the expected range. "
+            "This suggests that the student is likely showing secure reading accuracy, fluency, vocabulary understanding, and comprehension. "
+            "The student should continue to be challenged with texts that extend thinking and deepen understanding."
+        )
+
+    if sas >= 90:
+        return (
+            "The SAS result indicates a secure foundation for age-related reading. "
+            "This suggests that the student is approaching or working within the expected reading range. "
+            "The student may still benefit from regular reading practice, vocabulary development, and guided comprehension support."
+        )
+
     return (
-        f"{data['name']} achieved a SAS of {data['sas']:.0f} and a stanine of "
-        f"{data['stanine']:.0f} in the latest NGRT assessment. "
-        f"This places the student within the {data['band'].lower()} stanine range. "
-        f"The reading age is {data['reading_age']}, which gives teachers a useful "
-        f"estimate of the reading level shown in the assessment."
+        "The SAS result indicates that the student may need targeted reading support. "
+        "This suggests that the student may find some age-related texts challenging without additional guidance. "
+        "The student would benefit from regular guided reading, vocabulary development, fluency practice, and structured comprehension support."
     )
+
+# =============================================================================
+# OpenAI interpretation function for SAS and score interpretation with fallback
+# =============================================================================
+def generate_ai_sas_interpretation(data):
+    """
+    Uses OpenAI to generate a friendly SAS description/interpretation.
+    Falls back to the rule-based interpretation if the AI call fails.
+    """
+    
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    prompt = f"""
+    Write a friendly and teacher-useful interpretation of the student's performance based on the provided data.
+
+    Student name: {data.get("name")}
+    Latest assessment: {data.get("latest_exam_label")}
+    SAS: {data.get("sas")}
+    Stanine: {data.get("stanine")}
+    Stanine band: {data.get("band")}
+    Reading age: {data.get("reading_age")}
+    Progress category: {data.get("progress")}
+
+    Requirements:
+    - Write exactly 10 concise sentences.
+    - Keep each sentence short, around 12 to 18 words.
+    - Use a professional school report tone.
+    - Avoid overly negative language.
+    - Talk about the student's Stanine and Stanine band in relation to the SAS score.
+    - Include what the profile suggests about the student's reading development.
+    - Relate the SAS score to age-related expectations.
+    - Include practical next-step support.
+    - Do not use bullet points.
+    """
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an educational data analyst writing professional tone student profile based on Stanine, stanine band, and SAS score interpretations."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.3,
+        max_tokens=380
+    )
+
+    return response.choices[0].message.content.strip()
+
+def score_interpretation(data):
+    try:
+        sas_interpretation = generate_ai_sas_interpretation(data)
+        return sas_interpretation
+    except Exception:
+        sas_description = get_sas_description(data["sas"])
+        return (
+            f"{data['name']} achieved a SAS of {data['sas']:.0f} and a stanine of "
+            f"{data['stanine']:.0f} in the latest external benchmark assessment, {data['latest_exam_label']}. "
+            f"This places the student within the {data['band'].lower()} stanine range. "
+            f"{sas_description} "
+            f"The student's reading age is {data['reading_age']}, which provides an estimate of the reading level demonstrated during the assessment. "
+            f"These results should be considered alongside classroom reading evidence, teacher observations, and ongoing guided reading performance."
+        )
 
 
 def progress_interpretation(data):
@@ -1652,7 +1722,57 @@ def next_steps(data):
         "Monitor fluency and comprehension weekly in class."
     ]
 
+# ================================================================
+# OpenAI interpretation function for reader profiles with fallback
+# ================================================================
+def generate_ai_reader_profile_interpretation(data):
+    """
+    Uses OpenAI to generate a friendly reader profile interpretation.
+    Falls back to the rule-based interpretation if the AI call fails.
+    """
 
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        prompt = f"""
+        Write a parent-friendly and teacher-useful interpretation of this NGRT reader profile.
+
+        Student name: {data.get("name")}
+        Latest assessment: {data.get("latest_exam_label")}
+        Reader profile: {data.get("reader_profile")}
+
+        Requirements:
+        - Write exactly 8 concise sentences.
+        - Keep each sentence around 10 to 16 words.
+        - Use a professional school report tone.
+        - Avoid overly negative language.
+        - Include what the reader profile suggests.
+        - Include practical next-step reading support based on the indicated reader profile.
+        - Do not use bullet points.
+        - Include the actual reader profile text as the first sentence.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an educational data analyst writing parent-friendly reading assessment interpretations based on the student's reader profile."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=320
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception:
+        return data.get("reader_profile", "Reader profile is not available for this student.")
+    
 # =========================================================
 # Main PDF builder
 # =========================================================
@@ -1698,10 +1818,10 @@ def generate_ngrt_indv_extl_rpt(student_id):
         name="SubTitle",
         parent=styles["BodyText"],
         fontName="Helvetica",
-        fontSize=9,
-        leading=12,
+        fontSize=8,
+        leading=10,
         textColor=EI_MUTED,
-        spaceAfter=10
+        spaceAfter=8
     ))
 
     styles.add(ParagraphStyle(
@@ -1741,8 +1861,13 @@ def generate_ngrt_indv_extl_rpt(student_id):
     # Page 1
     # =====================================================
 
-    story.append(Paragraph("NGRT Individual Student Report", styles["ReportTitle"]))
-    story.append(Paragraph("External Assessment - Parent and Teacher Summary", styles["SubTitle"]))
+    story.append(section_title("External Benchmark Test", styles))
+    story.append(Paragraph(
+        "This report provides an overview of the student's reading attainment and progress across the available NGRT assessments. "
+        "It summarises key scores including SAS, stanine, reading age, progress category, reading thresholds, and reader profile. "
+        "The information presented is intended to support parent communication, teacher planning, intervention tracking, and next-step reading support.",
+        styles["SubTitle"]
+    ))
 
     story.append(make_student_info_table(data))
     story.append(Spacer(1, 10))
@@ -1752,16 +1877,21 @@ def generate_ngrt_indv_extl_rpt(student_id):
 
     story.append(section_title("Score Interpretation", styles))
     story.append(Paragraph(score_interpretation(data), styles["SmallText"]))
+    story.append(Spacer(1, 10))
 
     story.append(section_title("Attainment Band", styles))
+    story.append(Spacer(1, 8))
     story.append(StanineScale(data["stanine"]))
-    story.append(Spacer(1, 5))
+    story.append(Spacer(1, 10))
 
     story.append(make_threshold_table(data))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 10))
 
     story.append(section_title("Reader Profile", styles))
-    story.append(Paragraph(data["reader_profile"], styles["SmallText"]))
+    # story.append(Paragraph(data["reader_profile"], styles["SmallText"]))
+    # generate AI interpretation with fallback to rule-based text if AI fails
+    reader_profile_text = generate_ai_reader_profile_interpretation(data)
+    story.append(Paragraph(reader_profile_text, styles["SmallText"]))
 
     story.append(PageBreak())
 
@@ -1823,8 +1953,18 @@ def generate_ngrt_indv_extl_rpt(student_id):
 
     doc.build(
         story,
-        onFirstPage=draw_header_footer,
-        onLaterPages=draw_header_footer
+        onFirstPage=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title="ExamInsight: NGRT Individual Student Report",
+            logo_path=logo_path
+        ),
+        onLaterPages=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title="ExamInsight: NGRT Individual Student Report",
+            logo_path=logo_path
+        ),
     )
 
     return output_path
