@@ -944,7 +944,6 @@ EI_YELLOW = colors.HexColor("#F59E0B")
 
 PAGE_WIDTH, PAGE_HEIGHT = A4
 
-
 # =========================================================
 # NGRT model map
 # =========================================================
@@ -971,6 +970,7 @@ LATEST_PRIORITY = ["ngrtc", "ngrtb", "ngrta"]
 # Safe helper functions
 # =========================================================
 
+# safe functions to handle None or invalid values when building the PDF report
 def safe_text(value, default="-"):
     """
     Returns a safe text value for PDF display.
@@ -982,7 +982,7 @@ def safe_text(value, default="-"):
 
     return value if value else default
 
-
+# safe functions to handle proper float values when building the PDF report
 def safe_float(value, default=0):
     """
     Converts a value safely into float.
@@ -992,7 +992,7 @@ def safe_float(value, default=0):
     except (TypeError, ValueError):
         return default
 
-
+# safe functions to handle proper integer values when building the PDF report
 def safe_int(value, default=0):
     """
     Converts a value safely into integer.
@@ -1002,14 +1002,14 @@ def safe_int(value, default=0):
     except (TypeError, ValueError):
         return default
 
-
+# helper function to concatenate forename and surname
 def full_name(student):
     """
     Builds full name using Students.forename and Students.surname.
     """
     return f"{student.forename or ''} {student.surname or ''}".strip()
 
-
+# helper function to get SAS value from either SAS or sas field name in the NGRT models
 def get_sas(result):
     """
     Handles either SAS or sas field name.
@@ -1019,7 +1019,7 @@ def get_sas(result):
 
     return getattr(result, "SAS", None) or getattr(result, "sas", None)
 
-
+# helper function to determine stanine band based on stanine value
 def get_stanine_band(stanine):
     """
     Returns NGRT stanine band.
@@ -1034,7 +1034,7 @@ def get_stanine_band(stanine):
 
     return "Above Average"
 
-
+# helper function to display threshold label based on SAS value
 def get_threshold_status(sas):
     """
     Returns SAS threshold achievement.
@@ -1051,13 +1051,14 @@ def get_threshold_status(sas):
 # Data functions
 # =========================================================
 
+# helper function to query the Students table for a given student_id
 def get_student(student_id):
     """
     Gets one student using Students.student_id.
     """
     return Students.query.filter_by(student_id=student_id).first()
 
-
+# helper function to query the appropriate NGRT model for a given student_id and exam_key (ngrta, ngrtb, ngrtc)
 def get_student_ngrt(student_id, exam_key):
     """
     Gets one NGRT result for one student.
@@ -1066,7 +1067,7 @@ def get_student_ngrt(student_id, exam_key):
 
     return model.query.filter(model.student_id == student_id).first()
 
-
+# helper function to get the latest NGRT result for a student based on priority order (NGRT-C > NGRT-B > NGRT-A)
 def get_latest_ngrt_result(student_id):
     """
     Gets the latest available NGRT result.
@@ -1081,7 +1082,7 @@ def get_latest_ngrt_result(student_id):
 
     return None, None
 
-
+# helper function to build a list of all available NGRT results for a student across NGRT-A, NGRT-B, and NGRT-C
 def get_ngrt_history(student_id):
     """
     Gets NGRT-A, NGRT-B, and NGRT-C history for the student.
@@ -1103,7 +1104,7 @@ def get_ngrt_history(student_id):
 
     return history
 
-
+# helper function to compute class average and cohort average for a student based on the latest available NGRT exam
 def get_class_and_cohort_average(student, latest_exam_key):
     """
     Computes student class average and cohort average using latest NGRT model.
@@ -1135,7 +1136,8 @@ def get_class_and_cohort_average(student, latest_exam_key):
         "cohort_avg_stanine": average_stanine(cohort_results),
     }
 
-
+# helper function to build a clean dictionary of all relevant student information 
+# and latest NGRT result for use in the individual PDF report
 def build_individual_report_data(student_id):
     """
     Creates one clean dictionary for the PDF.
@@ -1188,7 +1190,8 @@ def build_individual_report_data(student_id):
 # =========================================================
 # Custom visual elements
 # =========================================================
-
+# custom Flowable classes to draw KPI boxes, stanine scale,
+# and SAS line chart in the individual PDF report
 class KPIBox(Flowable):
     """
     Draws a KPI card.
@@ -1245,7 +1248,7 @@ class KPIBox(Flowable):
         self.canv.setFont("Helvetica", 6.5)
         self.canv.drawCentredString(self.width / 2, 10, self.subtitle)
 
-
+# custom Flowable to draw the stanine scale with the student's stanine marked
 class StanineScale(Flowable):
     """
     Draws stanine 1-9 scale and marks the student stanine.
@@ -1297,7 +1300,7 @@ class StanineScale(Flowable):
         self.canv.drawCentredString(segment * 4.5, 13, "Average")
         self.canv.drawCentredString(segment * 7.5, 13, "Above Average")
 
-
+# custom Flowable to draw a simple line chart showing the student's SAS progress across NGRT-A, NGRT-B, and NGRT-C
 class SimpleSASLineChart(Flowable):
     """
     Draws a simple SAS progress line chart.
@@ -1386,7 +1389,7 @@ class SimpleSASLineChart(Flowable):
         self.canv.setFont("Helvetica", 7)
         self.canv.drawString(x0 + chart_w - 65, y100 + 4, "SAS 100 guide")
 
-
+# custom Flowable to draw a simple bar chart comparing the student's latest SAS with the class average and cohort average for that NGRT exam
 class SimpleComparisonBarChart(Flowable):
     """
     Draws Student vs Class Avg vs Cohort Avg chart.
@@ -1409,7 +1412,7 @@ class SimpleComparisonBarChart(Flowable):
 
         self.canv.setFillColor(EI_BLUE)
         self.canv.setFont("Helvetica-Bold", 9)
-        self.canv.drawString(0, self.height - 12, "Student vs class and cohort comparison")
+        self.canv.drawString(0, self.height - 12, "SAS: Student vs Class and Cohort Comparison")
 
         self.canv.setStrokeColor(EI_BORDER)
         self.canv.rect(x0, y0, chart_w, chart_h, stroke=1, fill=0)
@@ -1445,7 +1448,7 @@ class SimpleComparisonBarChart(Flowable):
 # =========================================================
 # PDF table helpers
 # =========================================================
-
+# helper function to create a consistent section title style for the PDF report
 def section_title(text, styles):
     return Paragraph(text, styles["SectionTitle"])
 
@@ -1945,7 +1948,9 @@ def generate_ngrt_indv_extl_rpt(student_id):
 
     # story.append(Spacer(1, 6))
     story.append(Paragraph(
-        "The comparison chart shows the student's latest SAS against the class and cohort averages.",
+        "The comparison chart shows the student's latest SAS against the class and cohort averages. "
+        "This helps identify whether the student is performing broadly in line with peers or may need additional support. "
+        "It should be interpreted alongside classroom reading evidence, teacher observations, and progress across previous NGRT assessments.",
         styles["SmallText"]
     ))
 
