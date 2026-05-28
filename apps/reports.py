@@ -1319,7 +1319,7 @@ class SimpleSASLineChart(Flowable):
         y0 = 35
         chart_w = self.width - 70
         # give enough vertical space for the title
-        chart_h = self.height - 85
+        chart_h = self.height - 75
 
         y_min = 60
         y_max = 140
@@ -1675,17 +1675,26 @@ def progress_interpretation(data):
     if latest > first:
         return (
             f"Interpretation: {data['name']} has improved from {data['history'][0]['exam_label']} "
-            f"to {data['history'][-1]['exam_label']} and is moving closer to the age-related average benchmark."
+            f"to {data['history'][-1]['exam_label']} and is moving closer to the age-related average benchmark. "
+            "This positive movement suggests that the student is developing greater confidence and consistency in reading. "
+            "Continued guided reading, vocabulary practice, and regular comprehension discussions will help sustain this progress. "
+            "Continue to monitor the student's fluency and understanding to ensure that progress is maintained over time."
         )
 
     if latest == first:
         return (
-            f"Interpretation: {data['name']} has maintained a stable SAS across the available NGRT assessments."
+            f"Interpretation: {data['name']} has maintained a stable SAS across the available NGRT assessments. "
+            "This suggests that the student's reading performance has remained consistent over time. "
+            "The student may benefit from targeted support to help move beyond the current level and make further gains. "
+            "Regular reading practice, vocabulary development, and focused comprehension tasks can help strengthen future progress."
         )
 
     return (
         f"Interpretation: {data['name']} has a lower SAS in the latest assessment compared with the first available result. "
-        "This should be reviewed alongside classroom reading evidence."
+        "This should be reviewed alongside classroom reading evidence, teacher observations, and guided reading performance. "
+        "The result may indicate a need for closer monitoring and more targeted reading support. "
+        "Short, regular reading activities focusing on fluency, vocabulary, and comprehension may help rebuild confidence. "
+        "Track progress carefully in future assessments to check whether support is having a positive impact."
     )
 
 
