@@ -1302,7 +1302,7 @@ class SimpleSASLineChart(Flowable):
     """
     Draws a simple SAS progress line chart.
     """
-    def __init__(self, history, width=17 * cm, height=5.2 * cm):
+    def __init__(self, history, width=17 * cm, height=5.5 * cm):
         Flowable.__init__(self)
         self.history = history
         self.width = width
@@ -1318,20 +1318,23 @@ class SimpleSASLineChart(Flowable):
         x0 = 45
         y0 = 35
         chart_w = self.width - 70
-        chart_h = self.height - 65
+        # give enough vertical space for the title
+        chart_h = self.height - 75
 
-        y_min = 80
-        y_max = 110
+        y_min = 60
+        y_max = 140
 
-        self.canv.setFillColor(EI_DARK)
+        # Chart title
+        self.canv.setFillColor(EI_BLUE)
         self.canv.setFont("Helvetica-Bold", 9)
-        self.canv.drawString(0, self.height - 12, "SAS progress over NGRT assessments")
+        self.canv.drawString(0, self.height - 12, "SAS Progress over NGRT Assessments")
 
+        # Chart border
         self.canv.setStrokeColor(EI_BORDER)
         self.canv.rect(x0, y0, chart_w, chart_h, stroke=1, fill=0)
 
         # Y-axis labels and grid
-        for y_value in [80, 85, 90, 95, 100, 105, 110]:
+        for y_value in [60, 70, 80, 90, 100, 110, 120, 130, 140]:
             y = y0 + ((y_value - y_min) / (y_max - y_min)) * chart_h
 
             self.canv.setStrokeColor(colors.HexColor("#E5E7EB"))
@@ -1516,7 +1519,7 @@ def make_threshold_table(data):
 
 
 def make_history_table(data):
-    rows = [["Exam", "SAS", "Stanine", "Reading Age", "Progress"]]
+    rows = [["External Benchmark Test", "SAS", "Stanine", "Reading Age", "Progress Category"]]
 
     for item in data["history"]:
         rows.append([
@@ -1527,7 +1530,7 @@ def make_history_table(data):
             item["progress"]
         ])
 
-    table = Table(rows, colWidths=[3.2 * cm, 2.2 * cm, 2.2 * cm, 3.0 * cm, 6.4 * cm])
+    table = Table(rows, colWidths=[5.0 * cm, 2.2 * cm, 2.2 * cm, 3.0 * cm, 4.6 * cm])
 
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
@@ -1899,9 +1902,10 @@ def generate_ngrt_indv_extl_rpt(student_id):
     # Page 2
     # =====================================================
 
-    story.append(Paragraph("Progress and Recommended Support", styles["ReportTitle"]))
+    story.append(section_title("Progress across all External Benchmark Tests (NGRT)", styles))
     story.append(Paragraph(
-        "This page supports teacher planning, intervention tracking, and parent communication.",
+        "This section tracks the student’s performance across all available NGRT external benchmark tests "
+        "to support evidence-based intervention and progress monitoring.",
         styles["SubTitle"]
     ))
 
