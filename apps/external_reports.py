@@ -2230,9 +2230,9 @@ def generate_ngrt_indv_extl_rpt(student_id):
 
     support_table.setStyle(TableStyle([
         # Different background color per cell
-        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#FEF3C7")),  # Strengths
-        ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#FEE2E2")),  # Areas for Development
-        ("BACKGROUND", (2, 0), (2, 0), colors.HexColor("#DCFCE7")),  # Recommended Next Steps
+        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#CFECF3")),  # Strengths
+        ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#F6FFDC")),  # Areas for Development
+        ("BACKGROUND", (2, 0), (2, 0), colors.HexColor("#DAF9DE")),  # Recommended Next Steps
 
         # Borders and layout
         ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
