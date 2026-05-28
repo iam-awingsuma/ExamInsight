@@ -5,7 +5,7 @@ import json
 from openai import OpenAI
 from apps.home import blueprint
 
-from flask import current_app
+from flask import current_app, Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from jinja2 import TemplateNotFound
@@ -26,7 +26,7 @@ from apps.helpers import per_class_metrics, cohort_progress, class_progress
 
 # Reports-related imports
 from apps.helpers import get_filtered_ngrt_combined_data
-from apps.reports import build_ngrt_listing_pdf, generate_ngrt_indv_extl_rpt
+from apps.reports import build_ngrt_summary_pdf, build_ngrt_listing_pdf, generate_ngrt_indv_extl_rpt
 
 from urllib.parse import urlencode
 
@@ -42,10 +42,6 @@ from functools import wraps
 from apps.authentication.forms import CreateAccountForm
 from apps.authentication.models import Users
 from apps.authentication.routes import admin_required
-
-# reports-related imports
-from flask import Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort, send_file
-from apps.reports import build_ngrt_summary_pdf
 
 # Normalize year-group/class codes for consistent matching (e.g., '2-a' -> '2-A')
 def _normalize_class_code(value):
