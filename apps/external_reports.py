@@ -1,6 +1,7 @@
 # apps/reports.py
 
 import os
+import re
 from openai import OpenAI
 
 from io import BytesIO
@@ -1708,19 +1709,30 @@ def progress_interpretation(data):
     )
 
 # ==============================================
-# OpenAI interpretation function for strengths 
-# with fallback using strengths function
+# OpenAI interpretation function for strengths,
+# areas for development, and next steps
+# with fallback functions
 # ===============================================
-def generate_ai_strengths_interpretation(data):
+def generate_ai_profile_support(data):
     """
-    Uses OpenAI to generate student strengths based on NGRT data.
-    Falls back to the rule-based strengths list if the AI call fails.
+    Uses OpenAI to generate:
+    1. Strengths
+    2. Areas for Development
+    3. Recommended Next Steps
+
+    Returns a dictionary with three separate lists.
+    Falls back to rule-based functions if the AI call fails or parsing is incomplete.
     """
 
     try:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        api_key = os.getenv("OPENAI_API_KEY")
 
-        # Prepare history as readable text for the AI prompt.
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY is missing or not loaded.")
+
+        client = OpenAI(api_key=api_key)
+
+        # Prepare NGRT history for the AI prompt.
         history_text = ""
 
         for item in data.get("history", []):
@@ -1733,7 +1745,7 @@ def generate_ai_strengths_interpretation(data):
             )
 
         prompt = f"""
-        Write strengths for a student's NGRT external benchmark report.
+        Write reading profile support statements for a student's NGRT external benchmark report.
 
         Student name: {data.get("name")}
         Gender: {data.get("gender")}
@@ -1743,21 +1755,30 @@ def generate_ai_strengths_interpretation(data):
         Stanine band: {data.get("band")}
         Reading age: {data.get("reading_age")}
         Progress category: {data.get("progress")}
+        Reader profile: {data.get("reader_profile")}
 
         NGRT history:
         {history_text}
 
         Requirements:
-        - Write exactly 3 concise strengths.
-        - Each strength should be one sentence.
+        Create three separate sections using these exact headings:
+        Strengths:
+        Areas for Development:
+        Recommended Next Steps:
+
+        Under each heading:
+        - Write exactly 3 concise statements.
+        - Each statement should be one sentence.
+        - Start each statement with "-".
         - Use a professional school report tone.
-        - Be positive and evidence-based.
-        - Mention attainment, progress, or reading development where appropriate.
+        - Be positive, supportive, and evidence-based.
         - Avoid overly negative language.
-        - Do not number the strengths.
-        - Do not use bullet points.
-        - Return each strength on a new line.
-        - Start each line with "-"
+        - Do not number the statements.
+
+        Content guidance:
+        - Strengths should focus on attainment, progress, reading confidence, or reading development.
+        - Areas for Development should identify reading skills that need further practice.
+        - Recommended Next Steps should include practical support for fluency, vocabulary, and comprehension.
         """
 
         response = client.chat.completions.create(
@@ -1765,7 +1786,10 @@ def generate_ai_strengths_interpretation(data):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an educational data analyst writing strengths for student reading assessment reports."
+                    "content": (
+                        "You are an educational data analyst writing strengths, areas for development, "
+                        "and recommended next steps for student NGRT reading assessment reports."
+                    )
                 },
                 {
                     "role": "user",
@@ -1773,22 +1797,183 @@ def generate_ai_strengths_interpretation(data):
                 }
             ],
             temperature=0.3,
-            max_tokens=180
+            max_tokens=500
         )
 
-        # Convert AI response into a clean Python list.
         ai_text = response.choices[0].message.content.strip()
 
-        strengths_list = [
-            line.strip("-• ").strip()
-            for line in ai_text.splitlines()
-            if line.strip()
-        ]
+        return parse_ai_support_sections(ai_text, data)
 
-        return strengths_list[:3]
+    except Exception as e:
 
-    except Exception:
-        return strengths(data)
+        return {
+            "strengths": strengths(data),
+            "development_areas": development_points(data),
+            "next_steps": next_steps(data)
+        }
+
+
+def parse_ai_support_sections(ai_text, data):
+    """
+    Parses AI response into three separate lists:
+    strengths, development areas, and next steps.
+
+    This version accepts:
+    - bullets starting with -
+    - bullets starting with •
+    - bullets starting with *
+    - numbered items like 1.
+    - headings with markdown bold, e.g. **Strengths:**
+    """
+
+    sections = {
+        "strengths": [],
+        "development_areas": [],
+        "next_steps": []
+    }
+
+    current_section = None
+
+    for line in ai_text.splitlines():
+        clean_line = line.strip()
+
+        if not clean_line:
+            continue
+
+        # Remove markdown bold markers.
+        heading_line = clean_line.replace("*", "").strip().lower()
+
+        # Detect headings flexibly.
+        if heading_line.startswith("strengths"):
+            current_section = "strengths"
+            continue
+
+        if heading_line.startswith("areas for development"):
+            current_section = "development_areas"
+            continue
+
+        if heading_line.startswith("recommended next steps"):
+            current_section = "next_steps"
+            continue
+
+        if not current_section:
+            continue
+
+        # Remove bullet symbols or numbering.
+        statement = re.sub(r"^[-•*]\s*", "", clean_line)
+        statement = re.sub(r"^\d+[\).\s]+", "", statement)
+        statement = statement.strip()
+
+        # Avoid accidentally storing headings as statements.
+        if statement.lower() in [
+            "strengths:",
+            "areas for development:",
+            "recommended next steps:"
+        ]:
+            continue
+
+        if statement:
+            sections[current_section].append(statement)
+
+    # Fallback only for the section that failed.
+    if len(sections["strengths"]) < 3:
+        sections["strengths"] = strengths(data)
+
+    if len(sections["development_areas"]) < 3:
+        sections["development_areas"] = development_points(data)
+
+    if len(sections["next_steps"]) < 3:
+        sections["next_steps"] = next_steps(data)
+
+    # Keep only 3 statements per section.
+    sections["strengths"] = sections["strengths"][:3]
+    sections["development_areas"] = sections["development_areas"][:3]
+    sections["next_steps"] = sections["next_steps"][:3]
+
+    return sections
+
+# ==============================================
+# OpenAI interpretation function for strengths 
+# with fallback using strengths function
+# ===============================================
+# def generate_ai_strengths_interpretation(data):
+#     """
+#     Uses OpenAI to generate student strengths based on NGRT data.
+#     Falls back to the rule-based strengths list if the AI call fails.
+#     """
+
+#     try:
+#         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+#         # Prepare history as readable text for the AI prompt.
+#         history_text = ""
+
+#         for item in data.get("history", []):
+#             history_text += (
+#                 f"{item.get('exam_label')}: "
+#                 f"SAS {item.get('sas')}, "
+#                 f"Stanine {item.get('stanine')}, "
+#                 f"Reading Age {item.get('reading_age')}, "
+#                 f"Progress {item.get('progress')}\n"
+#             )
+
+#         prompt = f"""
+#         Write strengths for a student's NGRT external benchmark report.
+
+#         Student name: {data.get("name")}
+#         Gender: {data.get("gender")}
+#         Latest assessment: {data.get("latest_exam_label")}
+#         SAS: {data.get("sas")}
+#         Stanine: {data.get("stanine")}
+#         Stanine band: {data.get("band")}
+#         Reading age: {data.get("reading_age")}
+#         Progress category: {data.get("progress")}
+
+#         NGRT history:
+#         {history_text}
+
+#         Requirements:
+#         - Write exactly 3 concise strengths.
+#         - Each strength should be one sentence.
+#         - Use a professional school report tone.
+#         - Be positive and evidence-based.
+#         - Mention attainment, progress, or reading development where appropriate.
+#         - Avoid overly negative language.
+#         - Do not number the strengths.
+#         - Do not use bullet points.
+#         - Return each strength on a new line.
+#         - Start each line with "-"
+#         """
+
+#         response = client.chat.completions.create(
+#             model="gpt-4o-mini",
+#             messages=[
+#                 {
+#                     "role": "system",
+#                     "content": "You are an educational data analyst writing strengths for student reading assessment reports."
+#                 },
+#                 {
+#                     "role": "user",
+#                     "content": prompt
+#                 }
+#             ],
+#             temperature=0.3,
+#             max_tokens=180
+#         )
+
+#         # Convert AI response into a clean Python list.
+#         ai_text = response.choices[0].message.content.strip()
+
+#         strengths_list = [
+#             line.strip("-• ").strip()
+#             for line in ai_text.splitlines()
+#             if line.strip()
+#         ]
+
+#         return strengths_list[:3]
+
+#     except Exception:
+#         return strengths(data)
     
 # Interpretation of the student's strengths based on their latest NGRT data and historical progress, 
 # using rule-based logic to identify key positive aspects of their reading performance
@@ -1816,83 +2001,83 @@ def strengths(data):
 # OpenAI interpretation function for areas for development 
 # with fallback using development_points function
 # ===========================================================
-def generate_ai_development_areas_interpretation(data):
-    """
-    Uses OpenAI to generate areas for development based on NGRT data.
-    Falls back to the rule-based areas list if the AI call fails.
-    """
+# def generate_ai_development_areas_interpretation(data):
+#     """
+#     Uses OpenAI to generate areas for development based on NGRT data.
+#     Falls back to the rule-based areas list if the AI call fails.
+#     """
 
-    try:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+#     try:
+#         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # Prepare history as readable text for the AI prompt.
-        history_text = ""
+#         # Prepare history as readable text for the AI prompt.
+#         history_text = ""
 
-        for item in data.get("history", []):
-            history_text += (
-                f"{item.get('exam_label')}: "
-                f"SAS {item.get('sas')}, "
-                f"Stanine {item.get('stanine')}, "
-                f"Reading Age {item.get('reading_age')}, "
-                f"Progress {item.get('progress')}\n"
-            )
+#         for item in data.get("history", []):
+#             history_text += (
+#                 f"{item.get('exam_label')}: "
+#                 f"SAS {item.get('sas')}, "
+#                 f"Stanine {item.get('stanine')}, "
+#                 f"Reading Age {item.get('reading_age')}, "
+#                 f"Progress {item.get('progress')}\n"
+#             )
 
-        prompt = f"""
-        Write areas for development for a student's NGRT external benchmark report.
+#         prompt = f"""
+#         Write areas for development for a student's NGRT external benchmark report.
 
-        Student name: {data.get("name")}
-        Gender: {data.get("gender")}
-        Latest assessment: {data.get("latest_exam_label")}
-        SAS: {data.get("sas")}
-        Stanine: {data.get("stanine")}
-        Stanine band: {data.get("band")}
-        Reading age: {data.get("reading_age")}
-        Progress category: {data.get("progress")}
+#         Student name: {data.get("name")}
+#         Gender: {data.get("gender")}
+#         Latest assessment: {data.get("latest_exam_label")}
+#         SAS: {data.get("sas")}
+#         Stanine: {data.get("stanine")}
+#         Stanine band: {data.get("band")}
+#         Reading age: {data.get("reading_age")}
+#         Progress category: {data.get("progress")}
 
-        NGRT history:
-        {history_text}
+#         NGRT history:
+#         {history_text}
 
-        Requirements:
-        - Write exactly 3 concise areas for development.
-        - Each area for development should be one sentence.
-        - Use a professional school report tone.
-        - Be positive and evidence-based.
-        - Avoid overly negative language.
-        - Do not number the areas for development.
-        - Do not use bullet points.
-        - Return each area for development on a new line.
-        - Start each line with "-"
-        """
+#         Requirements:
+#         - Write exactly 3 concise areas for development.
+#         - Each area for development should be one sentence.
+#         - Use a professional school report tone.
+#         - Be positive and evidence-based.
+#         - Avoid overly negative language.
+#         - Do not number the areas for development.
+#         - Do not use bullet points.
+#         - Return each area for development on a new line.
+#         - Start each line with "-"
+#         """
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an educational data analyst writing areas for development for student reading assessment reports."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.3,
-            max_tokens=180
-        )
+#         response = client.chat.completions.create(
+#             model="gpt-4o-mini",
+#             messages=[
+#                 {
+#                     "role": "system",
+#                     "content": "You are an educational data analyst writing areas for development for student reading assessment reports."
+#                 },
+#                 {
+#                     "role": "user",
+#                     "content": prompt
+#                 }
+#             ],
+#             temperature=0.3,
+#             max_tokens=180
+#         )
 
-        # Convert AI response into a clean Python list.
-        ai_text = response.choices[0].message.content.strip()
+#         # Convert AI response into a clean Python list.
+#         ai_text = response.choices[0].message.content.strip()
 
-        development_list = [
-            line.strip("-• ").strip()
-            for line in ai_text.splitlines()
-            if line.strip()
-        ]
+#         development_list = [
+#             line.strip("-• ").strip()
+#             for line in ai_text.splitlines()
+#             if line.strip()
+#         ]
 
-        return development_list[:3]
+#         return development_list[:3]
 
-    except Exception:
-        return development_points(data)
+#     except Exception:
+#         return development_points(data)
     
 # Interpretation of the student's development points based on their latest NGRT data and historical progress, 
 # using rule-based logic to identify key areas where the student may need additional support in their reading
@@ -1908,83 +2093,83 @@ def development_points(data):
 # OpenAI interpretation function for areas for development 
 # with fallback using development_points function
 # ===========================================================
-def generate_ai_next_steps_interpretation(data):
-    """
-    Uses OpenAI to generate next steps based on NGRT data.
-    Falls back to the rule-based next steps list if the AI call fails.
-    """
+# def generate_ai_next_steps_interpretation(data):
+#     """
+#     Uses OpenAI to generate next steps based on NGRT data.
+#     Falls back to the rule-based next steps list if the AI call fails.
+#     """
 
-    try:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+#     try:
+#         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        # Prepare history as readable text for the AI prompt.
-        history_text = ""
+#         # Prepare history as readable text for the AI prompt.
+#         history_text = ""
 
-        for item in data.get("history", []):
-            history_text += (
-                f"{item.get('exam_label')}: "
-                f"SAS {item.get('sas')}, "
-                f"Stanine {item.get('stanine')}, "
-                f"Reading Age {item.get('reading_age')}, "
-                f"Progress {item.get('progress')}\n"
-            )
+#         for item in data.get("history", []):
+#             history_text += (
+#                 f"{item.get('exam_label')}: "
+#                 f"SAS {item.get('sas')}, "
+#                 f"Stanine {item.get('stanine')}, "
+#                 f"Reading Age {item.get('reading_age')}, "
+#                 f"Progress {item.get('progress')}\n"
+#             )
 
-        prompt = f"""
-        Write recommended support or next steps for a student's NGRT external benchmark report.
+#         prompt = f"""
+#         Write recommended support or next steps for a student's NGRT external benchmark report.
 
-        Student name: {data.get("name")}
-        Gender: {data.get("gender")}
-        Latest assessment: {data.get("latest_exam_label")}
-        SAS: {data.get("sas")}
-        Stanine: {data.get("stanine")}
-        Stanine band: {data.get("band")}
-        Reading age: {data.get("reading_age")}
-        Progress category: {data.get("progress")}
+#         Student name: {data.get("name")}
+#         Gender: {data.get("gender")}
+#         Latest assessment: {data.get("latest_exam_label")}
+#         SAS: {data.get("sas")}
+#         Stanine: {data.get("stanine")}
+#         Stanine band: {data.get("band")}
+#         Reading age: {data.get("reading_age")}
+#         Progress category: {data.get("progress")}
 
-        NGRT history:
-        {history_text}
+#         NGRT history:
+#         {history_text}
 
-        Requirements:
-        - Write exactly 3 concise next steps.
-        - Each next step should be one sentence.
-        - Use a professional school report tone.
-        - Be positive and evidence-based.
-        - Avoid overly negative language.
-        - Do not number the next steps.
-        - Do not use bullet points.
-        - Return each next step on a new line.
-        - Start each line with "-"
-        """
+#         Requirements:
+#         - Write exactly 3 concise next steps.
+#         - Each next step should be one sentence.
+#         - Use a professional school report tone.
+#         - Be positive and evidence-based.
+#         - Avoid overly negative language.
+#         - Do not number the next steps.
+#         - Do not use bullet points.
+#         - Return each next step on a new line.
+#         - Start each line with "-"
+#         """
 
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an educational data analyst writing recommended support or next steps for student reading assessment reports."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.3,
-            max_tokens=180
-        )
+#         response = client.chat.completions.create(
+#             model="gpt-4o-mini",
+#             messages=[
+#                 {
+#                     "role": "system",
+#                     "content": "You are an educational data analyst writing recommended support or next steps for student reading assessment reports."
+#                 },
+#                 {
+#                     "role": "user",
+#                     "content": prompt
+#                 }
+#             ],
+#             temperature=0.3,
+#             max_tokens=180
+#         )
 
-        # Convert AI response into a clean Python list.
-        ai_text = response.choices[0].message.content.strip()
+#         # Convert AI response into a clean Python list.
+#         ai_text = response.choices[0].message.content.strip()
 
-        next_steps = [
-            line.strip("-• ").strip()
-            for line in ai_text.splitlines()
-            if line.strip()
-        ]
+#         next_steps = [
+#             line.strip("-• ").strip()
+#             for line in ai_text.splitlines()
+#             if line.strip()
+#         ]
 
-        return next_steps[:3]
+#         return next_steps[:3]
 
-    except Exception:
-        return next_steps(data)
+#     except Exception:
+#         return next_steps(data)
     
 # Interpretation of practical next steps for the student based on their latest NGRT data and historical progress, 
 # using rule-based logic to suggest actionable strategies for supporting the student's reading development at home and in
@@ -2218,15 +2403,27 @@ def generate_ngrt_indv_extl_rpt(student_id):
     ))
     story.append(Spacer(1, 10))
 
-    # Three support columns
+    ai_support = generate_ai_profile_support(data)
+
+    # Three support columns with AI-generated content and fallback to rule-based content if AI fails
     support_table = Table(
         [[
-            paragraph_list("Strengths", generate_ai_strengths_interpretation(data), styles),
-            paragraph_list("Areas for Development", generate_ai_development_areas_interpretation(data), styles),
-            paragraph_list("Recommended Next Steps", generate_ai_next_steps_interpretation(data), styles),
+            paragraph_list("Strengths", ai_support["strengths"], styles),
+            paragraph_list("Areas for Development", ai_support["development_areas"], styles),
+            paragraph_list("Recommended Next Steps", ai_support["next_steps"], styles),
         ]],
         colWidths=[5.5 * cm, 5.5 * cm, 5.5 * cm]
     )
+
+    # Three support columns
+    # support_table = Table(
+    #     [[
+    #         paragraph_list("Strengths", generate_ai_strengths_interpretation(data), styles),
+    #         paragraph_list("Areas for Development", generate_ai_development_areas_interpretation(data), styles),
+    #         paragraph_list("Recommended Next Steps", generate_ai_next_steps_interpretation(data), styles),
+    #     ]],
+    #     colWidths=[5.5 * cm, 5.5 * cm, 5.5 * cm]
+    # )
 
     support_table.setStyle(TableStyle([
         # Different background color per cell
