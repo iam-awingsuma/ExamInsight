@@ -234,8 +234,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 <a href="/reports/external/ngrt-individual/${student.student_id}">
                     <img
                         class="me-1"
-                        width="35"
-                        height="35"
+                        width="45"
+                        height="45"
                         src="https://img.icons8.com/?size=100&id=WTtEHNdDRYwj&format=png&color=000000"
                         alt="Download PDF"
                         title="Download PDF"
