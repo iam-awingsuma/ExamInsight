@@ -1292,7 +1292,7 @@ class StanineScale(Flowable):
 
             self.canv.setFillColor(EI_MUTED)
             self.canv.setFont("Helvetica", 7)
-            self.canv.drawCentredString(marker_x, 68, "Student stanine")
+            self.canv.drawCentredString(marker_x, 68, "Student Stanine")
 
         self.canv.setFillColor(EI_MUTED)
         self.canv.setFont("Helvetica", 7)
@@ -1527,15 +1527,17 @@ def make_history_table(data):
     rows = [["External Benchmark Test", "SAS", "Stanine", "Reading Age", "Progress Category"]]
 
     for item in data["history"]:
+        progress_value = str(item.get("progress", "-")).strip()
+
         rows.append([
             item["exam_label"],
             f"{item['sas']:.0f}",
             f"{item['stanine']:.0f}",
             item["reading_age"],
-            item["progress"]
+            "No Progress for Baseline Test" if progress_value == "-" else progress_value
         ])
 
-    table = Table(rows, colWidths=[5.0 * cm, 2.2 * cm, 2.2 * cm, 3.0 * cm, 4.6 * cm])
+    table = Table(rows, colWidths=[4.8 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 4.8 * cm])
 
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
@@ -2143,6 +2145,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
         "The information presented is intended to support parent communication, teacher planning, intervention tracking, and next-step reading support.",
         styles["SmallText"]
     ))
+    story.append(Spacer(1, 10))
 
     story.append(make_student_info_table(data))
     story.append(Spacer(1, 10))
@@ -2155,7 +2158,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
     story.append(Spacer(1, 10))
 
     story.append(section_title("Attainment Band", styles))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 10))
     story.append(StanineScale(data["stanine"]))
     story.append(Spacer(1, 10))
 
@@ -2163,7 +2166,6 @@ def generate_ngrt_indv_extl_rpt(student_id):
     story.append(Spacer(1, 10))
 
     story.append(section_title("Reader Profile", styles))
-    
     # generate AI interpretation with fallback to rule-based text if AI fails
     reader_profile_text = generate_ai_reader_profile_interpretation(data)
     story.append(Paragraph(reader_profile_text, styles["SmallText"]))
@@ -2180,7 +2182,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
         "to support evidence-based intervention and progress monitoring.",
         styles["SmallText"]
     ))
-
+    story.append(Spacer(1, 10))
     story.append(make_history_table(data))
     story.append(Spacer(1, 10))
 
@@ -2214,6 +2216,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
         "Together, these points give a focused picture of how the student can be supported in the next stage of reading development.",
         styles["SmallText"]
     ))
+    story.append(Spacer(1, 10))
 
     # Three support columns
     support_table = Table(
@@ -2226,10 +2229,17 @@ def generate_ngrt_indv_extl_rpt(student_id):
     )
 
     support_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F8FAFC")),
+        # Different background color per cell
+        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#FEF3C7")),  # Strengths
+        ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#FEE2E2")),  # Areas for Development
+        ("BACKGROUND", (2, 0), (2, 0), colors.HexColor("#DCFCE7")),  # Recommended Next Steps
+
+        # Borders and layout
         ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
+
+        # Padding
         ("LEFTPADDING", (0, 0), (-1, -1), 8),
         ("RIGHTPADDING", (0, 0), (-1, -1), 8),
         ("TOPPADDING", (0, 0), (-1, -1), 8),
