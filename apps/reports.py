@@ -1391,7 +1391,7 @@ class SimpleComparisonBarChart(Flowable):
     """
     Draws Student vs Class Avg vs Cohort Avg chart.
     """
-    def __init__(self, student_sas, class_avg, cohort_avg, width=17 * cm, height=5.2 * cm):
+    def __init__(self, student_sas, class_avg, cohort_avg, width=17 * cm, height=6.5 * cm):
         Flowable.__init__(self)
         self.labels = ["Student", "Class Avg", "Cohort Avg"]
         self.values = [student_sas, class_avg, cohort_avg]
@@ -1402,19 +1402,19 @@ class SimpleComparisonBarChart(Flowable):
         x0 = 45
         y0 = 35
         chart_w = self.width - 70
-        chart_h = self.height - 65
+        chart_h = self.height - 75
 
         y_min = 80
-        y_max = 110
+        y_max = 140
 
-        self.canv.setFillColor(EI_DARK)
+        self.canv.setFillColor(EI_BLUE)
         self.canv.setFont("Helvetica-Bold", 9)
         self.canv.drawString(0, self.height - 12, "Student vs class and cohort comparison")
 
         self.canv.setStrokeColor(EI_BORDER)
         self.canv.rect(x0, y0, chart_w, chart_h, stroke=1, fill=0)
 
-        for y_value in [80, 85, 90, 95, 100, 105, 110]:
+        for y_value in [80, 90, 100, 110, 120, 130, 140]:
             y = y0 + ((y_value - y_min) / (y_max - y_min)) * chart_h
             self.canv.setStrokeColor(colors.HexColor("#E5E7EB"))
             self.canv.line(x0, y, x0 + chart_w, y)
@@ -1449,7 +1449,7 @@ class SimpleComparisonBarChart(Flowable):
 def section_title(text, styles):
     return Paragraph(text, styles["SectionTitle"])
 
-
+# Student information table displaing student details and latest NGRT exam info
 def make_student_info_table(data):
     rows = [
         ["Student Name", data["name"], "Student ID", data["student_id"]],
@@ -1476,7 +1476,7 @@ def make_student_info_table(data):
 
     return table
 
-
+# KPI table displaying SAS, Stanine, Reading Age, and Progress Category
 def make_kpi_table(data):
     kpis = [
         KPIBox("Standard Age Score", f"{data['sas']:.0f}", "SAS around 100 is average"),
@@ -1496,7 +1496,8 @@ def make_kpi_table(data):
 
     return table
 
-
+# Reading literacy thresholds table displaying SAS thresholds, 
+# their meaning, and whether the student achieved them or not
 def make_threshold_table(data):
     rows = [["Reading Literacy Thresholds", "Meaning", "Status"]] + data["thresholds"]
 
@@ -1517,7 +1518,8 @@ def make_threshold_table(data):
 
     return table
 
-
+# Table to display the student's NGRT history with exam label, SAS, Stanine,
+# Reading Age, and Progress Category for each assessment taken
 def make_history_table(data):
     rows = [["External Benchmark Test", "SAS", "Stanine", "Reading Age", "Progress Category"]]
 
@@ -1547,7 +1549,7 @@ def make_history_table(data):
 
     return table
 
-
+# Helper to create a titled bullet point list for sections like "Strengths" and "Next Steps"
 def paragraph_list(title, items, styles):
     """
     Creates a titled bullet list.
@@ -1564,6 +1566,7 @@ def paragraph_list(title, items, styles):
 # Interpretation helpers
 # =========================================================
 
+# Rule-based interpretation of SAS score with friendly language and practical next steps
 def get_sas_description(sas):
     """
     Returns a friendly SAS interpretation based on the student's score.
@@ -1649,6 +1652,7 @@ def generate_ai_sas_interpretation(data):
 
     return response.choices[0].message.content.strip()
 
+# Main interpretation function for the student's score, using OpenAI with a fallback to rule-based interpretation
 def score_interpretation(data):
     try:
         sas_interpretation = generate_ai_sas_interpretation(data)
@@ -1664,7 +1668,7 @@ def score_interpretation(data):
             f"These results should be considered alongside classroom reading evidence, teacher observations, and ongoing guided reading performance."
         )
 
-
+# Interpretation of the student's progress over time based on historical NGRT data, using OpenAI with a fallback to rule-based interpretation
 def progress_interpretation(data):
     if len(data["history"]) < 2:
         return "Interpretation: There is currently limited historical NGRT data available for this student."
@@ -1674,7 +1678,7 @@ def progress_interpretation(data):
 
     if latest > first:
         return (
-            f"Interpretation: {data['name']} has improved from {data['history'][0]['exam_label']} "
+            f"<b>Interpretation:</b> {data['name']} has improved from {data['history'][0]['exam_label']} "
             f"to {data['history'][-1]['exam_label']} and is moving closer to the age-related average benchmark. "
             "This positive movement suggests that the student is developing greater confidence and consistency in reading. "
             "Continued guided reading, vocabulary practice, and regular comprehension discussions will help sustain this progress. "
@@ -1683,21 +1687,22 @@ def progress_interpretation(data):
 
     if latest == first:
         return (
-            f"Interpretation: {data['name']} has maintained a stable SAS across the available NGRT assessments. "
+            f"<b>Interpretation:</b> {data['name']} has maintained a stable SAS across the available NGRT assessments. "
             "This suggests that the student's reading performance has remained consistent over time. "
             "The student may benefit from targeted support to help move beyond the current level and make further gains. "
             "Regular reading practice, vocabulary development, and focused comprehension tasks can help strengthen future progress."
         )
 
     return (
-        f"Interpretation: {data['name']} has a lower SAS in the latest assessment compared with the first available result. "
+        f"<b>Interpretation:</b> {data['name']} has a lower SAS in the latest assessment compared with the first available result. "
         "This should be reviewed alongside classroom reading evidence, teacher observations, and guided reading performance. "
         "The result may indicate a need for closer monitoring and more targeted reading support. "
         "Short, regular reading activities focusing on fluency, vocabulary, and comprehension may help rebuild confidence. "
         "Track progress carefully in future assessments to check whether support is having a positive impact."
     )
 
-
+# Interpretation of the student's strengths based on their latest NGRT data and historical progress, 
+# using rule-based logic to identify key positive aspects of their reading performance
 def strengths(data):
     items = []
 
@@ -1718,7 +1723,8 @@ def strengths(data):
 
     return items
 
-
+# Interpretation of the student's development points based on their latest NGRT data and historical progress, 
+# using rule-based logic to identify key areas where the student may need additional support in their reading
 def development_points(data):
     return [
         "Build reading fluency through daily reading practice.",
@@ -1726,7 +1732,8 @@ def development_points(data):
         "Answer why, how, and evidence-based comprehension questions."
     ]
 
-
+# Interpretation of practical next steps for the student based on their latest NGRT data and historical progress, 
+# using rule-based logic to suggest actionable strategies for supporting the student's reading development at home and in
 def next_steps(data):
     return [
         "Read for 15 minutes daily at home.",
@@ -1789,6 +1796,9 @@ def generate_ai_reader_profile_interpretation(data):
 # Main PDF builder
 # =========================================================
 
+# This function generates the individual NGRT PDF report by building the necessary data, 
+# setting up the PDF document, defining styles, and assembling the content into a structured report format. 
+# It includes error handling to return None if data is missing or if any issues arise during PDF generation.
 def generate_ngrt_indv_extl_rpt(student_id):
     """
     Generates the individual NGRT PDF report.
@@ -1922,10 +1932,10 @@ def generate_ngrt_indv_extl_rpt(student_id):
     story.append(Spacer(1, 12))
 
     story.append(SimpleSASLineChart(data["history"]))
-    story.append(Spacer(1, 10))
+    # story.append(Spacer(1, 6))
 
     story.append(Paragraph(progress_interpretation(data), styles["SmallText"]))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 12))
 
     story.append(SimpleComparisonBarChart(
         student_sas=data["sas"],
@@ -1933,7 +1943,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
         cohort_avg=data["averages"]["cohort_avg_sas"]
     ))
 
-    story.append(Spacer(1, 8))
+    # story.append(Spacer(1, 6))
     story.append(Paragraph(
         "The comparison chart shows the student's latest SAS against the class and cohort averages.",
         styles["SmallText"]
