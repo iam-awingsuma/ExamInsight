@@ -1302,7 +1302,7 @@ class SimpleSASLineChart(Flowable):
     """
     Draws a simple SAS progress line chart.
     """
-    def __init__(self, history, width=17 * cm, height=5.5 * cm):
+    def __init__(self, history, width=17 * cm, height=6.5 * cm):
         Flowable.__init__(self)
         self.history = history
         self.width = width
@@ -1319,7 +1319,7 @@ class SimpleSASLineChart(Flowable):
         y0 = 35
         chart_w = self.width - 70
         # give enough vertical space for the title
-        chart_h = self.height - 75
+        chart_h = self.height - 85
 
         y_min = 60
         y_max = 140
