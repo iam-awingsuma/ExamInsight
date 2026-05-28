@@ -1330,7 +1330,7 @@ class SimpleSASLineChart(Flowable):
         # Chart title
         self.canv.setFillColor(EI_BLUE)
         self.canv.setFont("Helvetica-Bold", 9)
-        self.canv.drawString(0, self.height - 12, "SAS Progress over NGRT Assessments")
+        self.canv.drawString(0, self.height - 12, "SAS Progress across NGRT Assessments")
 
         # Chart border
         self.canv.setStrokeColor(EI_BORDER)
@@ -1387,7 +1387,7 @@ class SimpleSASLineChart(Flowable):
 
         self.canv.setFillColor(EI_MUTED)
         self.canv.setFont("Helvetica", 7)
-        self.canv.drawString(x0 + chart_w - 65, y100 + 4, "SAS 100 guide")
+        self.canv.drawString(x0 + chart_w - 65, y100 + 4, "Avg SAS: 100")
 
 # custom Flowable to draw a simple bar chart comparing the student's latest SAS with the class average and cohort average for that NGRT exam
 class SimpleComparisonBarChart(Flowable):
@@ -1412,7 +1412,7 @@ class SimpleComparisonBarChart(Flowable):
 
         self.canv.setFillColor(EI_BLUE)
         self.canv.setFont("Helvetica-Bold", 9)
-        self.canv.drawString(0, self.height - 12, "SAS: Student vs Class and Cohort Comparison")
+        self.canv.drawString(0, self.height - 12, "Reading Literacy: Student vs Class and Cohort Average SAS Comparison")
 
         self.canv.setStrokeColor(EI_BORDER)
         self.canv.rect(x0, y0, chart_w, chart_h, stroke=1, fill=0)
@@ -1705,9 +1705,10 @@ def progress_interpretation(data):
         "Track progress carefully in future assessments to check whether support is having a positive impact."
     )
 
-# ===========================================================
-# OpenAI interpretation function for strengths with fallback
-# ===========================================================
+# ==============================================
+# OpenAI interpretation function for strengths 
+# with fallback using strengths function
+# ===============================================
 def generate_ai_strengths_interpretation(data):
     """
     Uses OpenAI to generate student strengths based on NGRT data.
@@ -1809,6 +1810,88 @@ def strengths(data):
 
     return items
 
+# ===========================================================
+# OpenAI interpretation function for areas for development 
+# with fallback using development_points function
+# ===========================================================
+def generate_ai_development_areas_interpretation(data):
+    """
+    Uses OpenAI to generate areas for development based on NGRT data.
+    Falls back to the rule-based areas list if the AI call fails.
+    """
+
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        # Prepare history as readable text for the AI prompt.
+        history_text = ""
+
+        for item in data.get("history", []):
+            history_text += (
+                f"{item.get('exam_label')}: "
+                f"SAS {item.get('sas')}, "
+                f"Stanine {item.get('stanine')}, "
+                f"Reading Age {item.get('reading_age')}, "
+                f"Progress {item.get('progress')}\n"
+            )
+
+        prompt = f"""
+        Write areas for development for a student's NGRT external benchmark report.
+
+        Student name: {data.get("name")}
+        Gender: {data.get("gender")}
+        Latest assessment: {data.get("latest_exam_label")}
+        SAS: {data.get("sas")}
+        Stanine: {data.get("stanine")}
+        Stanine band: {data.get("band")}
+        Reading age: {data.get("reading_age")}
+        Progress category: {data.get("progress")}
+
+        NGRT history:
+        {history_text}
+
+        Requirements:
+        - Write exactly 3 concise areas for development.
+        - Each area for development should be one sentence.
+        - Use a professional school report tone.
+        - Be positive and evidence-based.
+        - Avoid overly negative language.
+        - Do not number the areas for development.
+        - Do not use bullet points.
+        - Return each area for development on a new line.
+        - Start each line with "-"
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an educational data analyst writing areas for development for student reading assessment reports."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=180
+        )
+
+        # Convert AI response into a clean Python list.
+        ai_text = response.choices[0].message.content.strip()
+
+        development_list = [
+            line.strip("-• ").strip()
+            for line in ai_text.splitlines()
+            if line.strip()
+        ]
+
+        return development_list[:3]
+
+    except Exception:
+        return development_points(data)
+    
 # Interpretation of the student's development points based on their latest NGRT data and historical progress, 
 # using rule-based logic to identify key areas where the student may need additional support in their reading
 def development_points(data):
@@ -1818,6 +1901,89 @@ def development_points(data):
         "Answer why, how, and evidence-based comprehension questions."
     ]
 
+
+# ===========================================================
+# OpenAI interpretation function for areas for development 
+# with fallback using development_points function
+# ===========================================================
+def generate_ai_next_steps_interpretation(data):
+    """
+    Uses OpenAI to generate next steps based on NGRT data.
+    Falls back to the rule-based next steps list if the AI call fails.
+    """
+
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        # Prepare history as readable text for the AI prompt.
+        history_text = ""
+
+        for item in data.get("history", []):
+            history_text += (
+                f"{item.get('exam_label')}: "
+                f"SAS {item.get('sas')}, "
+                f"Stanine {item.get('stanine')}, "
+                f"Reading Age {item.get('reading_age')}, "
+                f"Progress {item.get('progress')}\n"
+            )
+
+        prompt = f"""
+        Write recommended support or next steps for a student's NGRT external benchmark report.
+
+        Student name: {data.get("name")}
+        Gender: {data.get("gender")}
+        Latest assessment: {data.get("latest_exam_label")}
+        SAS: {data.get("sas")}
+        Stanine: {data.get("stanine")}
+        Stanine band: {data.get("band")}
+        Reading age: {data.get("reading_age")}
+        Progress category: {data.get("progress")}
+
+        NGRT history:
+        {history_text}
+
+        Requirements:
+        - Write exactly 3 concise next steps.
+        - Each next step should be one sentence.
+        - Use a professional school report tone.
+        - Be positive and evidence-based.
+        - Avoid overly negative language.
+        - Do not number the next steps.
+        - Do not use bullet points.
+        - Return each next step on a new line.
+        - Start each line with "-"
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an educational data analyst writing recommended support or next steps for student reading assessment reports."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=180
+        )
+
+        # Convert AI response into a clean Python list.
+        ai_text = response.choices[0].message.content.strip()
+
+        next_steps = [
+            line.strip("-• ").strip()
+            for line in ai_text.splitlines()
+            if line.strip()
+        ]
+
+        return next_steps[:3]
+
+    except Exception:
+        return next_steps(data)
+    
 # Interpretation of practical next steps for the student based on their latest NGRT data and historical progress, 
 # using rule-based logic to suggest actionable strategies for supporting the student's reading development at home and in
 def next_steps(data):
@@ -1975,7 +2141,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
         "This report provides an overview of the student's reading attainment and progress across the available NGRT assessments. "
         "It summarises key scores including SAS, stanine, reading age, progress category, reading thresholds, and reader profile. "
         "The information presented is intended to support parent communication, teacher planning, intervention tracking, and next-step reading support.",
-        styles["SubTitle"]
+        styles["SmallText"]
     ))
 
     story.append(make_student_info_table(data))
@@ -1997,7 +2163,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
     story.append(Spacer(1, 10))
 
     story.append(section_title("Reader Profile", styles))
-    # story.append(Paragraph(data["reader_profile"], styles["SmallText"]))
+    
     # generate AI interpretation with fallback to rule-based text if AI fails
     reader_profile_text = generate_ai_reader_profile_interpretation(data)
     story.append(Paragraph(reader_profile_text, styles["SmallText"]))
@@ -2012,7 +2178,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
     story.append(Paragraph(
         "This section tracks the student’s performance across all available NGRT external benchmark tests "
         "to support evidence-based intervention and progress monitoring.",
-        styles["SubTitle"]
+        styles["SmallText"]
     ))
 
     story.append(make_history_table(data))
@@ -2036,14 +2202,25 @@ def generate_ngrt_indv_extl_rpt(student_id):
         styles["SmallText"]
     ))
 
-    story.append(Spacer(1, 4))
+    story.append(Spacer(1, 10))
+    story.append(PageBreak())
+
+    story.append(section_title("Reading Profile and Recommended Support", styles))
+    story.append(Paragraph(
+        "The student’s reading profile reflects current strengths, areas for development, and recommended support based on NGRT assessment evidence. "
+        "Strengths highlight what the student is already demonstrating in reading attainment and progress. "
+        "Areas for development identify the reading skills that may need further practice, such as fluency, vocabulary, comprehension, or confidence. "
+        "Recommended support provides practical actions for teachers and parents to help the student make continued progress. "
+        "Together, these points give a focused picture of how the student can be supported in the next stage of reading development.",
+        styles["SmallText"]
+    ))
 
     # Three support columns
     support_table = Table(
         [[
             paragraph_list("Strengths", generate_ai_strengths_interpretation(data), styles),
-            paragraph_list("Areas for Development", development_points(data), styles),
-            paragraph_list("Recommended Next Steps", next_steps(data), styles),
+            paragraph_list("Areas for Development", generate_ai_development_areas_interpretation(data), styles),
+            paragraph_list("Recommended Next Steps", generate_ai_next_steps_interpretation(data), styles),
         ]],
         colWidths=[5.5 * cm, 5.5 * cm, 5.5 * cm]
     )
