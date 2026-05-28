@@ -231,11 +231,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
           row.innerHTML = `
             <td class="text-center">
-                <a
-                    class="btn btn-sm btn-primary"
-                    href="/reports/external/ngrt-individual/${student.student_id}"
-                >
-                    PDF
+                <a href="/reports/external/ngrt-individual/${student.student_id}">
+                    <img
+                        class="me-1"
+                        width="35"
+                        height="35"
+                        src="https://img.icons8.com/?size=100&id=WTtEHNdDRYwj&format=png&color=000000"
+                        alt="Download PDF"
+                        title="Download PDF"
+                    />
                 </a>
             </td>
             <td>
