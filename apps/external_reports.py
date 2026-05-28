@@ -1618,6 +1618,7 @@ def generate_ai_sas_interpretation(data):
     Write a friendly and teacher-useful interpretation of the student's performance based on the provided data.
 
     Student name: {data.get("name")}
+    Gender: {data.get("gender")}
     Latest assessment: {data.get("latest_exam_label")}
     SAS: {data.get("sas")}
     Stanine: {data.get("stanine")}
@@ -1655,7 +1656,7 @@ def generate_ai_sas_interpretation(data):
 
     return response.choices[0].message.content.strip()
 
-# Main interpretation function for the student's score, using OpenAI with a fallback to rule-based interpretation
+# Main interpretation function for the student's score
 def score_interpretation(data):
     try:
         sas_interpretation = generate_ai_sas_interpretation(data)
@@ -1671,7 +1672,7 @@ def score_interpretation(data):
             f"These results should be considered alongside classroom reading evidence, teacher observations, and ongoing guided reading performance."
         )
 
-# Interpretation of the student's progress over time based on historical NGRT data, using OpenAI with a fallback to rule-based interpretation
+# Interpretation of the student's progress over time based on historical NGRT data
 def progress_interpretation(data):
     if len(data["history"]) < 2:
         return "Interpretation: There is currently limited historical NGRT data available for this student."
@@ -1753,6 +1754,7 @@ def generate_ai_strengths_interpretation(data):
         - Do not number the strengths.
         - Do not use bullet points.
         - Return each strength on a new line.
+        - Start each line with "-"
         """
 
         response = client.chat.completions.create(
@@ -1841,6 +1843,7 @@ def generate_ai_reader_profile_interpretation(data):
         Write a parent-friendly and teacher-useful interpretation of this NGRT reader profile.
 
         Student name: {data.get("name")}
+        Gender: {data.get("gender")}
         Latest assessment: {data.get("latest_exam_label")}
         Reader profile: {data.get("reader_profile")}
 
