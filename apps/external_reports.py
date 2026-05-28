@@ -1704,6 +1704,87 @@ def progress_interpretation(data):
         "Track progress carefully in future assessments to check whether support is having a positive impact."
     )
 
+# ===========================================================
+# OpenAI interpretation function for strengths with fallback
+# ===========================================================
+def generate_ai_strengths_interpretation(data):
+    """
+    Uses OpenAI to generate student strengths based on NGRT data.
+    Falls back to the rule-based strengths list if the AI call fails.
+    """
+
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        # Prepare history as readable text for the AI prompt.
+        history_text = ""
+
+        for item in data.get("history", []):
+            history_text += (
+                f"{item.get('exam_label')}: "
+                f"SAS {item.get('sas')}, "
+                f"Stanine {item.get('stanine')}, "
+                f"Reading Age {item.get('reading_age')}, "
+                f"Progress {item.get('progress')}\n"
+            )
+
+        prompt = f"""
+        Write strengths for a student's NGRT external benchmark report.
+
+        Student name: {data.get("name")}
+        Gender: {data.get("gender")}
+        Latest assessment: {data.get("latest_exam_label")}
+        SAS: {data.get("sas")}
+        Stanine: {data.get("stanine")}
+        Stanine band: {data.get("band")}
+        Reading age: {data.get("reading_age")}
+        Progress category: {data.get("progress")}
+
+        NGRT history:
+        {history_text}
+
+        Requirements:
+        - Write exactly 3 concise strengths.
+        - Each strength should be one sentence.
+        - Use a professional school report tone.
+        - Be positive and evidence-based.
+        - Mention attainment, progress, or reading development where appropriate.
+        - Avoid overly negative language.
+        - Do not number the strengths.
+        - Do not use bullet points.
+        - Return each strength on a new line.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an educational data analyst writing strengths for student reading assessment reports."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=180
+        )
+
+        # Convert AI response into a clean Python list.
+        ai_text = response.choices[0].message.content.strip()
+
+        strengths_list = [
+            line.strip("-• ").strip()
+            for line in ai_text.splitlines()
+            if line.strip()
+        ]
+
+        return strengths_list[:3]
+
+    except Exception:
+        return strengths(data)
+    
 # Interpretation of the student's strengths based on their latest NGRT data and historical progress, 
 # using rule-based logic to identify key positive aspects of their reading performance
 def strengths(data):
@@ -1932,21 +2013,19 @@ def generate_ngrt_indv_extl_rpt(student_id):
     ))
 
     story.append(make_history_table(data))
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 10))
 
     story.append(SimpleSASLineChart(data["history"]))
-    # story.append(Spacer(1, 6))
-
+    story.append(Spacer(1, 2))
     story.append(Paragraph(progress_interpretation(data), styles["SmallText"]))
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 10))
 
     story.append(SimpleComparisonBarChart(
         student_sas=data["sas"],
         class_avg=data["averages"]["class_avg_sas"],
         cohort_avg=data["averages"]["cohort_avg_sas"]
     ))
-
-    # story.append(Spacer(1, 6))
+    story.append(Spacer(1, 2))
     story.append(Paragraph(
         "The comparison chart shows the student's latest SAS against the class and cohort averages. "
         "This helps identify whether the student is performing broadly in line with peers or may need additional support. "
@@ -1954,12 +2033,12 @@ def generate_ngrt_indv_extl_rpt(student_id):
         styles["SmallText"]
     ))
 
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 4))
 
     # Three support columns
     support_table = Table(
         [[
-            paragraph_list("Strengths", strengths(data), styles),
+            paragraph_list("Strengths", generate_ai_strengths_interpretation(data), styles),
             paragraph_list("Areas for Development", development_points(data), styles),
             paragraph_list("Recommended Next Steps", next_steps(data), styles),
         ]],
