@@ -1039,7 +1039,7 @@ def generate_ai_attainment_interpretation(att):
     rule-based interpretation if the AI call fails.
     """
 
-    try:
+    try:    
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         prompt = f"""
@@ -1061,7 +1061,6 @@ def generate_ai_attainment_interpretation(att):
         - Start each bullet point with "-".
         - Keep each bullet point to one sentence only.
         - Keep each sentence around 10 to 16 words.
-        - Start each sentence with a different phrase (e.g., "The cohort...", "Most students...", "A significant portion...").
         - Start each sentence on a new line.
         - Use clear, accessible language suitable for teachers.
         - Use a professional, teacher-useful dashboard tone.

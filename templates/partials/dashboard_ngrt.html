@@ -53,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="row g-2 align-items-stretch mb-3">
+            <div class="row g-2 align-items-stretch mb-2">
                 <!-- Dashboard line chart - Year Group Average Attainment -->
                 <div class="col-lg-6 col-md-6 col-sm-12">
                     <div class="card h-100 chart-card">
@@ -99,79 +99,157 @@
         </div>
 
         <!-- Dashboard - AI Performance Insights -->
-        <div class="col-lg-4 col-md-4 col-sm-12">
-            <div class="card h-100 chart-card ps-3 pt-3">
+        <div class="col-lg-4 col-md-4 col-sm-12 d-flex">
+            <div class="card h-100 chart-card ps-3 pt-3 d-flex flex-column w-100">
+                <!-- Header - AI Insight Lens -->
                 <div class="col-md-10 d-flex align-items-start gap-2 mb-2">
-                    <img width="42" height="42" src="https://img.icons8.com/?size=100&id=zmhrqyvJ4sVt&format=png&color=000000" 
-                    alt="AI Performance Insights" title="AI Performance Insights"/>
+                    <img
+                        width="42"
+                        height="42"
+                        src="https://img.icons8.com/?size=100&id=zmhrqyvJ4sVt&format=png&color=000000"
+                        alt="AI Performance Insights"
+                        title="AI Performance Insights"
+                    />
                     <h5 class="text-body mb-0 mt-2">
-                        <span class="text-uppercase text-info font-weight-bolder">AI Insight Lens</span>
+                        <span class="text-uppercase text-info font-weight-bolder">
+                        AI Insight Lens
+                        </span>
                     </h5>
                 </div>
-                <div>
-                    <p class="text-muted text-xs mb-2">
+
+                <!-- Short info about dataset, avg stanine, avg SAS -->
+                <div class="mb-1">
+                    <p class="text-muted text-xs mb-1">
                         Latest dataset used:
-                        <span class="fw-bolder">[ <span class="text-info">{{ ngrt_ai_interpretation.latest_exam or "No data available." }}</span> ]</span>
+                        <span class="fw-bolder">
+                        [ <span class="text-info">{{ ngrt_ai_interpretation.latest_exam or "No data available." }}</span> ]
+                        </span>
                         <br/>
                         Average Stanine:
-                        <strong><span class="text-info">{{ "%.0f"|format(ngrt_ai_interpretation.latest_avg_stanine or 0) }}</span></strong>
+                        <strong>
+                        <span class="text-info">{{ "%.0f"|format(ngrt_ai_interpretation.latest_avg_stanine or 0) }}</span>
+                        </strong>
                         &nbsp;|&nbsp;
                         Average SAS:
-                        <strong><span class="text-info">{{ "%.0f"|format(ngrt_ai_interpretation.latest_avg_sas or 0) }}</span></strong>
+                        <strong>
+                        <span class="text-info">{{ "%.0f"|format(ngrt_ai_interpretation.latest_avg_sas or 0) }}</span>
+                        </strong>
                     </p>
                 </div>
-                <div class="card-body rounded-3 pt-1 pb-2 me-3 mb-1" style="background-color: #F7F6E5; height: auto !important;">
-                    <div class="d-flex align-items-end gap-2 mt-1 mb-2">
-                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000" 
-                        alt="AI Recommendations" title="AI Recommendations"/>
-                        <h6 class="text-body mb-0 mt-1">
-                            <span class="text-primary font-weight-bolder">Attainment Distribution</span>
-                        </h6>
+
+                <!-- AI insight stack -->
+                <div class="d-flex flex-column flex-grow-1 pe-3 pb-3 gap-2" style="min-height: 0;">
+
+                    <!-- Attainment Distribution AI interpretation -->
+                    <div
+                        class="card-body rounded-3 p-2 d-flex flex-column flex-fill"
+                        style="background-color: #F7F6E5; overflow: hidden;"
+                    >
+                        <div class="d-flex align-items-end gap-2 mb-2">
+                            <img
+                                width="32"
+                                height="32"
+                                src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000"
+                                alt="AI Recommendations"
+                                title="AI Recommendations"
+                            />
+                            <h6 class="text-body mb-0">
+                                <span class="text-primary font-weight-bolder">
+                                Attainment Distribution
+                                </span>
+                            </h6>
+                        </div>
+
+                        <div class="flex-grow-1 overflow-auto" style="min-height: 0;">
+                            <ul class="text-xs text-muted mb-0 ps-3" style="line-height: 1.25;">
+                                {% for statement in ngrt_ai_interpretation.attainment_statement.splitlines() %}
+                                    {% if statement.strip() %}
+                                        <li>{{ statement.strip().lstrip('-').strip() }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
-                    <div class="mb-0">
-                        <ul class="text-xs text-muted lh-sm mb-0 ps-3">
-                            {% for statement in ngrt_ai_interpretation.attainment_statement.splitlines() %}
-                                {% if statement.strip() %}
-                                    <li>{{ statement.strip().lstrip('-').strip() }}</li>
-                                {% endif %}
-                            {% endfor %}
-                        </ul>
+
+                    <!-- Progress Distribution AI interpretation -->
+                    <div
+                        class="card-body rounded-3 p-2 d-flex flex-column flex-fill"
+                        style="background-color: #FFF8DE; overflow: hidden;"
+                    >
+                        <div class="d-flex align-items-end gap-2 mb-2">
+                            <img
+                                width="32"
+                                height="32"
+                                src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000"
+                                alt="AI Recommendations"
+                                title="AI Recommendations"
+                            />
+                            <h6 class="text-body mb-0">
+                                <span class="text-primary font-weight-bolder">
+                                Progress Distribution
+                                </span>
+                            </h6>
+                        </div>
+
+                        <div class="flex-grow-1 overflow-auto" style="min-height: 0;">
+                            <p class="text-xs text-muted mb-0" style="line-height: 1.25;">
+                                {{ ngrt_ai_interpretation.progress_statement }}
+                            </p>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body rounded-3 pt-1 pb-2 me-3 mb-1" style="background-color: #FFF8DE; height: auto !important;">
-                    <div class="d-flex align-items-end gap-2 mt-1 mb-2">
-                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000" 
-                        alt="AI Recommendations" title="AI Recommendations"/>
-                        <h6 class="text-body mb-0 mt-1">
-                            <span class="text-primary font-weight-bolder">Progress Distribution</span>
-                        </h6>
+
+                    <!-- Trends in Attainment AI interpretation -->
+                    <div
+                        class="card-body rounded-3 p-2 d-flex flex-column flex-fill"
+                        style="background-color: #F7F6E5; overflow: hidden;"
+                    >
+                        <div class="d-flex align-items-end gap-2 mb-2">
+                            <img
+                                width="32"
+                                height="32"
+                                src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000"
+                                alt="AI Recommendations"
+                                title="AI Recommendations"
+                            />
+                            <h6 class="text-body mb-0">
+                                <span class="text-primary font-weight-bolder">
+                                Trends in Attainment
+                                </span>
+                            </h6>
+                        </div>
+
+                        <div class="flex-grow-1 overflow-auto" style="min-height: 0;">
+                            <p class="text-xs text-muted mb-0" style="line-height: 1.25;">
+                                {{ ngrt_ai_interpretation.trend_statement }}
+                            </p>
+                        </div>
                     </div>
-                    <div class="mb-0">
-                        <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.progress_statement }}</p>
-                    </div>
-                </div>
-                <div class="card-body rounded-3 pt-1 pb-2 me-3 mb-1" style="background-color: #F7F6E5; height: auto !important;">
-                    <div class="d-flex align-items-end gap-2 mt-1 mb-2">
-                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
-                        alt="AI Recommendations" title="AI Recommendations"/>
-                        <h6 class="text-body mb-0 mt-1">
-                            <span class="text-primary font-weight-bolder">Trends in Attainment</span>
-                        </h6>
-                    </div>
-                    <div class="mb-0">
-                        <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.trend_statement }}</p>
-                    </div>
-                </div>
-                <div class="card-body rounded-3 pt-1 pb-2 me-3 mb-3" style="background-color: #FFF8DE; height: auto !important;">
-                    <div class="d-flex align-items-end gap-2 mt-1 mb-2">
-                        <img width="32" height="32" src="https://img.icons8.com/?size=100&id=5ZKXxNjdLtq4&format=png&color=000000" 
-                        alt="AI Recommendations" title="AI Recommendations"/>
-                        <h6 class="text-body mb-0 mt-1">
-                            <span class="text-primary font-weight-bolder">Reading Literacy Thresholds</span>
-                        </h6>
-                    </div>
-                    <div class="mb-0">
-                        <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.threshold_statement }}</p>
+
+                    <!-- Reading Literacy Thresholds AI interpretation -->
+                    <div
+                        class="card-body rounded-3 p-2 d-flex flex-column flex-fill"
+                        style="background-color: #FFF8DE; overflow: hidden;"
+                    >
+                        <div class="d-flex align-items-end gap-2 mb-2">
+                            <img
+                                width="32"
+                                height="32"
+                                src="https://img.icons8.com/?size=100&id=5ZKXxNjdLtq4&format=png&color=000000"
+                                alt="AI Recommendations"
+                                title="AI Recommendations"
+                            />
+                            <h6 class="text-body mb-0">
+                                <span class="text-primary font-weight-bolder">
+                                Reading Literacy Thresholds
+                                </span>
+                            </h6>
+                        </div>
+
+                        <div class="flex-grow-1 overflow-auto" style="min-height: 0;">
+                            <p class="text-xs text-muted mb-0" style="line-height: 1.25;">
+                                {{ ngrt_ai_interpretation.threshold_statement }}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
