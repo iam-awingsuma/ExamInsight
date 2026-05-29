@@ -30,6 +30,7 @@ async function renderNGRTClasswiseThresholdChart() {
     type: "bar",
     name: "SAS ≥90",
     marker: { color: "#89D4FF" },
+    hoverlabel: {font: { size: 11 }},
     hovertemplate:
       "<b>Year %{x}</b><br>" +
       "SAS ≥90: <b>%{y:.1f}%</b><br>" +
@@ -44,6 +45,7 @@ async function renderNGRTClasswiseThresholdChart() {
     type: "bar",
     name: "SAS ≥110",
     marker: { color: "#44ACFF" },
+    hoverlabel: {font: { size: 11 }},
     hovertemplate:
       "<b>Year %{x}</b><br>" +
       "SAS ≥110: <b>%{y:.1f}%</b><br>" +
@@ -58,6 +60,7 @@ async function renderNGRTClasswiseThresholdChart() {
     type: "bar",
     name: "SAS ≥120",
     marker: { color: "#5478FF" },
+    hoverlabel: {font: { size: 11 }},
     hovertemplate:
       "<b>Year %{x}</b><br>" +
       "SAS ≥120: <b>%{y:.1f}%</b><br>" +
@@ -79,9 +82,10 @@ async function renderNGRTClasswiseThresholdChart() {
     legend: {
       orientation: "h",
       xanchor: "left",
-      y: -0.2
+      y: -0.2,
+      font: { size: 11 }
     },
-    font: { size: 13 },
+    font: { size: 12 },
     hovermode: "x unified",
     margin: { l: 70, r: 30, t: 20, b: 70 },
     bargap: 0.15,
