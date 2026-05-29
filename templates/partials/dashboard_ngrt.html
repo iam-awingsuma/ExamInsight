@@ -8,48 +8,96 @@
     </div>
 
     <div class="row g-2 align-items-stretch mb-2">
-        <!-- Dashboard column/barchart - Attainment Distribution - Classwise -->
-        <div class="col-lg-4 col-md-4 col-sm-12">
-        <div class="card h-100 chart-card">
-            <div class="card-body d-flex flex-column">
-            <div class="row">
-                <div class="d-flex align-items-start gap-1">
-                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000" 
-                    alt="Cohort Attainment" title="Cohort Attainment"/>
-                <div class="d-flex-inline">
-                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Attainment</h5>
-                    <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-st-exam-label"></span> ]</span></div>
+        <div class="col-lg-8 col-md-8 col-sm-12">
+            <div class="row g-2 align-items-stretch mb-2">
+                <!-- Dashboard column/barchart - Attainment Distribution - Classwise -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card h-100 chart-card">
+                        <div class="card-body d-flex flex-column">
+                        <div class="row">
+                            <div class="d-flex align-items-start gap-1">
+                            <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000" 
+                                alt="Cohort Attainment" title="Cohort Attainment"/>
+                            <div class="d-flex-inline">
+                                <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Attainment</h5>
+                                <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-st-exam-label"></span> ]</span></div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="chart-body mt-1 mx-n3">
+                            <div id="chart-ngrt-classwise-stanine" class="w-100" style="height:360px;"></div>
+                        </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Dashboard column/bar chart - Progress Distribution - Classwise -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card h-100 chart-card">
+                        <div class="card-body d-flex flex-column">
+                        <div class="row">
+                            <div class="d-flex align-items-start gap-1">
+                            <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000" 
+                                alt="Progress Distribution" title="Progress Distribution"/>
+                            <div class="d-flex-inline">
+                                <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Progress</h5>
+                                <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-progress-exam-label"></span> ]</span></div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="chart-body mt-1 mx-n3">
+                            <div id="chart-ngrt-classwise-progress" class="w-100" style="height:360px;"></div>
+                        </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="chart-body mt-1 mx-n3">
-                <div id="chart-ngrt-classwise-stanine" class="w-100" style="height:360px;"></div>
+
+            <div class="row g-2 align-items-stretch mb-3">
+                <!-- Dashboard line chart - Year Group Average Attainment -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card h-100 chart-card">
+                        <div class="card-body d-flex flex-column">
+                        <div class="row">
+                            <div class="d-flex align-items-start gap-1">
+                            <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
+                                alt="Year Group Average Attainment" title="Year Group Average Attainment"/>
+                            <div class="d-flex-inline">
+                                <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Trends in Attainment</h5>
+                                <div class="text-muted text-xs">Average Stanine across all NGRT Assessments [ Classwise ]</div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="chart-body mt-1 mx-n3">
+                            <div id="chart-classwise-avg-ngrt-stanine" class="w-100" style="height:360px;"></div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard column/bar chart - Reading Literacy Threshold - Classwise -->
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="card h-100 chart-card">
+                        <div class="card-body d-flex flex-column">
+                        <div class="row">
+                            <div class="d-flex align-items-start gap-1">
+                            <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=5ZKXxNjdLtq4&format=png&color=000000" 
+                                alt="Reading Literacy Threshold" title="Reading Literacy Threshold"/>
+                            <div class="d-flex-inline">
+                                <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Reading Literacy Threshold</h5>
+                                <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-threshold-exam-label"></span> ]</span></div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="chart-body mt-1 mx-n3">
+                            <div id="chart-ngrt-classwise-thresholds" class="w-100" style="height:360px;"></div>
+                        </div>
+                        </div>
+                    </div>
+                </div>        
             </div>
-            </div>
-        </div>
         </div>
 
-        <!-- Dashboard column/bar chart - Progress Distribution - Classwise -->
-        <div class="col-lg-4 col-md-4 col-sm-12">
-        <div class="card h-100 chart-card">
-            <div class="card-body d-flex flex-column">
-            <div class="row">
-                <div class="d-flex align-items-start gap-1">
-                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000" 
-                    alt="Progress Distribution" title="Progress Distribution"/>
-                <div class="d-flex-inline">
-                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Progress</h5>
-                    <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-progress-exam-label"></span> ]</span></div>
-                </div>
-                </div>
-            </div>
-            <div class="chart-body mt-1 mx-n3">
-                <div id="chart-ngrt-classwise-progress" class="w-100" style="height:360px;"></div>
-            </div>
-            </div>
-        </div>
-        </div>
-        
         <!-- Dashboard - AI Performance Insights -->
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="card h-100 chart-card ps-3 pt-3">
@@ -64,15 +112,15 @@
                     <p class="text-muted text-xs mb-2">
                         Latest dataset used:
                         <span class="fw-bolder">[ <span class="text-info">{{ ngrt_ai_interpretation.latest_exam or "No data available." }}</span> ]</span>
-                        &nbsp;|&nbsp;
-                        Avg Stanine:
+                        <br/>
+                        Average Stanine:
                         <strong><span class="text-info">{{ "%.0f"|format(ngrt_ai_interpretation.latest_avg_stanine or 0) }}</span></strong>
                         &nbsp;|&nbsp;
-                        Avg SAS:
+                        Average SAS:
                         <strong><span class="text-info">{{ "%.0f"|format(ngrt_ai_interpretation.latest_avg_sas or 0) }}</span></strong>
                     </p>
                 </div>
-                <div class="card-body rounded-3 pt-1 pb-0 me-3 mb-1" style="background-color: #F7F6E5; height: auto !important;">
+                <div class="card-body rounded-3 pt-1 pb-2 me-3 mb-1" style="background-color: #F7F6E5; height: auto !important;">
                     <div class="d-flex align-items-end gap-2 mt-1 mb-2">
                         <img width="32" height="32" src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000" 
                         alt="AI Recommendations" title="AI Recommendations"/>
@@ -81,10 +129,16 @@
                         </h6>
                     </div>
                     <div class="mb-0">
-                        <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.attainment_statement }}</p>
+                        <ul class="text-xs text-muted lh-sm mb-0 ps-3">
+                            {% for statement in ngrt_ai_interpretation.attainment_statement.splitlines() %}
+                                {% if statement.strip() %}
+                                    <li>{{ statement.strip().lstrip('-').strip() }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
-                <div class="card-body rounded-3 pt-1 pb-0 me-3 mb-1" style="background-color: #FFF8DE; height: auto !important;">
+                <div class="card-body rounded-3 pt-1 pb-2 me-3 mb-1" style="background-color: #FFF8DE; height: auto !important;">
                     <div class="d-flex align-items-end gap-2 mt-1 mb-2">
                         <img width="32" height="32" src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000" 
                         alt="AI Recommendations" title="AI Recommendations"/>
@@ -96,7 +150,7 @@
                         <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.progress_statement }}</p>
                     </div>
                 </div>
-                <div class="card-body rounded-3 pt-1 pb-0 me-3 mb-1" style="background-color: #F7F6E5; height: auto !important;">
+                <div class="card-body rounded-3 pt-1 pb-2 me-3 mb-1" style="background-color: #F7F6E5; height: auto !important;">
                     <div class="d-flex align-items-end gap-2 mt-1 mb-2">
                         <img width="32" height="32" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
                         alt="AI Recommendations" title="AI Recommendations"/>
@@ -108,7 +162,7 @@
                         <p class="text-xs text-muted lh-sm">{{ ngrt_ai_interpretation.trend_statement }}</p>
                     </div>
                 </div>
-                <div class="card-body rounded-3 pt-1 pb-0 me-3 mb-3" style="background-color: #FFF8DE; height: auto !important;">
+                <div class="card-body rounded-3 pt-1 pb-2 me-3 mb-3" style="background-color: #FFF8DE; height: auto !important;">
                     <div class="d-flex align-items-end gap-2 mt-1 mb-2">
                         <img width="32" height="32" src="https://img.icons8.com/?size=100&id=5ZKXxNjdLtq4&format=png&color=000000" 
                         alt="AI Recommendations" title="AI Recommendations"/>
@@ -122,49 +176,5 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="row g-2 align-items-stretch mb-3">
-        <!-- Dashboard line chart - Year Group Average Attainment -->
-        <div class="col-lg-6 col-md-6 col-sm-12">
-        <div class="card h-100 chart-card">
-            <div class="card-body d-flex flex-column">
-            <div class="row">
-                <div class="d-flex align-items-start gap-1">
-                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
-                    alt="Year Group Average Attainment" title="Year Group Average Attainment"/>
-                <div class="d-flex-inline">
-                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Trends in Attainment</h5>
-                    <div class="text-muted text-xs">Average Stanine across all NGRT Assessments [ Classwise ]</div>
-                </div>
-                </div>
-            </div>
-            <div class="chart-body mt-1 mx-n3">
-                <div id="chart-classwise-avg-ngrt-stanine" class="w-100" style="height:360px;"></div>
-            </div>
-            </div>
-        </div>
-        </div>
-
-        <!-- Dashboard column/bar chart - Reading Literacy Threshold - Classwise -->
-        <div class="col-lg-6 col-md-6 col-sm-12">
-        <div class="card h-100 chart-card">
-            <div class="card-body d-flex flex-column">
-            <div class="row">
-                <div class="d-flex align-items-start gap-1">
-                <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=5ZKXxNjdLtq4&format=png&color=000000" 
-                    alt="Reading Literacy Threshold" title="Reading Literacy Threshold"/>
-                <div class="d-flex-inline">
-                    <h5 class="text-primary text-uppercase font-weight-bolder mb-n1">Reading Literacy Threshold</h5>
-                    <div class="text-muted text-xs">Classwise | Latest Dataset <span class="fw-bolder">[ <span class="text-info" id="ngrt-threshold-exam-label"></span> ]</span></div>
-                </div>
-                </div>
-            </div>
-            <div class="chart-body mt-1 mx-n3">
-                <div id="chart-ngrt-classwise-thresholds" class="w-100" style="height:360px;"></div>
-            </div>
-            </div>
-        </div>
-        </div>        
     </div>
 </div>
