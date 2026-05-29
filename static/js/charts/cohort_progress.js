@@ -35,6 +35,7 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     text: aboveOnly.map(v => `${Number(v).toFixed(1)}%`),
     textposition: "outside",
     customdata: customAboveOnly,
+    hoverlabel: {font: { size: 11 }},
     hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>made better progress<extra></extra>"
   };
 
@@ -47,6 +48,7 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     text: sumExpectedAbove.map(v => `${Number(v).toFixed(1)}%`),
     textposition: "outside",
     customdata: customExpectedAbove,
+    hoverlabel: {font: { size: 11 }},
     hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>made expected or better progress<extra></extra>"
   };
 
@@ -56,7 +58,7 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     {
       autosize: true, barmode: "stack", barnorm: "percent", // normalize counts to %
       yaxis: { title: "Percent of Students", range: [0, 110] },
-      margin: { t: 20, r: 20, b: 60, l: 60 }, legend: { orientation: "h" }
+      margin: { t: 20, r: 20, b: 60, l: 60 }, legend: { orientation: "h", font: { size: 11 } }
     }, { displayModeBar: false, responsive: true });
   
   const el = document.getElementById(elId);
