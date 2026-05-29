@@ -13,6 +13,7 @@ function renderLineAttainment() {
         name: "English",
         line: { color: "#0BA6DF", width: 3 },
         marker: { size: 8 },
+        hoverlabel: {font: { size: 11 }},
         hovertemplate: "English: <b>%{y:.0f}%</b><extra></extra>",
     };
 
@@ -23,6 +24,7 @@ function renderLineAttainment() {
         name: "Maths",
         line: { color: "#FCB53B", width: 3 },
         marker: { size: 8 },
+        hoverlabel: {font: { size: 11 }},
         hovertemplate: "Maths: <b>%{y:.0f}%</b><extra></extra>",
     };
 
@@ -33,6 +35,7 @@ function renderLineAttainment() {
         name: "Science",
         line: { color: "#A7E399", width: 3 },
         marker: { size: 8 },
+        hoverlabel: {font: { size: 11 }},
         hovertemplate: "Science: <b>%{y:.0f}%</b><extra></extra>",
     };
 
@@ -54,7 +57,7 @@ function renderLineAttainment() {
         },
 
         hovermode: "x unified",
-        legend: { orientation: "h", y: -0.2 },
+        legend: { orientation: "h", y: -0.2, font: { size: 11 } },
         font: { size: 13 }
     };
 
