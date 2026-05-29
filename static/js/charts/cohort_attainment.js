@@ -37,6 +37,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     text: ge70_pct.map(v => `${Number(v).toFixed(1)}%`),   // label with total ≥70%
     textposition: "outside",
     customdata: custom70,
+    hoverlabel: {font: { size: 11 }},
     hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>≥70% (above curriculum standard)<extra></extra>"
   };
 
@@ -50,6 +51,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     text: ge60_pct.map(v => `${Number(v).toFixed(1)}%`),   // label with total ≥60%
     textposition: "outside",
     customdata: custom60,
+    hoverlabel: {font: { size: 11 }},
     hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>≥60% (at/above curriculum standard)<extra></extra>"
   };
 
@@ -61,7 +63,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
       barnorm: "percent", // normalize counts to %
       yaxis: { title: "Percent of Students", range: [0, 110] },
       margin: { t: 20, r: 20, b: 60, l: 60 },
-      legend: { orientation: "h" }
+      legend: { orientation: "h", font: { size: 11 } }
     },
     { displayModeBar: false, responsive: true }
   );
