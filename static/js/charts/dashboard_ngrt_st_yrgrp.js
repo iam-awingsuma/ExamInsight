@@ -16,6 +16,7 @@ async function renderClasswiseAvgNGRTStanineChart() {
         name: "NGRT-A",
         line: { color: "#0BA6DF", width: 3 },
         marker: { size: 8 },
+        hoverlabel: {font: { size: 11 }},
         hovertemplate: "NGRT-A Avg Stanine: <b>%{y:.2f}</b><extra></extra>",
     };
 
@@ -26,6 +27,7 @@ async function renderClasswiseAvgNGRTStanineChart() {
         name: "NGRT-B",
         line: { color: "#FCB53B", width: 3 },
         marker: { size: 8 },
+        hoverlabel: {font: { size: 11 }},
         hovertemplate: "NGRT-B Avg Stanine: <b>%{y:.2f}</b><extra></extra>",
     };
 
@@ -36,6 +38,7 @@ async function renderClasswiseAvgNGRTStanineChart() {
         name: "NGRT-C",
         line: { color: "#A7E399", width: 3 },
         marker: { size: 8 },
+        hoverlabel: {font: { size: 11 }},
         hovertemplate: "NGRT-C Avg Stanine: <b>%{y:.2f}</b><extra></extra>",
     };
 
@@ -48,8 +51,8 @@ async function renderClasswiseAvgNGRTStanineChart() {
             range: [0, 9]
         },
         hovermode: "x unified",
-        legend: { orientation: "h", y: -0.2 },
-        font: { size: 13 }
+        legend: { orientation: "h", y: -0.2, font: { size: 11 } },
+        font: { size: 12 }
     };
 
     const config = {
