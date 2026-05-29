@@ -31,6 +31,7 @@ async function renderNGRTClasswiseStanineChart() {
       name: "Below Average",
       type: "bar",
       marker: { color: "#FF5A5A" },
+      hoverlabel: {font: { size: 11 }},
       hovertemplate:
         "<b>Year %{x}</b><br>" +
         "Band: Below Average<br>" +
@@ -45,6 +46,7 @@ async function renderNGRTClasswiseStanineChart() {
       name: "Average",
       type: "bar",
       marker: { color: "#FCB53B" },
+      hoverlabel: {font: { size: 11 }},
       hovertemplate:
         "<b>Year %{x}</b><br>" +
         "Band: Average<br>" +
@@ -59,6 +61,7 @@ async function renderNGRTClasswiseStanineChart() {
       name: "Above Average",
       type: "bar",
       marker: { color: "#A7E399" },
+      hoverlabel: {font: { size: 11 }},
       hovertemplate:
         "<b>Year %{x}</b><br>" +
         "Band: Above Average<br>" +
