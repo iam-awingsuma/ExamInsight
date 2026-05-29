@@ -31,6 +31,7 @@ async function renderNGRTClasswiseProgressChart() {
       name: "Lower than Expected",
       type: "bar",
       marker: { color: "#FF5A5A" },
+      hoverlabel: {font: { size: 11 }},
       hovertemplate:
         "<b>Year %{x}</b><br>" +
         "Category: Lower than Expected<br>" +
@@ -45,6 +46,7 @@ async function renderNGRTClasswiseProgressChart() {
       name: "Expected",
       type: "bar",
       marker: { color: "#FCB53B" },
+      hoverlabel: {font: { size: 11 }},
       hovertemplate:
         "<b>Year %{x}</b><br>" +
         "Category: Expected<br>" +
@@ -59,6 +61,7 @@ async function renderNGRTClasswiseProgressChart() {
       name: "Better than Expected",
       type: "bar",
       marker: { color: "#A7E399" },
+      hoverlabel: {font: { size: 11 }},
       hovertemplate:
         "<b>Year %{x}</b><br>" +
         "Category: Better than Expected<br>" +
