@@ -18,6 +18,7 @@ function renderInternalScatter() {
         type: "scatter",
         name: "English",
         text: names,
+        hoverlabel: {font: { size: 11 }},
         hovertemplate:
             "<b>%{text}</b><br>English: %{y}<extra></extra>",
         marker: { size: 10, color: "#0BA6DF", opacity: 0.7 }
@@ -30,6 +31,7 @@ function renderInternalScatter() {
         type: "scatter",
         name: "Maths",
         text: names,
+        hoverlabel: {font: { size: 11 }},
         hovertemplate:
             "<b>%{text}</b><br>Maths: %{y}<extra></extra>",
         marker: { size: 10, color: "#FCB53B", opacity: 0.7 }
@@ -42,6 +44,7 @@ function renderInternalScatter() {
         type: "scatter",
         name: "Science",
         text: names,
+        hoverlabel: {font: { size: 11 }},
         hovertemplate:
             "<b>%{text}</b><br>Science: %{y}<extra></extra>",
         marker: { size: 10, color: "#A7E399", opacity: 0.7 }
@@ -64,7 +67,7 @@ function renderInternalScatter() {
         },
 
         hovermode: "closest",
-        legend: { orientation: "h", y: -0.2 }
+        legend: { orientation: "h", y: -0.2, font: { size: 11 } }
     };
 
     Plotly.react(chartId, [engTrace, mathsTrace, sciTrace], layout, {
