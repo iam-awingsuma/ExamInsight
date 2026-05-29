@@ -250,30 +250,30 @@ def generate_internal_insights():
     total_students = db.session.query(InternalExam).count()
 
     prompt = f"""
-You are an educational data analyst.
+    You are an educational data analyst.
 
-Analyse the following cohort performance data.
+    Analyse the following cohort performance data.
 
-DATA:
-- English Average: {avg_eng:.2f}%
-- Maths Average: {avg_maths:.2f}%
-- Science Average: {avg_sci:.2f}%
-- Total Students: {total_students}
+    DATA:
+    - English Average: {avg_eng:.2f}%
+    - Maths Average: {avg_maths:.2f}%
+    - Science Average: {avg_sci:.2f}%
+    - Total Students: {total_students}
 
-Return ONLY valid JSON in this format:
+    Return ONLY valid JSON in this format:
 
-{{
-  "strengths": ["...", "..."],
-  "concerns": ["...", "..."],
-  "recommendations": ["...", "...", "..."]
-}}
+    {{
+    "strengths": ["...", "..."],
+    "concerns": ["...", "..."],
+    "recommendations": ["...", "...", "..."]
+    }}
 
-RULES:
-- Exactly 2 strengths
-- Exactly 2 concerns
-- Exactly 3 recommendations (full sentences)
-- No extra text, no explanation, JSON only
-"""
+    RULES:
+    - Exactly 2 strengths
+    - Exactly 2 concerns
+    - Exactly 3 recommendations (full sentences)
+    - No extra text, no explanation, JSON only
+    """
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -896,7 +896,7 @@ def _get_latest_reading_threshold_summary():
         "sas_120_pct": _safe_pct(total_120, cohort_total),
     }
 
-
+# Trends in Attainment statement for AI Insight Lens (NGRT)
 def _build_trend_statement_from_existing_series():
     """
     Reuse get_classwise_avg_ngrt_stanine() to build one
@@ -967,7 +967,45 @@ def _build_trend_statement_from_existing_series():
     else:
         return "Average stanine performance across classes is broadly stable over the NGRT assessment points, with only modest variation over time."
 
+# Progress distribution statement for AI Insight Lens (NGRT)
+def _build_progress_statement(prog):
+    """
+    Convert progress summary numbers into one interpretation sentence.
+    """
+    if prog["total"] == 0:
+        return "No latest NGRT progress data is available."
 
+    # Identify the dominant progress category
+    dominant = max(
+        [
+            ("Lower than Expected", prog["lower_count"], prog["lower_pct"]),
+            ("Expected", prog["expected_count"], prog["expected_pct"]),
+            ("Better than Expected", prog["better_count"], prog["better_pct"]),
+        ],
+        key=lambda x: x[1]
+    )
+
+    return (
+        f"Most students in {prog['exam_label']} are in the '{dominant[0]}' category, "
+        f"representing {dominant[1]} students ({dominant[2]}%) across the cohort."
+    )
+
+# Reading threshold statement for AI Insight Lens (NGRT)
+def _build_threshold_statement(thr):
+    """
+    Convert SAS threshold summary numbers into one interpretation sentence.
+    """
+    if thr["total"] == 0:
+        return "No latest NGRT SAS threshold data is available."
+
+    return (
+        f"Based on the latest available dataset ({thr['exam_label']}), "
+        f"{thr['sas_90_count']} students ({thr['sas_90_pct']}%) achieved SAS ≥ 90, "
+        f"{thr['sas_110_count']} ({thr['sas_110_pct']}%) achieved SAS ≥ 110, and "
+        f"{thr['sas_120_count']} ({thr['sas_120_pct']}%) achieved SAS ≥ 120."
+    )
+
+# Attainment distribution statement for AI Insight Lens (NGRT)
 def _build_attainment_statement(att):
     """
     Convert attainment summary numbers into one interpretation sentence.
@@ -991,45 +1029,74 @@ def _build_attainment_statement(att):
         f"{att['below_count']} below average, {att['average_count']} average, and {att['above_count']} above average."
     )
 
-
-def _build_progress_statement(prog):
+# =========================================================================
+# NGRT AI Insight Lens: OpenAI interpretation for attainment with fallback
+# =========================================================================
+def generate_ai_attainment_interpretation(att):
     """
-    Convert progress summary numbers into one interpretation sentence.
+    Uses OpenAI to generate attainment interpretation.
+    Falls back to build attainment function with
+    rule-based interpretation if the AI call fails.
     """
-    if prog["total"] == 0:
-        return "No latest NGRT progress data is available."
 
-    # Identify the dominant progress category
-    dominant = max(
-        [
-            ("Lower than Expected", prog["lower_count"], prog["lower_pct"]),
-            ("Expected", prog["expected_count"], prog["expected_pct"]),
-            ("Better than Expected", prog["better_count"], prog["better_pct"]),
-        ],
-        key=lambda x: x[1]
-    )
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    return (
-        f"Most students in {prog['exam_label']} are in the '{dominant[0]}' category, "
-        f"representing {dominant[1]} students ({dominant[2]}%) across the cohort."
-    )
+        prompt = f"""
+        Write a teacher-useful interpretation of the whole-cohort NGRT attainment distribution for a dashboard.
 
+        Cohort attainment distribution:
+        - Below average: {att["below_count"]} students ({att["below_pct"]}%)
+        - Average: {att["average_count"]} students ({att["average_pct"]}%)
+        - Above average: {att["above_count"]} students ({att["above_pct"]}%)
 
-def _build_threshold_statement(thr):
-    """
-    Convert SAS threshold summary numbers into one interpretation sentence.
-    """
-    if thr["total"] == 0:
-        return "No latest NGRT SAS threshold data is available."
+        Context:
+        - Below average refers to stanine 1 to 3.
+        - Average refers to stanine 4 to 6.
+        - Above average refers to stanine 7 to 9.
+        - The interpretation should focus on the overall attainment profile of the cohort.
 
-    return (
-        f"Based on the latest available dataset ({thr['exam_label']}), "
-        f"{thr['sas_90_count']} students ({thr['sas_90_pct']}%) achieved SAS ≥ 90, "
-        f"{thr['sas_110_count']} ({thr['sas_110_pct']}%) achieved SAS ≥ 110, and "
-        f"{thr['sas_120_count']} ({thr['sas_120_pct']}%) achieved SAS ≥ 120."
-    )
+        Requirements:
+        - Write exactly 3 concise bullet points.
+        - Start each bullet point with "-".
+        - Keep each bullet point to one sentence only.
+        - Keep each sentence around 10 to 16 words.
+        - Start each sentence with a different phrase (e.g., "The cohort...", "Most students...", "A significant portion...").
+        - Start each sentence on a new line.
+        - Use clear, accessible language suitable for teachers.
+        - Use a professional, teacher-useful dashboard tone.
+        - Use third-person language and refer to "the cohort" or "students".
+        - Focus on attainment distribution, cohort strengths, and possible support implications.
+        - Avoid overly negative or alarming language.
+        - Do not mention individual students.
+        - Do not include a heading.
+        """
 
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an educational data analyst writing concise, teacher-useful "
+                        "dashboard interpretations of whole-cohort NGRT attainment data."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=140
+        )
 
+        return response.choices[0].message.content.strip()
+
+    except Exception:
+        return _build_attainment_statement(att)
+
+# Builds the NGRT dashboard AI interpretation for AI Insight Lens
 def build_ngrt_dashboard_ai_interpretation():
     """
     Main helper used by the dashboard route.
@@ -1051,7 +1118,7 @@ def build_ngrt_dashboard_ai_interpretation():
         "latest_exam": latest_meta["exam_label"],
         "latest_avg_stanine": latest_meta["avg_stanine"],
         "latest_avg_sas": latest_meta["avg_sas"],
-        "attainment_statement": _build_attainment_statement(attainment),
+        "attainment_statement": generate_ai_attainment_interpretation(attainment),
         "progress_statement": _build_progress_statement(progress),
         "trend_statement": trend_statement,
         "threshold_statement": _build_threshold_statement(thresholds),
