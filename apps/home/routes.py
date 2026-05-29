@@ -323,7 +323,7 @@ def get_matched_students():
 
         if has_ngrtc_data:
             query = query.join(NGRTC, NGRTA.student_id == NGRTC.student_id)
-            label = "Across All NGRT Exams"
+            label = "[ All NGRT Exams ]"
 
     return (query.scalar() or 0), label
 
