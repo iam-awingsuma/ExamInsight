@@ -1741,14 +1741,14 @@ def serialize_ngrt_result(result):
     }
 
 # Route for Individual Student Report download
-@blueprint.route("/reports/external/ngrt-individual/<student_id>")
+@blueprint.route("/reports/external/individual/<student_id>")
 def download_ngrt_indv_extl_rpt(student_id):
     """
     Generates an individual NGRT external assessment PDF report.
 
     This route is used by the PDF button in the NGRT combined data table.
     Example:
-    /reports/external/ngrt-individual/Y2-048
+    /reports/external/individual/Y2-048
     """
 
     pdf_path = generate_ngrt_indv_extl_rpt(student_id)

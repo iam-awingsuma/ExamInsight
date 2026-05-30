@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
           row.innerHTML = `
             <td class="text-center">
-                <a href="/reports/external/ngrt-individual/${student.student_id}">
+                <a href="/reports/external/individual/${student.student_id}">
                     <img
                         class="me-1"
                         width="45"
