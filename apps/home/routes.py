@@ -26,7 +26,7 @@ from apps.helpers import per_class_metrics, cohort_progress, class_progress
 
 # Reports-related imports
 from apps.helpers import get_filtered_ngrt_combined_data
-from apps.external_reports import build_ngrt_summary_pdf, build_ngrt_listing_pdf, generate_ngrt_indv_extl_rpt
+from apps.reports import build_ngrt_summary_pdf, build_ngrt_listing_pdf, generate_ngrt_indv_extl_rpt
 
 from urllib.parse import urlencode
 
