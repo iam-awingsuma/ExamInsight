@@ -154,21 +154,24 @@
 }
 
 /* CSS for Progress Categories */
-.ngrt-progress-below {
+.ngrt-progress-below,
+.intl-progress-below {
   background-color: #fee2e2;
   color: #991b1b;
   font-weight: 700;
   text-align: center;
 }
 
-.ngrt-progress-expected {
+.ngrt-progress-expected,
+.intl-progress-expected {
   background-color: #fef3c7;
   color: #92400e;
   font-weight: 700;
   text-align: center;
 }
 
-.ngrt-progress-above {
+.ngrt-progress-above,
+.intl-progress-above {
   background-color: #dcfce7;
   color: #166534;
   font-weight: 700;
