@@ -1044,6 +1044,87 @@ def _build_threshold_statement(thr):
         f"{thr['sas_120_count']} ({thr['sas_120_pct']}%) achieved SAS ≥ 120."
     )
 
+# =================================================================================
+# NGRT AI Insight Lens: OpenAI interpretation for reading thresholds with fallback
+# =================================================================================
+def generate_ai_reading_threshold_interpretation():
+    """
+    Uses OpenAI to generate a teacher-useful interpretation of the latest
+    NGRT reading literacy threshold summary.
+
+    Thresholds:
+    - SAS >= 90: foundation reading threshold
+    - SAS >= 110: strong reading performance
+    - SAS >= 120: very high reading performance
+
+    Falls back to a rule-based statement if the AI call fails.
+    """
+
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        threshold = _get_latest_reading_threshold_summary()
+
+        prompt = f"""
+        Write a teacher-useful interpretation of the latest classwise NGRT reading literacy threshold data for a dashboard.
+
+        Latest assessment: {threshold.get("exam_label")}
+
+        Classwise reading threshold summary:
+        - Total students across classes: {threshold.get("total")}
+        - SAS >= 90: {threshold.get("sas_90_count")} students ({threshold.get("sas_90_pct")}%)
+        - SAS >= 110: {threshold.get("sas_110_count")} students ({threshold.get("sas_110_pct")}%)
+        - SAS >= 120: {threshold.get("sas_120_count")} students ({threshold.get("sas_120_pct")}%)
+
+        Context:
+        - The data summarises reading threshold achievement across classes or year groups in the latest NGRT dataset.
+        - SAS >= 90 indicates students have reached a foundation reading threshold.
+        - SAS >= 110 indicates strong reading performance above the expected range.
+        - SAS >= 120 indicates very high reading performance and possible enrichment needs.
+        - The interpretation should focus on classwise reading readiness, support patterns, and enrichment opportunities.
+        - The interpretation should help teachers identify class-level or year group implications for intervention and extension.
+        - Do not refer to individual students.
+
+        Requirements:
+        - Write exactly 3 concise bullet points.
+        - Start each bullet point with "-".
+        - Keep each bullet point to one sentence only.
+        - Keep each sentence around 10 to 18 words.
+        - Start each bullet point on a new line.
+        - Use clear, accessible language suitable for teachers.
+        - Use a professional, teacher-useful dashboard tone.
+        - Use third-person language and refer to "classes", "year groups", "the cohort", or "students".
+        - Focus on classwise threshold achievement, reading readiness, support needs, and enrichment opportunities.
+        - Avoid overly negative or alarming language.
+        - Do not mention individual students.
+        - Do not include a heading.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an educational data analyst writing concise, teacher-useful "
+                        "dashboard interpretations of classwise NGRT reading literacy threshold data."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=150
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception:
+        thr = _get_latest_reading_threshold_summary()
+        return _build_threshold_statement(thr)
+    
 # ========================================================================
 # Progress-related summary and statement for AI Insight Lens (NGRT)
 # ========================================================================
@@ -1169,6 +1250,7 @@ def generate_ai_progress_interpretation(prog):
         return response.choices[0].message.content.strip()
 
     except Exception:
+        prog = _get_latest_progress_distribution_summary()
         return _build_progress_statement(prog)
 
 # ========================================================================
@@ -1298,6 +1380,7 @@ def generate_ai_attainment_interpretation(att):
         return response.choices[0].message.content.strip()
 
     except Exception:
+        att = _get_latest_attainment_distribution_summary()
         return _build_attainment_statement(att)
 
 # Builds the NGRT dashboard AI interpretation for AI Insight Lens
@@ -1322,7 +1405,7 @@ def build_ngrt_dashboard_ai_interpretation():
         "attainment_statement": generate_ai_attainment_interpretation(attainment),
         "progress_statement": generate_ai_progress_interpretation(progress),
         "trend_statement": generate_ai_attainment_trends_interpretation(),
-        "threshold_statement": _build_threshold_statement(thresholds),
+        "threshold_statement": generate_ai_reading_threshold_interpretation(),
         "attainment_data": attainment,
         "progress_data": progress,
         "threshold_data": thresholds,
