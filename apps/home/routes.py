@@ -956,7 +956,7 @@ def generate_ai_attainment_trends_interpretation():
         - The interpretation should help teachers identify whether reading attainment is improving, stable, or needs closer monitoring across classes.
 
         Requirements:
-        - Write exactly 3 concise bullet points.
+        - Write exactly 5 concise bullet points.
         - Start each bullet point with "-".
         - Keep each bullet point to one sentence only.
         - Keep each sentence around 10 to 18 words.
@@ -986,13 +986,27 @@ def generate_ai_attainment_trends_interpretation():
                 }
             ],
             temperature=0.3,
-            max_tokens=150
+            max_tokens=200
         )
 
         return response.choices[0].message.content.strip()
 
     except Exception:
         return _build_trend_statement_from_existing_series()
+
+# API endpoint to regenerate AI interpretation for NGRT trends in attainment
+@blueprint.route("/api/reports/external/ngrt/regenerate-trends-insight")
+def regenerate_ngrt_trends_insight():
+    """
+    Regenerates the AI interpretation for NGRT trends in attainment.
+    """
+
+    statement = generate_ai_attainment_trends_interpretation()
+
+    return jsonify({
+        "success": True,
+        "statement": statement
+    })
 
 # =============================================================================
 # Reading Threshold-related summary and statement for AI Insight Lens (NGRT)
@@ -1086,7 +1100,7 @@ def generate_ai_reading_threshold_interpretation():
         - Do not refer to individual students.
 
         Requirements:
-        - Write exactly 3 concise bullet points.
+        - Write exactly 5 concise bullet points.
         - Start each bullet point with "-".
         - Keep each bullet point to one sentence only.
         - Keep each sentence around 10 to 18 words.
@@ -1116,7 +1130,7 @@ def generate_ai_reading_threshold_interpretation():
                 }
             ],
             temperature=0.3,
-            max_tokens=150
+            max_tokens=200
         )
 
         return response.choices[0].message.content.strip()
@@ -1124,7 +1138,21 @@ def generate_ai_reading_threshold_interpretation():
     except Exception:
         thr = _get_latest_reading_threshold_summary()
         return _build_threshold_statement(thr)
-    
+
+# API endpoint to regenerate NGRT reading threshold insight using AI interpretation
+@blueprint.route("/api/reports/external/ngrt/regenerate-threshold-insight")
+def regenerate_ngrt_threshold_insight():
+    """
+    Regenerates the AI interpretation for NGRT reading literacy thresholds.
+    """
+
+    statement = generate_ai_reading_threshold_interpretation()
+
+    return jsonify({
+        "success": True,
+        "statement": statement
+    })
+   
 # ========================================================================
 # Progress-related summary and statement for AI Insight Lens (NGRT)
 # ========================================================================
@@ -1214,7 +1242,7 @@ def generate_ai_progress_interpretation(prog):
         - The interpretation should focus on classwise progress patterns and year group implications, not individual students.
 
         Requirements:
-        - Write exactly 3 concise bullet points.
+        - Write exactly 5 concise bullet points.
         - Start each bullet point with "-".
         - Keep each bullet point to one sentence only.
         - Keep each sentence around 10 to 18 words.
@@ -1244,7 +1272,7 @@ def generate_ai_progress_interpretation(prog):
                 }
             ],
             temperature=0.3,
-            max_tokens=150
+            max_tokens=200
         )
 
         return response.choices[0].message.content.strip()
@@ -1252,6 +1280,20 @@ def generate_ai_progress_interpretation(prog):
     except Exception:
         prog = _get_latest_progress_distribution_summary()
         return _build_progress_statement(prog)
+
+# API endpoint to regenerate NGRT progress insight using AI interpretation
+@blueprint.route("/api/reports/external/ngrt/regenerate-progress-insight")
+def regenerate_ngrt_progress_insight():
+    """
+    Regenerates the AI interpretation for NGRT progress distribution.
+    """
+    prog = _get_latest_progress_distribution_summary()
+    statement = generate_ai_progress_interpretation(prog)
+
+    return jsonify({
+        "success": True,
+        "statement": statement
+    })
 
 # ========================================================================
 # Attainment-related summary and statement for AI Insight Lens (NGRT)
@@ -1344,7 +1386,7 @@ def generate_ai_attainment_interpretation(att):
         - The interpretation should focus on classwise patterns and year group implications, not individual students.
 
         Requirements:
-        - Write exactly 3 concise bullet points.
+        - Write exactly 5 concise bullet points.
         - Start each bullet point with "-".
         - Keep each bullet point to one sentence only.
         - Keep each sentence around 10 to 18 words.
@@ -1374,7 +1416,7 @@ def generate_ai_attainment_interpretation(att):
                 }
             ],
             temperature=0.3,
-            max_tokens=150
+            max_tokens=200
         )
 
         return response.choices[0].message.content.strip()
@@ -1382,6 +1424,20 @@ def generate_ai_attainment_interpretation(att):
     except Exception:
         att = _get_latest_attainment_distribution_summary()
         return _build_attainment_statement(att)
+
+# API endpoint to regenerate NGRT attainment insight using AI interpretation
+@blueprint.route("/api/reports/external/ngrt/regenerate-attainment-insight")
+def regenerate_ngrt_attainment_insight():
+    """
+    Regenerates the AI interpretation for NGRT attainment distribution.
+    """
+    att = _get_latest_attainment_distribution_summary()
+    statement = generate_ai_attainment_interpretation(att)
+
+    return jsonify({
+        "success": True,
+        "statement": statement
+    })
 
 # Builds the NGRT dashboard AI interpretation for AI Insight Lens
 def build_ngrt_dashboard_ai_interpretation():
