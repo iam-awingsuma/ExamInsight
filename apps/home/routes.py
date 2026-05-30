@@ -1763,121 +1763,161 @@ def download_ngrt_indv_extl_rpt(student_id):
         mimetype="application/pdf"
     )
 
-
-
-# @blueprint.route("/reports/external/cohort-summary", methods=["GET"])
-# @login_required
-# def download_external_cohort_summary_report():
-#     flash("External Cohort Summary Report is not connected yet.", "warning")
-#     return redirect(url_for("home_blueprint.display_reports"))
-
-
-# @blueprint.route("/reports/external/class-summary", methods=["GET"])
-# @login_required
-# def download_external_class_summary_report():
-#     flash("External Class Summary Report is not connected yet.", "warning")
-#     return redirect(url_for("home_blueprint.display_reports"))
-
-
-# @blueprint.route("/reports/external/comparison", methods=["GET"])
-# @login_required
-# def download_external_comparison_report():
-#     flash("External Comparison Report is not connected yet.", "warning")
-#     return redirect(url_for("home_blueprint.display_reports"))
-
-
-# @blueprint.route("/reports/external/cohort-listing", methods=["GET"])
-# @login_required
-# def download_external_cohort_listing():
-#     flash("External Cohort Listing is not connected yet.", "warning")
-#     return redirect(url_for("home_blueprint.display_reports"))
-
-
-# @blueprint.route("/reports/external/class-listing", methods=["GET"])
-# @login_required
-# def download_external_class_listing():
-#     flash("External Class Listing is not connected yet.", "warning")
-#     return redirect(url_for("home_blueprint.display_reports"))
-
-
-# @blueprint.route("/reports/external/cohort-assessment-data", methods=["GET"])
-# @login_required
-# def download_external_cohort_assessment_data():
-#     flash("External Cohort Assessment Data is not connected yet.", "warning")
-#     return redirect(url_for("home_blueprint.display_reports"))
-
-
-# @blueprint.route("/reports/external/classwise-assessment-data", methods=["GET"])
-# @login_required
-# def download_external_classwise_assessment_data():
-#     flash("External Classwise Assessment Data is not connected yet.", "warning")
-#     return redirect(url_for("home_blueprint.display_reports"))
-
-
-# @blueprint.route("/reports/external/individual-assessment-data", methods=["GET"])
-# @login_required
-# def download_external_individual_assessment_data():
-#     flash("External Individual Assessment Data is not connected yet.", "warning")
-#     return redirect(url_for("home_blueprint.display_reports"))
-
 # ============================================================
 # Internal Assessment Report Routes
 # ============================================================
 
-@blueprint.route("/reports/internal/cohort-summary", methods=["GET"])
-@login_required
-def download_internal_cohort_summary_report():
-    flash("Internal Cohort Summary Report is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+# Individual student report filter-related code and route for Internal Assessment combined data
+@blueprint.route("/api/reports/internal/combined-data")
+def api_internal_combined_data():
+    """
+    Returns filtered student data with internal assessment results
+    for English, Mathematics, and Science.
+
+    Filters are based on Students model:
+    - q: student name or ID
+    - gender
+    - yrgrp
+    - status
+    - sen/sped
+    """
+
+    q = request.args.get("q", "").strip()
+    gender = request.args.get("gender", "").strip()
+    yrgrp = request.args.get("yrgrp", "").strip()
+    status = request.args.get("status", "").strip()
+    sen = request.args.get("sen", "").strip()
+
+    query = Students.query
+
+    # Search by student name or student ID.
+    if q:
+        search_text = f"%{q.lower()}%"
+
+        query = query.filter(
+            or_(
+                func.lower(Students.forename).like(search_text),
+                func.lower(Students.surname).like(search_text),
+                func.cast(Students.student_id, db.String).like(f"%{q}%")
+            )
+        )
+
+    # Filter by gender.
+    if gender and gender != "All Genders":
+        query = query.filter(func.lower(Students.gender) == gender.lower())
+
+    # Filter by year group.
+    if yrgrp and yrgrp != "All Year Groups":
+        query = query.filter(func.lower(Students.yrgrp) == yrgrp.lower())
+
+    # Filter by registration status if this column exists.
+    if status and status != "All Registration Status":
+        if hasattr(Students, "status"):
+            query = query.filter(func.lower(Students.status) == status.lower())
+
+    # Filter by SEN/SPED if this column exists.
+    if sen and sen != "All SEN/SPED":
+        if hasattr(Students, "sped"):
+            if sen == "Any SEN Support":
+                query = query.filter(func.lower(Students.sped) != "no")
+            elif sen == "No SEN/SPED Support":
+                query = query.filter(func.lower(Students.sped) == "no")
+
+    students = (
+        query
+        .order_by(Students.yrgrp.asc(), Students.forename.asc(), Students.surname.asc())
+        .all()
+    )
+
+    results = []
+
+    for student in students:
+        # Get internal assessment result for this student.
+        internal_exam = (
+            InternalExam.query
+            .filter(InternalExam.student_id == student.student_id)
+            .first()
+        )
+
+        full_name = f"{student.forename or ''} {student.surname or ''}".strip()
+
+        results.append({
+            "student_id": student.student_id,
+            "name": full_name,
+            "gender": student.gender or "",
+            "status": student.status or "",
+            "yrgrp": student.yrgrp.upper() if student.yrgrp else "",
+            "nationality": student.nationality or "",
+            "sped": student.sped if hasattr(student, "sped") else "",
+
+            "internal_assessment": serialize_internal_exam_result(internal_exam)
+        })
+
+    return jsonify(results)
 
 
-@blueprint.route("/reports/internal/class-summary", methods=["GET"])
-@login_required
-def download_internal_class_summary_report():
-    flash("Internal Class Summary Report is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+def serialize_internal_exam_result(result):
+    """
+    Converts one InternalExam result into a JSON-safe dictionary.
+    """
 
+    if not result:
+        return {
+            "has_data": False,
 
-@blueprint.route("/reports/internal/comparison", methods=["GET"])
-@login_required
-def download_internal_comparison_report():
-    flash("Internal Comparison Report is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+            "english": {
+                "previous_percentage": "-",
+                "previous_grade": "-",
+                "current_percentage": "-",
+                "current_grade": "-",
+                "progress_category": "-"
+            },
 
+            "mathematics": {
+                "previous_percentage": "-",
+                "previous_grade": "-",
+                "current_percentage": "-",
+                "current_grade": "-",
+                "progress_category": "-"
+            },
 
-@blueprint.route("/reports/internal/cohort-listing", methods=["GET"])
-@login_required
-def download_internal_cohort_listing():
-    flash("Internal Cohort Listing is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+            "science": {
+                "previous_percentage": "-",
+                "previous_grade": "-",
+                "current_percentage": "-",
+                "current_grade": "-",
+                "progress_category": "-"
+            }
+        }
 
+    return {
+        "has_data": True,
 
-@blueprint.route("/reports/internal/class-listing", methods=["GET"])
-@login_required
-def download_internal_class_listing():
-    flash("Internal Class Listing is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+        "english": {
+            "previous_percentage": getattr(result, "eng_prevPct", "-") or "-",
+            "previous_grade": getattr(result, "eng_prevGr", "-") or "-",
+            "current_percentage": getattr(result, "eng_currPct", "-") or "-",
+            "current_grade": getattr(result, "eng_currGr", "-") or "-",
+            "progress_category": getattr(result, "eng_progcat", "-") or "-"
+        },
 
+        "mathematics": {
+            "previous_percentage": getattr(result, "maths_prevPct", "-") or "-",
+            "previous_grade": getattr(result, "maths_prevGr", "-") or "-",
+            "current_percentage": getattr(result, "maths_currPct", "-") or "-",
+            "current_grade": getattr(result, "maths_currGr", "-") or "-",
+            "progress_category": getattr(result, "maths_progcat", "-") or "-"
+        },
 
-@blueprint.route("/reports/internal/cohort-assessment-data", methods=["GET"])
-@login_required
-def download_internal_cohort_assessment_data():
-    flash("Internal Cohort Assessment Data is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
+        "science": {
+            "previous_percentage": getattr(result, "sci_prevPct", "-") or "-",
+            "previous_grade": getattr(result, "sci_prevGr", "-") or "-",
+            "current_percentage": getattr(result, "sci_currPct", "-") or "-",
+            "current_grade": getattr(result, "sci_currGr", "-") or "-",
+            "progress_category": getattr(result, "sci_progcat", "-") or "-"
+        }
+    }
 
-
-@blueprint.route("/reports/internal/classwise-assessment-data", methods=["GET"])
-@login_required
-def download_internal_classwise_assessment_data():
-    flash("Internal Classwise Assessment Data is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
-
-
-@blueprint.route("/reports/internal/individual-assessment-data", methods=["GET"])
-@login_required
-def download_internal_individual_assessment_data():
-    flash("Internal Individual Assessment Data is not connected yet.", "warning")
-    return redirect(url_for("home_blueprint.display_reports"))
 
 #************************
 #*** Data Management ***#
