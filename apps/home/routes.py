@@ -802,99 +802,9 @@ def _get_latest_ngrt_cohort_totals():
         "avg_sas": round(float(avg_sas or 0), 2),
     }
 
-
-def _get_latest_attainment_distribution_summary():
-    """
-    Reuse existing classwise stanine helper and roll up
-    all class values into one cohort-level attainment summary.
-    """
-    # Existing helper already applies latest-dataset priority
-    data = get_latest_ngrt_classwise_stanine()
-
-    # Extract arrays from existing payload
-    totals = data.get("totals", [])
-    below_counts = data.get("below_average_count", [])
-    average_counts = data.get("average_count", [])
-    above_counts = data.get("above_average_count", [])
-
-    # Sum class totals to get cohort totals
-    cohort_total = sum(int(x or 0) for x in totals)
-    below_total = sum(int(x or 0) for x in below_counts)
-    average_total = sum(int(x or 0) for x in average_counts)
-    above_total = sum(int(x or 0) for x in above_counts)
-
-    return {
-        "exam_label": data.get("exam_label"),
-        "total": cohort_total,
-        "below_count": below_total,
-        "average_count": average_total,
-        "above_count": above_total,
-        "below_pct": _safe_pct(below_total, cohort_total),
-        "average_pct": _safe_pct(average_total, cohort_total),
-        "above_pct": _safe_pct(above_total, cohort_total),
-    }
-
-
-def _get_latest_progress_distribution_summary():
-    """
-    Reuse existing classwise progress helper and roll up
-    all class values into one cohort-level progress summary.
-    """
-    # Existing helper already computes progress distribution by class
-    data = get_latest_ngrt_classwise_progress()
-
-    totals = data.get("totals", [])
-    lower_counts = data.get("lower_count", [])
-    expected_counts = data.get("expected_count", [])
-    better_counts = data.get("better_count", [])
-
-    # Sum class values for cohort totals
-    cohort_total = sum(int(x or 0) for x in totals)
-    lower_total = sum(int(x or 0) for x in lower_counts)
-    expected_total = sum(int(x or 0) for x in expected_counts)
-    better_total = sum(int(x or 0) for x in better_counts)
-
-    return {
-        "exam_label": data.get("exam_label"),
-        "total": cohort_total,
-        "lower_count": lower_total,
-        "expected_count": expected_total,
-        "better_count": better_total,
-        "lower_pct": _safe_pct(lower_total, cohort_total),
-        "expected_pct": _safe_pct(expected_total, cohort_total),
-        "better_pct": _safe_pct(better_total, cohort_total),
-    }
-
-
-def _get_latest_reading_threshold_summary():
-    """
-    Reuse existing classwise reading-threshold helper and roll up
-    all class values into one cohort-level threshold summary.
-    """
-    # Existing helper already computes SAS >= 90, 110, 120 by class
-    data = get_latest_ngrt_classwise_reading_thresholds()
-
-    totals = data.get("totals", [])
-    c90 = data.get("sas_90_count", [])
-    c110 = data.get("sas_110_count", [])
-    c120 = data.get("sas_120_count", [])
-
-    # Sum class values into cohort totals
-    cohort_total = sum(int(x or 0) for x in totals)
-    total_90 = sum(int(x or 0) for x in c90)
-    total_110 = sum(int(x or 0) for x in c110)
-    total_120 = sum(int(x or 0) for x in c120)
-
-    return {
-        "exam_label": data.get("exam_label"),
-        "total": cohort_total,
-        "sas_90_count": total_90,
-        "sas_110_count": total_110,
-        "sas_120_count": total_120,
-        "sas_90_pct": _safe_pct(total_90, cohort_total),
-        "sas_110_pct": _safe_pct(total_110, cohort_total),
-        "sas_120_pct": _safe_pct(total_120, cohort_total),
-    }
+# =============================================================================
+# Trends in Attainment-related summary and statement for AI Insight Lens (NGRT)
+# =============================================================================
 
 # Trends in Attainment statement for AI Insight Lens (NGRT)
 def _build_trend_statement_from_existing_series():
@@ -967,6 +877,208 @@ def _build_trend_statement_from_existing_series():
     else:
         return "Average stanine performance across classes is broadly stable over the NGRT assessment points, with only modest variation over time."
 
+# ================================================================================
+# NGRT AI Insight Lens: OpenAI interpretation for attainment trends with fallback
+# ================================================================================
+def generate_ai_attainment_trends_interpretation():
+    """
+    Uses OpenAI to generate attainment trends interpretation.
+    Falls back to trends statement function with
+    rule-based interpretation if the AI call fails.
+    """
+    data = get_classwise_avg_ngrt_stanine()
+    year_groups = data.get("year_groups", [])
+    series = data.get("series", [])
+
+    # No trend data at all
+    if not series:
+        return "No classwise stanine trend data is currently available across NGRT-A, NGRT-B, and NGRT-C."
+
+    # Convert series list into a lookup map for easier access
+    series_map = {
+        s["name"]: s["data"]
+        for s in series
+        if "name" in s and "data" in s
+    }
+
+    improving = 0
+    declining = 0
+    stable = 0
+
+    # Check trend per class/year group
+    for idx, _yg in enumerate(year_groups):
+        points = []
+
+        # Collect available class averages in test order
+        for exam_name in ["NGRT-A", "NGRT-B", "NGRT-C"]:
+            vals = series_map.get(exam_name)
+            if vals and idx < len(vals):
+                val = vals[idx]
+                if val is not None:
+                    points.append(val)
+
+        # Need at least 2 points to compare a trend
+        if len(points) < 2:
+            continue
+
+        first = points[0]
+        last = points[-1]
+
+        # Small buffer of 0.15 to avoid treating tiny changes as trends
+        if last > first + 0.15:
+            improving += 1
+        elif last < first - 0.15:
+            declining += 1
+        else:
+            stable += 1
+
+    compared_classes = improving + declining + stable
+
+    try:    
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        prompt = f"""
+        Write a teacher-useful interpretation of classwise trends in NGRT attainment for a dashboard.
+
+        Classwise NGRT stanine trend summary:
+        - Total classes compared: {compared_classes}
+        - Classes with improving average stanine: {improving}
+        - Classes with declining average stanine: {declining}
+        - Classes with stable average stanine: {stable}
+
+        Context:
+        - The trend is based on class average stanine scores across available NGRT assessments.
+        - Available assessments may include NGRT-A, NGRT-B, and NGRT-C.
+        - Improving means the latest available class average stanine is higher than the first available result by more than 0.15.
+        - Declining means the latest available class average stanine is lower than the first available result by more than 0.15.
+        - Stable means the change is within a small range and does not show a clear upward or downward trend.
+        - The interpretation should focus on classwise and cohort-level attainment patterns, not individual students.
+        - The interpretation should help teachers identify whether reading attainment is improving, stable, or needs closer monitoring across classes.
+
+        Requirements:
+        - Write exactly 3 concise bullet points.
+        - Start each bullet point with "-".
+        - Keep each bullet point to one sentence only.
+        - Keep each sentence around 10 to 18 words.
+        - Start each bullet point on a new line.
+        - Use clear, accessible language suitable for teachers.
+        - Use a professional, teacher-useful dashboard tone.
+        - Use third-person language and refer to "the cohort", "classes", or "year groups".
+        - Focus on attainment trends, class-level patterns, and possible teaching or intervention implications.
+        - Avoid overly negative or alarming language.
+        - Do not mention individual students.
+        - Do not include a heading.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an educational data analyst writing concise, teacher-useful dashboard interpretations "
+                        "of NGRT classwise attainment trends across external benchmark assessments."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=150
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception:
+        return _build_trend_statement_from_existing_series()
+
+# =============================================================================
+# Reading Threshold-related summary and statement for AI Insight Lens (NGRT)
+# =============================================================================
+
+# Reading threshold summary for AI Insight Lens (NGRT)
+def _get_latest_reading_threshold_summary():
+    """
+    Reuse existing classwise reading-threshold helper and roll up
+    all class values into one cohort-level threshold summary.
+    """
+    # Existing helper already computes SAS >= 90, 110, 120 by class
+    data = get_latest_ngrt_classwise_reading_thresholds()
+
+    totals = data.get("totals", [])
+    c90 = data.get("sas_90_count", [])
+    c110 = data.get("sas_110_count", [])
+    c120 = data.get("sas_120_count", [])
+
+    # Sum class values into cohort totals
+    cohort_total = sum(int(x or 0) for x in totals)
+    total_90 = sum(int(x or 0) for x in c90)
+    total_110 = sum(int(x or 0) for x in c110)
+    total_120 = sum(int(x or 0) for x in c120)
+
+    return {
+        "exam_label": data.get("exam_label"),
+        "total": cohort_total,
+        "sas_90_count": total_90,
+        "sas_110_count": total_110,
+        "sas_120_count": total_120,
+        "sas_90_pct": _safe_pct(total_90, cohort_total),
+        "sas_110_pct": _safe_pct(total_110, cohort_total),
+        "sas_120_pct": _safe_pct(total_120, cohort_total),
+    }
+
+# Reading threshold statement for AI Insight Lens (NGRT)
+def _build_threshold_statement(thr):
+    """
+    Convert SAS threshold summary numbers into one interpretation sentence.
+    """
+    if thr["total"] == 0:
+        return "No latest NGRT SAS threshold data is available."
+
+    return (
+        f"Based on the latest available dataset ({thr['exam_label']}), "
+        f"{thr['sas_90_count']} students ({thr['sas_90_pct']}%) achieved SAS ≥ 90, "
+        f"{thr['sas_110_count']} ({thr['sas_110_pct']}%) achieved SAS ≥ 110, and "
+        f"{thr['sas_120_count']} ({thr['sas_120_pct']}%) achieved SAS ≥ 120."
+    )
+
+# ========================================================================
+# Progress-related summary and statement for AI Insight Lens (NGRT)
+# ========================================================================
+
+# Progress distribution summary for AI Insight Lens (NGRT)
+def _get_latest_progress_distribution_summary():
+    """
+    Reuse existing classwise progress helper and roll up
+    all class values into one cohort-level progress summary.
+    """
+    # Existing helper already computes progress distribution by class
+    data = get_latest_ngrt_classwise_progress()
+
+    totals = data.get("totals", [])
+    lower_counts = data.get("lower_count", [])
+    expected_counts = data.get("expected_count", [])
+    better_counts = data.get("better_count", [])
+
+    # Sum class values for cohort totals
+    cohort_total = sum(int(x or 0) for x in totals)
+    lower_total = sum(int(x or 0) for x in lower_counts)
+    expected_total = sum(int(x or 0) for x in expected_counts)
+    better_total = sum(int(x or 0) for x in better_counts)
+
+    return {
+        "exam_label": data.get("exam_label"),
+        "total": cohort_total,
+        "lower_count": lower_total,
+        "expected_count": expected_total,
+        "better_count": better_total,
+        "lower_pct": _safe_pct(lower_total, cohort_total),
+        "expected_pct": _safe_pct(expected_total, cohort_total),
+        "better_pct": _safe_pct(better_total, cohort_total),
+    }
+
 # Progress distribution statement for AI Insight Lens (NGRT)
 def _build_progress_statement(prog):
     """
@@ -990,20 +1102,110 @@ def _build_progress_statement(prog):
         f"representing {dominant[1]} students ({dominant[2]}%) across the cohort."
     )
 
-# Reading threshold statement for AI Insight Lens (NGRT)
-def _build_threshold_statement(thr):
+# =========================================================================
+# NGRT AI Insight Lens: OpenAI interpretation for progress with fallback
+# =========================================================================
+def generate_ai_progress_interpretation(prog):
     """
-    Convert SAS threshold summary numbers into one interpretation sentence.
+    Uses OpenAI to generate progress interpretation.
+    Falls back to build progress function with
+    rule-based interpretation if the AI call fails.
     """
-    if thr["total"] == 0:
-        return "No latest NGRT SAS threshold data is available."
 
-    return (
-        f"Based on the latest available dataset ({thr['exam_label']}), "
-        f"{thr['sas_90_count']} students ({thr['sas_90_pct']}%) achieved SAS ≥ 90, "
-        f"{thr['sas_110_count']} ({thr['sas_110_pct']}%) achieved SAS ≥ 110, and "
-        f"{thr['sas_120_count']} ({thr['sas_120_pct']}%) achieved SAS ≥ 120."
-    )
+    try:    
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        prompt = f"""
+        Write a teacher-useful interpretation of classwise NGRT progress distribution for a dashboard.
+
+        Classwise progress distribution:
+        - Lower than Expected: {prog["lower_count"]} students ({prog["lower_pct"]}%)
+        - Expected: {prog["expected_count"]} students ({prog["expected_pct"]}%)
+        - Better than Expected: {prog["better_count"]} students ({prog["better_pct"]}%)
+
+        Context:
+        - The data summarises progress across classes or year groups in the selected NGRT dataset.
+        - Lower than Expected means students have made less progress than expected across available NGRT assessments.
+        - Expected means students are showing progress broadly in line with the expected assessment pattern.
+        - Better than Expected means students have made stronger progress than expected across available NGRT assessments.
+        - The interpretation should describe how progress is distributed across classes.
+        - The interpretation should help teachers identify class-level patterns for support, monitoring, or extension.
+        - The interpretation should focus on classwise progress patterns and year group implications, not individual students.
+
+        Requirements:
+        - Write exactly 3 concise bullet points.
+        - Start each bullet point with "-".
+        - Keep each bullet point to one sentence only.
+        - Keep each sentence around 10 to 18 words.
+        - Start each bullet point on a new line.
+        - Use clear, accessible language suitable for teachers.
+        - Use a professional, teacher-useful dashboard tone.
+        - Use third-person language and refer to "classes", "year groups", "the cohort", or "students".
+        - Focus on classwise progress distribution, teaching implications, support needs, and possible extension priorities.
+        - Avoid overly negative or alarming language.
+        - Do not mention individual students.
+        - Do not include a heading.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an educational data analyst writing concise, teacher-useful "
+                        "dashboard interpretations of classwise NGRT progress distribution."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=150
+        )
+
+        return response.choices[0].message.content.strip()
+
+    except Exception:
+        return _build_progress_statement(prog)
+
+# ========================================================================
+# Attainment-related summary and statement for AI Insight Lens (NGRT)
+# ========================================================================
+
+# Attainment distribution summary for AI Insight Lens (NGRT)
+def _get_latest_attainment_distribution_summary():
+    """
+    Reuse existing classwise stanine helper and roll up
+    all class values into one cohort-level attainment summary.
+    """
+    # Existing helper already applies latest-dataset priority
+    data = get_latest_ngrt_classwise_stanine()
+
+    # Extract arrays from existing payload
+    totals = data.get("totals", [])
+    below_counts = data.get("below_average_count", [])
+    average_counts = data.get("average_count", [])
+    above_counts = data.get("above_average_count", [])
+
+    # Sum class totals to get cohort totals
+    cohort_total = sum(int(x or 0) for x in totals)
+    below_total = sum(int(x or 0) for x in below_counts)
+    average_total = sum(int(x or 0) for x in average_counts)
+    above_total = sum(int(x or 0) for x in above_counts)
+
+    return {
+        "exam_label": data.get("exam_label"),
+        "total": cohort_total,
+        "below_count": below_total,
+        "average_count": average_total,
+        "above_count": above_total,
+        "below_pct": _safe_pct(below_total, cohort_total),
+        "average_pct": _safe_pct(average_total, cohort_total),
+        "above_pct": _safe_pct(above_total, cohort_total),
+    }
 
 # Attainment distribution statement for AI Insight Lens (NGRT)
 def _build_attainment_statement(att):
@@ -1043,29 +1245,32 @@ def generate_ai_attainment_interpretation(att):
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         prompt = f"""
-        Write a teacher-useful interpretation of the whole-cohort NGRT attainment distribution for a dashboard.
+        Write a teacher-useful interpretation of classwise NGRT attainment distribution for a dashboard.
 
-        Cohort attainment distribution:
+        Classwise attainment distribution:
         - Below average: {att["below_count"]} students ({att["below_pct"]}%)
         - Average: {att["average_count"]} students ({att["average_pct"]}%)
         - Above average: {att["above_count"]} students ({att["above_pct"]}%)
 
         Context:
+        - The data summarises attainment across classes or year groups in the selected NGRT dataset.
         - Below average refers to stanine 1 to 3.
         - Average refers to stanine 4 to 6.
         - Above average refers to stanine 7 to 9.
-        - The interpretation should focus on the overall attainment profile of the cohort.
+        - The interpretation should describe how attainment is distributed across classes.
+        - The interpretation should help teachers identify class-level strengths, support needs, and possible intervention priorities.
+        - The interpretation should focus on classwise patterns and year group implications, not individual students.
 
         Requirements:
         - Write exactly 3 concise bullet points.
         - Start each bullet point with "-".
         - Keep each bullet point to one sentence only.
-        - Keep each sentence around 10 to 16 words.
-        - Start each sentence on a new line.
+        - Keep each sentence around 10 to 18 words.
+        - Start each bullet point on a new line.
         - Use clear, accessible language suitable for teachers.
         - Use a professional, teacher-useful dashboard tone.
-        - Use third-person language and refer to "the cohort" or "students".
-        - Focus on attainment distribution, cohort strengths, and possible support implications.
+        - Use third-person language and refer to "classes", "year groups", "the cohort", or "students".
+        - Focus on classwise attainment distribution, teaching implications, and possible support priorities.
         - Avoid overly negative or alarming language.
         - Do not mention individual students.
         - Do not include a heading.
@@ -1078,7 +1283,7 @@ def generate_ai_attainment_interpretation(att):
                     "role": "system",
                     "content": (
                         "You are an educational data analyst writing concise, teacher-useful "
-                        "dashboard interpretations of whole-cohort NGRT attainment data."
+                        "dashboard interpretations of classwise NGRT attainment distribution."
                     )
                 },
                 {
@@ -1087,7 +1292,7 @@ def generate_ai_attainment_interpretation(att):
                 }
             ],
             temperature=0.3,
-            max_tokens=140
+            max_tokens=150
         )
 
         return response.choices[0].message.content.strip()
@@ -1109,17 +1314,14 @@ def build_ngrt_dashboard_ai_interpretation():
     progress = _get_latest_progress_distribution_summary()
     thresholds = _get_latest_reading_threshold_summary()
 
-    # Build trend sentence from classwise average stanine series
-    trend_statement = _build_trend_statement_from_existing_series()
-
     # Return one payload object for template rendering
     return {
         "latest_exam": latest_meta["exam_label"],
         "latest_avg_stanine": latest_meta["avg_stanine"],
         "latest_avg_sas": latest_meta["avg_sas"],
         "attainment_statement": generate_ai_attainment_interpretation(attainment),
-        "progress_statement": _build_progress_statement(progress),
-        "trend_statement": trend_statement,
+        "progress_statement": generate_ai_progress_interpretation(progress),
+        "trend_statement": generate_ai_attainment_trends_interpretation(),
         "threshold_statement": _build_threshold_statement(thresholds),
         "attainment_data": attainment,
         "progress_data": progress,
