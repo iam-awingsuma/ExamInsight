@@ -86,25 +86,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // ---------------------------------------------------------
-  //   Apply color to class based on progress category
-  //   below expected, expected, above expected
-  // ---------------------------------------------------------
-  function getProgressClass(progress) {
-    if (!progress) return "";
-
-    switch (progress.toLowerCase()) {
-      case "below expected":
-        return "intl-progress-below";
-      case "expected":
-        return "intl-progress-expected";
-      case "above expected":
-        return "intl-progress-above";
-      default:
-        return "";
-    }
-  }
-
-  // ---------------------------------------------------------
   //   Apply gender icon based on gender value
   // ---------------------------------------------------------
   function getGenderIcon(gender) {
@@ -173,15 +154,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const value = progressCategory.toString().trim().toLowerCase();
 
     if (value.includes("below")) {
-      return "progress-below";
+      return "intl-progress-below";
     }
-
+    
     if (value.includes("above")) {
-      return "progress-above";
+      return "intl-progress-above";
     }
 
     if (value.includes("expected")) {
-      return "progress-expected";
+      return "intl-progress-expected";
     }
 
     return "";
@@ -197,7 +178,6 @@ document.addEventListener("DOMContentLoaded", function () {
         <td>
           Previous AY: -<br/>
           Current AY: -<br/>
-          Progress: -
         </td>
       `;
     }
@@ -208,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
       <td>
         Previous AY: ${formatValue(subjectResult.previous_percentage)}% / ${formatValue(subjectResult.previous_grade)}<br/>
         Current AY: ${formatValue(subjectResult.current_percentage)}% / ${formatValue(subjectResult.current_grade)}<br/>
-        Progress: <span class="${progressClass}">${formatValue(subjectResult.progress_category)}</span>
+        <span class="${progressClass}">${formatValue(subjectResult.progress_category)}</span>
       </td>
     `;
   }

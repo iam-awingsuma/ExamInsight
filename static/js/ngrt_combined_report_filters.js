@@ -188,7 +188,7 @@ document.addEventListener("DOMContentLoaded", function () {
       <td>
         SAS: ${formatValue(result.sas)} | Stanine: <span class="${bandClass}">${formatValue(result.stanine)}</span><br/>
         Reading Age: ${formatValue(result.reading_age)}<br/>
-        Progress: <span class="${progressClass}">${formatValue(result.progress_category)}</span>
+        <span class="${progressClass}">${formatValue(result.progress_category)}</span>
       </td>
     `;
   }
