@@ -1238,20 +1238,17 @@ class KPIBox(Flowable):
         self.height = height
 
     def draw(self):
-        self.canv.setFillColor(colors.white)
-        self.canv.setStrokeColor(EI_BORDER)
-        self.canv.roundRect(0, 0, self.width, self.height, 8, stroke=1, fill=1)
 
         # KPI title at the top
-        self.canv.setFillColor(EI_MUTED)
-        self.canv.setFont("Helvetica", 7)
+        self.canv.setFillColor(EI_DARK)
+        self.canv.setFont("Helvetica-Bold", 8)
         self.canv.drawCentredString(self.width / 2, self.height - 16, self.title)
 
         # KPI value in the middle with wrapping
         value_style = ParagraphStyle(
             name="KPIValueWrapped",
             fontName="Helvetica-Bold",
-            fontSize=13,
+            fontSize=15,
             leading=14,
             textColor=EI_DARK,
             alignment=TA_CENTER,
@@ -1272,14 +1269,14 @@ class KPIBox(Flowable):
 
         # Center the wrapped value between title and subtitle
         x = 6
-        y = (self.height / 2) - (wrapped_height / 2) - 2
+        y = (self.height / 2) - (wrapped_height / 2) + 2
 
         value_paragraph.drawOn(self.canv, x, y)
 
         # KPI subtitle at the bottom
         self.canv.setFillColor(EI_MUTED)
-        self.canv.setFont("Helvetica", 6.5)
-        self.canv.drawCentredString(self.width / 2, 10, self.subtitle)
+        self.canv.setFont("Helvetica", 7)
+        self.canv.drawCentredString(self.width / 2, 8, self.subtitle)
 
 # custom Flowable to draw the stanine scale with the student's stanine marked
 class StanineScale(Flowable):
@@ -1523,11 +1520,26 @@ def make_kpi_table(data):
 
     table = Table([kpis], colWidths=[4.25 * cm, 4.25 * cm, 4.25 * cm, 4.25 * cm])
 
+    # table.setStyle(TableStyle([
+    #     ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+    #     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    #     ("LEFTPADDING", (0, 0), (-1, -1), 2),
+    #     ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+    # ]))
+
     table.setStyle(TableStyle([
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("BACKGROUND", (0, 0), (0, 0), EI_BLUE_BG),
+        ("BACKGROUND", (1, 0), (1, 0), EI_GREEN_BG),
+        ("BACKGROUND", (2, 0), (2, 0), EI_YELLOW_BG),
+        ("BACKGROUND", (3, 0), (3, 0), EI_RED_BG),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 2),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
     ]))
 
     return table
@@ -1567,7 +1579,7 @@ def make_history_table(data):
             f"{item['sas']:.0f}",
             f"{item['stanine']:.0f}",
             item["reading_age"],
-            "No Progress for Baseline Test" if progress_value == "-" else progress_value
+            "No Progress Available" if progress_value == "-" else progress_value
         ])
 
     table = Table(rows, colWidths=[4.8 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 4.8 * cm])
