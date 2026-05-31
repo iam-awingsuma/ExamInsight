@@ -29,7 +29,7 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from sqlalchemy import func
 
 from apps import db
-from apps.authentication.models import NGRTA, NGRTB, NGRTC, Students
+from apps.authentication.models import NGRTA, NGRTB, NGRTC, Students, InternalExam
 
 logo_path = os.path.abspath(
         os.path.join(
@@ -962,6 +962,13 @@ EI_BORDER = colors.HexColor("#D0D5DD")
 EI_GREEN = colors.HexColor("#16A34A")
 EI_RED = colors.HexColor("#DC2626")
 EI_YELLOW = colors.HexColor("#F59E0B")
+
+# Soft background colours
+EI_BLUE_BG = colors.HexColor("#E0F2FE")
+EI_GREEN_BG = colors.HexColor("#DCFCE7")
+EI_YELLOW_BG = colors.HexColor("#FEF3C7")
+EI_RED_BG = colors.HexColor("#FEE2E2")
+EI_ORANGE_BG = colors.HexColor("#FFEDD5")
 
 PAGE_WIDTH, PAGE_HEIGHT = A4
 
@@ -2444,6 +2451,994 @@ def generate_ngrt_indv_extl_rpt(student_id):
             doc,
             report_title="ExamInsight: NGRT Individual Student Report",
             logo_path=logo_path
+        ),
+    )
+
+    return output_path
+
+
+# =============================================================================
+# Build Report Data - Internal Assessment (English, Mathematics, Science)
+# =============================================================================
+
+# Data builder function for the internal assessment report, which retrieves the necessary student and internal exam data,
+def build_internal_individual_report_data(student_id):
+    """
+    Builds all required data for one student's internal assessment report.
+    """
+
+    student = Students.query.filter_by(student_id=student_id).first()
+
+    if not student:
+        return None
+
+    internal = InternalExam.query.filter_by(student_id=student_id).first()
+
+    if not internal:
+        return None
+
+    full_name = f"{student.forename or ''} {student.surname or ''}".strip()
+
+    subjects = {
+        "english": {
+            "label": "English",
+            "previous_pct": clean_number(getattr(internal, "eng_prevPct", None)),
+            "previous_grade": clean_text(getattr(internal, "eng_prevGr", None)),
+            "current_pct": clean_number(getattr(internal, "eng_currPct", None)),
+            "current_grade": clean_text(getattr(internal, "eng_currGr", None)),
+            "progress_category": clean_text(getattr(internal, "eng_progcat", None)),
+        },
+        "mathematics": {
+            "label": "Mathematics",
+            "previous_pct": clean_number(getattr(internal, "maths_prevPct", None)),
+            "previous_grade": clean_text(getattr(internal, "maths_prevGr", None)),
+            "current_pct": clean_number(getattr(internal, "maths_currPct", None)),
+            "current_grade": clean_text(getattr(internal, "maths_currGr", None)),
+            "progress_category": clean_text(getattr(internal, "maths_progcat", None)),
+        },
+        "science": {
+            "label": "Science",
+            "previous_pct": clean_number(getattr(internal, "sci_prevPct", None)),
+            "previous_grade": clean_text(getattr(internal, "sci_prevGr", None)),
+            "current_pct": clean_number(getattr(internal, "sci_currPct", None)),
+            "current_grade": clean_text(getattr(internal, "sci_currGr", None)),
+            "progress_category": clean_text(getattr(internal, "sci_progcat", None)),
+        },
+    }
+
+    averages = calculate_internal_averages(student)
+
+    current_values = [
+        subject["current_pct"]
+        for subject in subjects.values()
+        if subject["current_pct"] is not None
+    ]
+
+    overall_average = round(sum(current_values) / len(current_values), 1) if current_values else None
+
+    strongest_subject = get_strongest_subject(subjects)
+    support_priority = get_support_priority(subjects)
+    main_progress_category = get_main_progress_category(subjects)
+
+    return {
+        "student": student,
+        "student_id": student.student_id,
+        "student_name": full_name,
+        "gender": clean_text(getattr(student, "gender", "")),
+        "year_group": clean_text(getattr(student, "yrgrp", "")).upper(),
+        "status": clean_text(getattr(student, "status", "")),
+        "nationality": clean_text(getattr(student, "nationality", "")),
+        "sped": clean_text(getattr(student, "sped", "")),
+        "date_generated": datetime.now().strftime("%A, %d-%b-%Y"),
+
+        "subjects": subjects,
+        "overall_average": overall_average,
+        "strongest_subject": strongest_subject,
+        "support_priority": support_priority,
+        "main_progress_category": main_progress_category,
+        "averages": averages,
+    }
+
+# Helper function to calculate class and cohort averages for internal assessments in English, Mathematics, and Science.
+def calculate_internal_averages(student):
+    """
+    Calculates class and cohort current percentage averages for English, Mathematics, and Science.
+    """
+
+    yrgrp = getattr(student, "yrgrp", None)
+
+    def avg_for_subject(column_name, class_only=False):
+        column = getattr(InternalExam, column_name)
+
+        query = (
+            db.session.query(func.avg(column))
+            .join(Students, Students.student_id == InternalExam.student_id)
+        )
+
+        if class_only and yrgrp:
+            query = query.filter(func.lower(Students.yrgrp) == yrgrp.lower())
+
+        value = query.scalar()
+        return round(float(value), 1) if value is not None else None
+
+    return {
+        "class": {
+            "english": avg_for_subject("eng_currPct", class_only=True),
+            "mathematics": avg_for_subject("maths_currPct", class_only=True),
+            "science": avg_for_subject("sci_currPct", class_only=True),
+        },
+        "cohort": {
+            "english": avg_for_subject("eng_currPct", class_only=False),
+            "mathematics": avg_for_subject("maths_currPct", class_only=False),
+            "science": avg_for_subject("sci_currPct", class_only=False),
+        }
+    }
+
+# =============================================================================
+# Report Tables
+# =============================================================================
+
+def section_title(title, styles):
+    return Paragraph(title, styles["SectionTitle"])
+
+
+def make_internal_student_info_table(data):
+    table_data = [
+        [
+            Paragraph("<b>Student Name</b>", get_plain_style()),
+            Paragraph(data["student_name"], get_plain_style()),
+            Paragraph("<b>Student ID</b>", get_plain_style()),
+            Paragraph(str(data["student_id"]), get_plain_style()),
+        ],
+        [
+            Paragraph("<b>Year Group</b>", get_plain_style()),
+            Paragraph(data["year_group"], get_plain_style()),
+            Paragraph("<b>Gender</b>", get_plain_style()),
+            Paragraph(data["gender"], get_plain_style()),
+        ],
+        [
+            Paragraph("<b>Latest Assessment</b>", get_plain_style()),
+            Paragraph("Internal Assessment", get_plain_style()),
+            Paragraph("<b>Date Generated</b>", get_plain_style()),
+            Paragraph(data["date_generated"], get_plain_style()),
+        ],
+    ]
+
+    table = Table(table_data, colWidths=[3.5 * cm, 5 * cm, 3.5 * cm, 5 * cm])
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+        ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+
+    return table
+
+
+def make_internal_kpi_table(data):
+    """
+    Creates four KPI cards:
+    Overall Current Average, Strongest Subject, Main Progress Category, Support Priority.
+    """
+
+    overall = format_pct(data["overall_average"])
+    strongest = data["strongest_subject"] or "-"
+    progress = data["main_progress_category"] or "-"
+    priority = data["support_priority"] or "-"
+
+    table_data = [
+        [
+            make_kpi_cell("Overall Current Average", overall, "Across English, Maths, Science"),
+            make_kpi_cell("Strongest Subject", strongest, "Highest current percentage"),
+            make_kpi_cell("Main Progress Category", progress, "Most common progress category"),
+            make_kpi_cell("Support Priority", priority, "Lowest current percentage"),
+        ]
+    ]
+
+    table = Table(table_data, colWidths=[4.2 * cm, 4.2 * cm, 4.2 * cm, 4.2 * cm])
+
+    table.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("BACKGROUND", (0, 0), (0, 0), EI_BLUE_BG),
+        ("BACKGROUND", (1, 0), (1, 0), EI_GREEN_BG),
+        ("BACKGROUND", (2, 0), (2, 0), EI_YELLOW_BG),
+        ("BACKGROUND", (3, 0), (3, 0), EI_RED_BG),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 7),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    return table
+
+
+def make_kpi_cell(title, value, subtitle):
+    return [
+        Paragraph(f"<b>{title}</b>", get_kpi_title_style()),
+        Paragraph(f"<font size='15'><b>{value}</b></font>", get_kpi_value_style()),
+        Paragraph(subtitle, get_kpi_subtitle_style()),
+    ]
+
+
+def make_subject_summary_table(data, styles):
+    subjects = data["subjects"]
+
+    table_data = [
+        [
+            "Subject",
+            "Previous %",
+            "Previous Grade",
+            "Current %",
+            "Current Grade",
+            "Progress Category"
+        ]
+    ]
+
+    for subject in subjects.values():
+        table_data.append([
+            subject["label"],
+            format_pct(subject["previous_pct"]),
+            subject["previous_grade"],
+            format_pct(subject["current_pct"]),
+            subject["current_grade"],
+            subject["progress_category"],
+        ])
+
+    table = Table(
+        table_data,
+        colWidths=[3.2 * cm, 2.5 * cm, 2.7 * cm, 2.5 * cm, 2.7 * cm, 3.2 * cm]
+    )
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), EI_DARK),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, EI_LIGHT]),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+
+    return table
+
+
+def make_progress_table(data, styles):
+    subjects = data["subjects"]
+
+    table_data = [
+        [
+            "Subject",
+            "Previous %",
+            "Current %",
+            "Change",
+            "Previous Grade",
+            "Current Grade",
+            "Progress"
+        ]
+    ]
+
+    for subject in subjects.values():
+        previous_pct = subject["previous_pct"]
+        current_pct = subject["current_pct"]
+
+        if previous_pct is not None and current_pct is not None:
+            change = current_pct - previous_pct
+            change_text = f"{change:+.1f}"
+        else:
+            change_text = "-"
+
+        table_data.append([
+            subject["label"],
+            format_pct(previous_pct),
+            format_pct(current_pct),
+            change_text,
+            subject["previous_grade"],
+            subject["current_grade"],
+            subject["progress_category"],
+        ])
+
+    table = Table(
+        table_data,
+        colWidths=[2.8 * cm, 2.3 * cm, 2.3 * cm, 2.0 * cm, 2.5 * cm, 2.5 * cm, 2.6 * cm]
+    )
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), EI_DARK),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, EI_LIGHT]),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+
+    return table
+
+
+def make_internal_threshold_table(data, styles):
+    avg = data["overall_average"]
+
+    thresholds = [
+        {
+            "threshold": "Current average >= 60%",
+            "meaning": "Working within expected attainment range",
+            "achieved": avg is not None and avg >= 60
+        },
+        {
+            "threshold": "Current average >= 70%",
+            "meaning": "Secure internal assessment attainment",
+            "achieved": avg is not None and avg >= 70
+        },
+        {
+            "threshold": "Current average >= 80%",
+            "meaning": "High attainment / enrichment level",
+            "achieved": avg is not None and avg >= 80
+        },
+    ]
+
+    table_data = [["Threshold", "Meaning", "Status"]]
+
+    for item in thresholds:
+        table_data.append([
+            item["threshold"],
+            item["meaning"],
+            "Achieved" if item["achieved"] else "Not Yet"
+        ])
+
+    table = Table(table_data, colWidths=[4.5 * cm, 8.5 * cm, 3.5 * cm])
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), EI_DARK),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("ALIGN", (2, 1), (2, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, EI_LIGHT]),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+
+    return table
+
+# =============================================================================
+# Simple ReportLab Charts
+# =============================================================================
+
+class SubjectProgressBarChart(Flowable):
+    """
+    Bar chart showing Previous % and Current % for English, Mathematics, and Science.
+    """
+
+    def __init__(self, subjects, width=16.5 * cm, height=7 * cm):
+        super().__init__()
+        self.subjects = subjects
+        self.width = width
+        self.height = height
+
+    def draw(self):
+        c = self.canv
+
+        x0 = 1 * cm
+        y0 = 1 * cm
+        chart_width = self.width - 2 * cm
+        chart_height = self.height - 2 * cm
+
+        c.setFont("Helvetica-Bold", 9)
+        c.setFillColor(EI_DARK)
+        c.drawString(0, self.height - 0.4 * cm, "Previous vs Current Percentage by Subject")
+
+        # Axis
+        c.setStrokeColor(EI_BORDER)
+        c.line(x0, y0, x0, y0 + chart_height)
+        c.line(x0, y0, x0 + chart_width, y0)
+
+        # Y-axis labels
+        c.setFont("Helvetica", 6)
+        c.setFillColor(EI_MUTED)
+
+        for value in range(0, 101, 20):
+            y = y0 + (value / 100) * chart_height
+            c.drawRightString(x0 - 4, y - 2, str(value))
+            c.setStrokeColor(colors.HexColor("#E5E7EB"))
+            c.line(x0, y, x0 + chart_width, y)
+
+        subject_values = list(self.subjects.values())
+        group_width = chart_width / len(subject_values)
+        bar_width = 0.35 * cm
+
+        for index, subject in enumerate(subject_values):
+            group_x = x0 + index * group_width + group_width / 2
+
+            previous = subject["previous_pct"] or 0
+            current = subject["current_pct"] or 0
+
+            previous_height = (previous / 100) * chart_height
+            current_height = (current / 100) * chart_height
+
+            # Previous bar
+            c.setFillColor(colors.HexColor("#93C5FD"))
+            c.rect(group_x - bar_width - 2, y0, bar_width, previous_height, fill=1, stroke=0)
+
+            # Current bar
+            c.setFillColor(colors.HexColor("#2563EB"))
+            c.rect(group_x + 2, y0, bar_width, current_height, fill=1, stroke=0)
+
+            # Values
+            c.setFont("Helvetica", 6)
+            c.setFillColor(EI_DARK)
+            c.drawCentredString(group_x - bar_width / 2 - 2, y0 + previous_height + 3, format_pct(previous))
+            c.drawCentredString(group_x + bar_width / 2 + 2, y0 + current_height + 3, format_pct(current))
+
+            # Subject label
+            c.setFont("Helvetica", 7)
+            c.setFillColor(EI_MUTED)
+            c.drawCentredString(group_x, y0 - 12, subject["label"])
+
+        # Legend
+        legend_y = self.height - 0.8 * cm
+
+        c.setFillColor(colors.HexColor("#93C5FD"))
+        c.rect(self.width - 4.7 * cm, legend_y, 8, 8, fill=1, stroke=0)
+        c.setFillColor(EI_MUTED)
+        c.setFont("Helvetica", 6)
+        c.drawString(self.width - 4.3 * cm, legend_y, "Previous AY")
+
+        c.setFillColor(colors.HexColor("#2563EB"))
+        c.rect(self.width - 2.5 * cm, legend_y, 8, 8, fill=1, stroke=0)
+        c.setFillColor(EI_MUTED)
+        c.drawString(self.width - 2.1 * cm, legend_y, "Current AY")
+
+
+class SubjectComparisonBarChart(Flowable):
+    """
+    Bar chart comparing Student, Class Average, and Cohort Average per subject.
+    """
+
+    def __init__(self, subjects, averages, width=16.5 * cm, height=7 * cm):
+        super().__init__()
+        self.subjects = subjects
+        self.averages = averages
+        self.width = width
+        self.height = height
+
+    def draw(self):
+        c = self.canv
+
+        x0 = 1 * cm
+        y0 = 1 * cm
+        chart_width = self.width - 2 * cm
+        chart_height = self.height - 2 * cm
+
+        c.setFont("Helvetica-Bold", 9)
+        c.setFillColor(EI_DARK)
+        c.drawString(0, self.height - 0.4 * cm, "Student vs Class and Cohort Average: Internal Assessment Comparison")
+
+        # Axis
+        c.setStrokeColor(EI_BORDER)
+        c.line(x0, y0, x0, y0 + chart_height)
+        c.line(x0, y0, x0 + chart_width, y0)
+
+        c.setFont("Helvetica", 6)
+        c.setFillColor(EI_MUTED)
+
+        for value in range(0, 101, 20):
+            y = y0 + (value / 100) * chart_height
+            c.drawRightString(x0 - 4, y - 2, str(value))
+            c.setStrokeColor(colors.HexColor("#E5E7EB"))
+            c.line(x0, y, x0 + chart_width, y)
+
+        subject_keys = ["english", "mathematics", "science"]
+        group_width = chart_width / len(subject_keys)
+        bar_width = 0.25 * cm
+
+        for index, key in enumerate(subject_keys):
+            subject = self.subjects[key]
+            group_x = x0 + index * group_width + group_width / 2
+
+            student_value = subject["current_pct"] or 0
+            class_value = self.averages["class"].get(key) or 0
+            cohort_value = self.averages["cohort"].get(key) or 0
+
+            values = [
+                ("Student", student_value, colors.HexColor("#2563EB"), -bar_width - 5),
+                ("Class", class_value, colors.HexColor("#10B981"), 0),
+                ("Cohort", cohort_value, colors.HexColor("#F59E0B"), bar_width + 5),
+            ]
+
+            for label, value, color, offset in values:
+                height = (value / 100) * chart_height
+                c.setFillColor(color)
+                c.rect(group_x + offset, y0, bar_width, height, fill=1, stroke=0)
+
+                c.setFont("Helvetica", 6)
+                c.setFillColor(EI_DARK)
+                c.drawCentredString(group_x + offset + bar_width / 2, y0 + height + 3, format_pct(value))
+
+            c.setFont("Helvetica", 7)
+            c.setFillColor(EI_MUTED)
+            c.drawCentredString(group_x, y0 - 12, subject["label"])
+
+        # Legend
+        legend_y = self.height - 0.8 * cm
+
+        legend_items = [
+            ("Student", colors.HexColor("#2563EB")),
+            ("Class Avg", colors.HexColor("#10B981")),
+            ("Cohort Avg", colors.HexColor("#F59E0B")),
+        ]
+
+        legend_x = self.width - 5.7 * cm
+
+        for label, color in legend_items:
+            c.setFillColor(color)
+            c.rect(legend_x, legend_y, 8, 8, fill=1, stroke=0)
+            c.setFillColor(EI_MUTED)
+            c.setFont("Helvetica", 6)
+            c.drawString(legend_x + 12, legend_y, label)
+            legend_x += 1.9 * cm
+
+# =============================================================================
+# Text Interpretation Helpers
+# =============================================================================
+
+def internal_assessment_interpretation(data):
+    name = data["student_name"]
+    subjects = data["subjects"]
+
+    eng = subjects["english"]
+    maths = subjects["mathematics"]
+    sci = subjects["science"]
+
+    overall = format_pct(data["overall_average"])
+    strongest = data["strongest_subject"] or "the strongest subject"
+    priority = data["support_priority"] or "the main support area"
+    progress = data["main_progress_category"] or "not yet available"
+
+    return (
+        f"{name} has demonstrated an overall current average of {overall} across the available "
+        f"internal assessment records. The student's current scores are {format_pct(eng['current_pct'])} "
+        f"in English, {format_pct(maths['current_pct'])} in Mathematics, and {format_pct(sci['current_pct'])} "
+        f"in Science. The strongest area is currently {strongest}, while {priority} should be monitored "
+        f"as a priority for targeted support. The main progress category is {progress}, which should be "
+        f"reviewed alongside classroom evidence, teacher observations, and ongoing formative assessment."
+    )
+
+
+def learning_profile_text(data):
+    name = data["student_name"]
+    strongest = data["strongest_subject"] or "one subject area"
+    priority = data["support_priority"] or "one subject area"
+    progress = data["main_progress_category"] or "available progress information"
+
+    return (
+        f"{name}'s learning profile shows the student's current attainment across English, Mathematics, "
+        f"and Science. The available assessment evidence indicates that {strongest} is currently a relative "
+        f"strength, while {priority} may require closer monitoring or additional support. The student's progress "
+        f"profile is currently described as {progress}. This information should be used to guide planning, "
+        f"intervention, feedback, and next-step classroom support."
+    )
+
+
+def progress_interpretation_internal(data):
+    name = data["student_name"]
+    subjects = data["subjects"]
+
+    improved_subjects = []
+    declined_subjects = []
+    stable_subjects = []
+
+    for subject in subjects.values():
+        prev = subject["previous_pct"]
+        curr = subject["current_pct"]
+
+        if prev is None or curr is None:
+            continue
+
+        difference = curr - prev
+
+        if difference > 2:
+            improved_subjects.append(subject["label"])
+        elif difference < -2:
+            declined_subjects.append(subject["label"])
+        else:
+            stable_subjects.append(subject["label"])
+
+    parts = []
+
+    if improved_subjects:
+        parts.append(f"improvement is evident in {', '.join(improved_subjects)}")
+
+    if stable_subjects:
+        parts.append(f"performance is broadly stable in {', '.join(stable_subjects)}")
+
+    if declined_subjects:
+        parts.append(f"closer monitoring may be needed in {', '.join(declined_subjects)}")
+
+    if not parts:
+        return (
+            f"The progress data for {name} should be reviewed alongside classroom evidence and teacher observations. "
+            f"Further assessment information may be needed to identify clear progress patterns."
+        )
+
+    return (
+        f"The progress data shows that {', while '.join(parts)}. This pattern helps identify where "
+        f"{name} is making gains and where additional support may be needed. Continued monitoring, targeted feedback, "
+        f"and focused intervention will help sustain progress across the next assessment cycle."
+    )
+
+
+def generate_internal_support_points(data):
+    name = data["student_name"]
+    strongest = data["strongest_subject"] or "a subject area"
+    priority = data["support_priority"] or "a subject area"
+    overall = format_pct(data["overall_average"])
+    progress = data["main_progress_category"] or "available progress information"
+
+    return {
+        "strengths": [
+            f"{name} has an overall current average of {overall} across the available internal assessment records.",
+            f"{strongest} is currently the student's strongest subject based on the available current percentage scores.",
+            f"The student's progress category is mainly described as {progress}, showing the current direction of learning."
+        ],
+        "development_areas": [
+            f"{priority} should be monitored as a priority area for additional support or targeted review.",
+            "The student may benefit from further opportunities to revisit misconceptions and strengthen core skills.",
+            "Progress should continue to be checked using classroom evidence, formative assessment, and teacher feedback."
+        ],
+        "next_steps": [
+            f"Provide focused intervention or guided practice in {priority} to address gaps and strengthen confidence.",
+            "Use short review tasks, modelled examples, and regular feedback to support steady improvement.",
+            "Continue to monitor performance across English, Mathematics, and Science during the next assessment cycle."
+        ]
+    }
+
+
+def generate_subject_considerations(data):
+    priority = data["support_priority"] or "the identified support area"
+
+    return {
+        "english": [
+            "Continue guided reading, vocabulary development, and sentence-level writing practice.",
+            "Provide opportunities for extended responses using modelled examples and success criteria.",
+            "Monitor spelling, punctuation, grammar, comprehension accuracy, and quality of written explanations."
+        ],
+        "mathematics": [
+            "Provide regular arithmetic fluency practice and revisit key number facts.",
+            "Use visual models, worked examples, and step-by-step modelling for problem-solving.",
+            "Address misconceptions through short, targeted intervention tasks and daily review."
+        ],
+        "science": [
+            "Strengthen scientific vocabulary through word banks, oral rehearsal, and labelled diagrams.",
+            "Encourage the student to explain observations using because, so, and therefore.",
+            "Use practical investigations and real-life examples to connect assessment content with understanding."
+        ],
+        "class_teacher": [
+            f"Use {priority} as the main starting point for targeted classroom support.",
+            "Review the student's assessment outcomes alongside books, questioning, quizzes, and classroom participation.",
+            "Plan short, focused next steps and monitor whether the student responds positively to intervention."
+        ]
+    }
+
+# =============================================================================
+# Utility and Formatting Helpers
+# =============================================================================
+
+def clean_text(value):
+    if value is None:
+        return "-"
+    value = str(value).strip()
+    return value if value else "-"
+
+
+def clean_number(value):
+    if value is None or value == "":
+        return None
+
+    try:
+        return round(float(value), 1)
+    except (TypeError, ValueError):
+        return None
+
+
+def format_pct(value):
+    if value is None:
+        return "-"
+
+    try:
+        value = float(value)
+        if value.is_integer():
+            return f"{int(value)}%"
+        return f"{value:.1f}%"
+    except (TypeError, ValueError):
+        return "-"
+
+
+def get_strongest_subject(subjects):
+    valid_subjects = [
+        subject for subject in subjects.values()
+        if subject["current_pct"] is not None
+    ]
+
+    if not valid_subjects:
+        return "-"
+
+    strongest = max(valid_subjects, key=lambda item: item["current_pct"])
+    return strongest["label"]
+
+
+def get_support_priority(subjects):
+    valid_subjects = [
+        subject for subject in subjects.values()
+        if subject["current_pct"] is not None
+    ]
+
+    if not valid_subjects:
+        return "-"
+
+    weakest = min(valid_subjects, key=lambda item: item["current_pct"])
+    return weakest["label"]
+
+
+def get_main_progress_category(subjects):
+    categories = [
+        subject["progress_category"]
+        for subject in subjects.values()
+        if subject["progress_category"] and subject["progress_category"] != "-"
+    ]
+
+    if not categories:
+        return "-"
+
+    return max(set(categories), key=categories.count)
+
+
+def paragraph_list(title, items, styles):
+    elements = [
+        Paragraph(f"<b>{title}</b>", styles["BoxTitle"]),
+        Spacer(1, 4)
+    ]
+
+    for item in items:
+        elements.append(Paragraph(f"- {item}", styles["SmallText"]))
+
+    return elements
+
+# =============================================================================
+# Paragraph styles used by helper tables
+# =============================================================================
+
+def get_plain_style():
+    return ParagraphStyle(
+        name="InternalPlainStyle",
+        fontName="Helvetica",
+        fontSize=8,
+        leading=10,
+        textColor=EI_DARK,
+        alignment=TA_LEFT,
+    )
+
+
+def get_kpi_title_style():
+    return ParagraphStyle(
+        name="InternalKpiTitleStyle",
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=10,
+        textColor=EI_DARK,
+        alignment=TA_CENTER,
+    )
+
+
+def get_kpi_value_style():
+    return ParagraphStyle(
+        name="InternalKpiValueStyle",
+        fontName="Helvetica-Bold",
+        fontSize=15,
+        leading=18,
+        textColor=EI_DARK,
+        alignment=TA_CENTER,
+    )
+
+
+def get_kpi_subtitle_style():
+    return ParagraphStyle(
+        name="InternalKpiSubtitleStyle",
+        fontName="Helvetica",
+        fontSize=7,
+        leading=9,
+        textColor=EI_MUTED,
+        alignment=TA_CENTER,
+    )
+
+# =============================================================================
+# Main PDF builder - internal assessments (Assessment Data + Report Generation)
+# =============================================================================
+def generate_intl_indv_rpt(student_id):
+    """
+    Generates the individual internal assessment PDF report.
+    This can be called by your Flask route.
+    """
+
+    data = build_internal_individual_report_data(student_id)
+
+    if not data:
+        return None
+
+    output_path = os.path.join(
+        tempfile.gettempdir(),
+        f"examinsight_individual_internal_report_{student_id}.pdf"
+    )
+
+    doc, styles, story = setup_individual_report_pdf(output_path)
+
+    # =====================================================
+    # Page 1: Student Overview and Current Summary
+    # =====================================================
+
+    story.append(section_title("Internal Assessment Report", styles))
+    story.append(Paragraph(
+        "This report provides an overview of the student's attainment and progress across available "
+        "internal assessments in English, Mathematics, and Science. It summarises previous and current "
+        "assessment outcomes, subject grades, progress categories, and key areas for support. The information "
+        "presented is intended to support parent communication, teacher planning, intervention tracking, and "
+        "next-step learning support.",
+        styles["SmallText"]
+    ))
+    story.append(Spacer(1, 10))
+
+    story.append(make_internal_student_info_table(data))
+    story.append(Spacer(1, 10))
+
+    story.append(make_internal_kpi_table(data))
+    story.append(Spacer(1, 10))
+
+    story.append(section_title("Internal Assessment Interpretation", styles))
+    story.append(Paragraph(internal_assessment_interpretation(data), styles["SmallText"]))
+    story.append(Spacer(1, 10))
+
+    story.append(section_title("Subject Attainment and Progress Summary", styles))
+    story.append(make_subject_summary_table(data, styles))
+    story.append(Spacer(1, 10))
+
+    story.append(section_title("Internal Assessment Thresholds", styles))
+    story.append(make_internal_threshold_table(data, styles))
+    story.append(Spacer(1, 10))
+
+    story.append(section_title("Learning Profile", styles))
+    story.append(Paragraph(learning_profile_text(data), styles["SmallText"]))
+
+    story.append(PageBreak())
+
+    # =====================================================
+    # Page 2: Progress and Comparison
+    # =====================================================
+
+    story.append(section_title("Progress across Internal Assessments", styles))
+    story.append(Paragraph(
+        "This section tracks the student's performance across available internal assessment records "
+        "in English, Mathematics, and Science to support evidence-based intervention and progress monitoring.",
+        styles["SmallText"]
+    ))
+    story.append(Spacer(1, 10))
+
+    story.append(make_progress_table(data, styles))
+    story.append(Spacer(1, 10))
+
+    story.append(SubjectProgressBarChart(data["subjects"]))
+    story.append(Spacer(1, 6))
+
+    story.append(Paragraph(progress_interpretation_internal(data), styles["SmallText"]))
+    story.append(Spacer(1, 12))
+
+    story.append(SubjectComparisonBarChart(data["subjects"], data["averages"]))
+    story.append(Spacer(1, 6))
+
+    story.append(Paragraph(
+        "The comparison chart shows the student's current internal assessment performance against "
+        "class and cohort averages. This helps identify whether the student is performing broadly in line "
+        "with peers, exceeding expectations, or requiring additional support. It should be interpreted "
+        "alongside classroom evidence, teacher observations, books, quizzes, and ongoing formative assessment.",
+        styles["SmallText"]
+    ))
+
+    story.append(PageBreak())
+
+    # =====================================================
+    # Page 3: Recommended Support
+    # =====================================================
+
+    story.append(section_title("Learning Profile and Recommended Support", styles))
+    story.append(Paragraph(
+        "The student's internal assessment profile reflects current strengths, areas for development, "
+        "and recommended support based on English, Mathematics, and Science assessment evidence. Strengths "
+        "highlight what the student is already demonstrating across subject areas. Areas for development "
+        "identify the skills or subjects that may need further practice. Recommended support provides practical "
+        "actions for teachers and parents to help the student make continued progress.",
+        styles["SmallText"]
+    ))
+    story.append(Spacer(1, 10))
+
+    support = generate_internal_support_points(data)
+
+    support_table = Table(
+        [[
+            paragraph_list("Strengths", support["strengths"], styles),
+            paragraph_list("Areas for Development", support["development_areas"], styles),
+            paragraph_list("Recommended Next Steps", support["next_steps"], styles),
+        ]],
+        colWidths=[5.5 * cm, 5.5 * cm, 5.5 * cm]
+    )
+
+    support_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#CFECF3")),
+        ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#F6FFDC")),
+        ("BACKGROUND", (2, 0), (2, 0), colors.HexColor("#DAF9DE")),
+
+        ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(support_table)
+    story.append(Spacer(1, 10))
+
+    subject_considerations = generate_subject_considerations(data)
+
+    story.extend(paragraph_list("Considerations for English", subject_considerations["english"], styles))
+    story.append(Spacer(1, 8))
+
+    story.extend(paragraph_list("Considerations for Mathematics", subject_considerations["mathematics"], styles))
+    story.append(Spacer(1, 8))
+
+    story.extend(paragraph_list("Considerations for Science", subject_considerations["science"], styles))
+    story.append(Spacer(1, 8))
+
+    story.extend(paragraph_list("Considerations for a Class Teacher", subject_considerations["class_teacher"], styles))
+
+    # Change this if your logo variable is stored somewhere else.
+    # If you already have logo_path globally, keep it.
+    try:
+        selected_logo_path = logo_path
+    except NameError:
+        selected_logo_path = None
+
+    doc.build(
+        story,
+        onFirstPage=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title="ExamInsight: Internal Assessment Individual Student Report",
+            logo_path=selected_logo_path
+        ),
+        onLaterPages=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title="ExamInsight: Internal Assessment Individual Student Report",
+            logo_path=selected_logo_path
         ),
     )
 
