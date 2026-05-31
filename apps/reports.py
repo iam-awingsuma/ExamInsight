@@ -2633,10 +2633,10 @@ def make_internal_kpi_table(data):
 
     table_data = [
         [
-            make_kpi_cell("Overall Current Average", overall, "Across English, Maths, Science"),
-            make_kpi_cell("Strongest Subject", strongest, "Highest current percentage"),
-            make_kpi_cell("Main Progress Category", progress, "Most common progress category"),
-            make_kpi_cell("Support Priority", priority, "Lowest current percentage"),
+            make_kpi_cell(overall, "Overall Current Average", "Across English, Maths, Science"),
+            make_kpi_cell(strongest, "Strongest Subject", "Highest current percentage"),
+            make_kpi_cell(progress, "Main Progress Category", "Most common progress category"),
+            make_kpi_cell(priority, "Support Priority", "Lowest current percentage"),
         ]
     ]
 
@@ -2660,10 +2660,12 @@ def make_internal_kpi_table(data):
     return table
 
 
-def make_kpi_cell(title, value, subtitle):
+def make_kpi_cell(value, title, subtitle):
     return [
-        Paragraph(f"<b>{title}</b>", get_kpi_title_style()),
-        Paragraph(f"<font size='15'><b>{value}</b></font>", get_kpi_value_style()),
+        Paragraph(str(value), get_kpi_value_style()),
+        Spacer(1, 2),
+        Paragraph(title, get_kpi_title_style()),
+        Spacer(1, 2),
         Paragraph(subtitle, get_kpi_subtitle_style()),
     ]
 
@@ -3297,7 +3299,7 @@ def generate_intl_indv_rpt(student_id):
     story.append(section_title("Internal Assessment Report", styles))
     story.append(Paragraph(
         "This report provides an overview of the student's attainment and progress across available "
-        "internal assessments in English, Mathematics, and Science. It summarises previous and current "
+        "internal assessments in English, Mathematics, and Science, summarising previous and current "
         "assessment outcomes, subject grades, progress categories, and key areas for support. The information "
         "presented is intended to support parent communication, teacher planning, intervention tracking, and "
         "next-step learning support.",
