@@ -460,9 +460,33 @@ def add_header_footer(canvas, doc, report_title, logo_path=None):
     canvas.setLineWidth(0.5)
     canvas.line(left_margin, footer_line_y, page_width - right_margin, footer_line_y)
 
+    # footnote = (
+    #     "ExamInsight: Attainment and Progress Tracking in Year 2 Internal Assessments "
+    #     "and External Benchmark Tests at Pristine Private School | Page %d" % doc.page
+    # )
+
     footnote = (
         "ExamInsight: Attainment and Progress Tracking in Year 2 Internal Assessments "
-        "and External Benchmark Tests at Pristine Private School. | Page %d" % doc.page
+        "and External Benchmark Tests at Pristine Private School"
+    )
+
+    page_number = "| Page %d" % doc.page
+
+    canvas.setFont("Helvetica", 7)
+    canvas.setFillColor(colors.HexColor("#4B5563"))
+
+    # Footer text on the left
+    canvas.drawString(
+        left_margin,
+        footer_text_y,
+        footnote
+    )
+
+    # Page number aligned to the right-most margin
+    canvas.drawRightString(
+        page_width - right_margin,
+        footer_text_y,
+        page_number
     )
 
     canvas.setFont("Helvetica", 7)
@@ -925,10 +949,6 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
     return buffer
 
 
-#***********************************************
-#******* Extl Assmt - Individual Report *******#
-#***********************************************
-
 # =========================================================
 # ExamInsight colours
 # =========================================================
@@ -944,6 +964,11 @@ EI_RED = colors.HexColor("#DC2626")
 EI_YELLOW = colors.HexColor("#F59E0B")
 
 PAGE_WIDTH, PAGE_HEIGHT = A4
+
+
+#***********************************************
+#******* Extl Assmt - Individual Report *******#
+#***********************************************
 
 # =========================================================
 # NGRT model map
@@ -2173,10 +2198,94 @@ def generate_ai_reader_profile_interpretation(data):
 
     except Exception:
         return data.get("reader_profile", "Reader profile is not available for this student.")
+
+# Helper function to set up the PDF document, styles, and story list.
+# reuse across different report types while maintaining a consistent format and style throughout the reports.
+def setup_individual_report_pdf(output_path):
+    """
+    Creates the shared PDF document setup, styles, and story list
+    for individual assessment reports.
+
+    Can be reused for:
+    - External assessment individual reports, such as NGRT
+    - Internal assessment individual reports, such as English, Mathematics, and Science
+    """
+
+    doc = SimpleDocTemplate(
+        output_path,
+        pagesize=A4,
+        leftMargin=1.5 * cm,
+        rightMargin=1.5 * cm,
+        topMargin=2.0 * cm,
+        bottomMargin=1.6 * cm
+    )
+
+    styles = getSampleStyleSheet()
+
+    if "ReportTitle" not in styles:
+        styles.add(ParagraphStyle(
+            name="ReportTitle",
+            parent=styles["Title"],
+            fontName="Helvetica-Bold",
+            fontSize=15,
+            leading=18,
+            textColor=EI_DARK,
+            alignment=TA_LEFT,
+            spaceAfter=4
+        ))
+
+    if "SubTitle" not in styles:
+        styles.add(ParagraphStyle(
+            name="SubTitle",
+            parent=styles["BodyText"],
+            fontName="Helvetica",
+            fontSize=8,
+            leading=10,
+            textColor=EI_MUTED,
+            spaceAfter=8
+        ))
+
+    if "SectionTitle" not in styles:
+        styles.add(ParagraphStyle(
+            name="SectionTitle",
+            parent=styles["Heading2"],
+            fontName="Helvetica-Bold",
+            fontSize=10.5,
+            leading=13,
+            textColor=EI_BLUE,
+            spaceBefore=8,
+            spaceAfter=5
+        ))
+
+    if "SmallText" not in styles:
+        styles.add(ParagraphStyle(
+            name="SmallText",
+            parent=styles["BodyText"],
+            fontName="Helvetica",
+            fontSize=8,
+            leading=10,
+            textColor=EI_DARK,
+            spaceAfter=3
+        ))
+
+    if "BoxTitle" not in styles:
+        styles.add(ParagraphStyle(
+            name="BoxTitle",
+            parent=styles["BodyText"],
+            fontName="Helvetica-Bold",
+            fontSize=9,
+            leading=11,
+            textColor=EI_DARK,
+            spaceAfter=5
+        ))
+
+    story = []
+
+    return doc, styles, story
     
-# =========================================================
-# Main PDF builder
-# =========================================================
+# =============================================================================
+# Main PDF builder - external assessments (Assessment Data + Report Generation)
+# =============================================================================
 
 # This function generates the individual NGRT PDF report by building the necessary data, 
 # setting up the PDF document, defining styles, and assembling the content into a structured report format. 
@@ -2196,70 +2305,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
         f"examinsight_individual_ngrt_external_{student_id}.pdf"
     )
 
-    doc = SimpleDocTemplate(
-        output_path,
-        pagesize=A4,
-        leftMargin=1.5 * cm,
-        rightMargin=1.5 * cm,
-        topMargin=2.0 * cm,
-        bottomMargin=1.6 * cm
-    )
-
-    styles = getSampleStyleSheet()
-
-    styles.add(ParagraphStyle(
-        name="ReportTitle",
-        parent=styles["Title"],
-        fontName="Helvetica-Bold",
-        fontSize=15,
-        leading=18,
-        textColor=EI_DARK,
-        alignment=TA_LEFT,
-        spaceAfter=4
-    ))
-
-    styles.add(ParagraphStyle(
-        name="SubTitle",
-        parent=styles["BodyText"],
-        fontName="Helvetica",
-        fontSize=8,
-        leading=10,
-        textColor=EI_MUTED,
-        spaceAfter=8
-    ))
-
-    styles.add(ParagraphStyle(
-        name="SectionTitle",
-        parent=styles["Heading2"],
-        fontName="Helvetica-Bold",
-        fontSize=10.5,
-        leading=13,
-        textColor=EI_BLUE,
-        spaceBefore=8,
-        spaceAfter=5
-    ))
-
-    styles.add(ParagraphStyle(
-        name="SmallText",
-        parent=styles["BodyText"],
-        fontName="Helvetica",
-        fontSize=8,
-        leading=10,
-        textColor=EI_DARK,
-        spaceAfter=3
-    ))
-
-    styles.add(ParagraphStyle(
-        name="BoxTitle",
-        parent=styles["BodyText"],
-        fontName="Helvetica-Bold",
-        fontSize=9,
-        leading=11,
-        textColor=EI_DARK,
-        spaceAfter=5
-    ))
-
-    story = []
+    doc, styles, story = setup_individual_report_pdf(output_path)
 
     # =====================================================
     # Page 1

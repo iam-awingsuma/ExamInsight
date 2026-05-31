@@ -1740,7 +1740,7 @@ def serialize_ngrt_result(result):
         "profile_desc": getattr(result, "profile_desc", "-") or "-"
     }
 
-# Route for Individual Student Report download
+# Route for Individual Student Report download - external assessments
 @blueprint.route("/reports/external/individual/<student_id>")
 def download_ngrt_indv_extl_rpt(student_id):
     """
@@ -1917,6 +1917,30 @@ def serialize_internal_exam_result(result):
             "progress_category": getattr(result, "sci_progcat", "-") or "-"
         }
     }
+
+# Route for Individual Student Report download - internal assessments (assessment data)
+@blueprint.route("/reports/internal/individual/<student_id>")
+def download_intl_indv_rpt(student_id):
+    """
+    Generates an individual internal assessment PDF report.
+
+    This route is used by the PDF button in the Internal Assessment combined data table.
+    Example:
+    /reports/internal/individual/7190
+    """
+
+    #* TO DO: implement the actual PDF generation function and replace the placeholder below with a call to that function.
+    # pdf_path = generate_intl_indv_rpt(student_id)
+
+    # if not pdf_path:
+    #     abort(404)
+
+    return send_file(
+        # pdf_path,
+        as_attachment=True,
+        download_name=f"examInsight_individual_internal_report_{student_id}.pdf",
+        mimetype="application/pdf"
+    )
 
 
 #************************
