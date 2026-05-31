@@ -26,7 +26,12 @@ from apps.helpers import per_class_metrics, cohort_progress, class_progress
 
 # Reports-related imports
 from apps.helpers import get_filtered_ngrt_combined_data
-from apps.reports import build_ngrt_summary_pdf, build_ngrt_listing_pdf, generate_ngrt_indv_extl_rpt
+from apps.reports import (
+    build_ngrt_summary_pdf, 
+    build_ngrt_listing_pdf, 
+    generate_ngrt_indv_extl_rpt, 
+    generate_intl_indv_rpt,
+)
 
 from urllib.parse import urlencode
 
@@ -1919,26 +1924,21 @@ def serialize_internal_exam_result(result):
     }
 
 # Route for Individual Student Report download - internal assessments (assessment data)
-@blueprint.route("/reports/internal/individual/<student_id>")
-def download_intl_indv_rpt(student_id):
+@blueprint.route("/reports/internal/individual/<int:student_id>")
+def download_internal_individual_report(student_id):
     """
-    Generates an individual internal assessment PDF report.
-
-    This route is used by the PDF button in the Internal Assessment combined data table.
-    Example:
-    /reports/internal/individual/7190
+    Downloads one student's Internal Assessment individual PDF report.
     """
 
-    #* TO DO: implement the actual PDF generation function and replace the placeholder below with a call to that function.
-    # pdf_path = generate_intl_indv_rpt(student_id)
+    output_path = generate_intl_indv_rpt(student_id)
 
-    # if not pdf_path:
-    #     abort(404)
+    if not output_path or not os.path.exists(output_path):
+        abort(404)
 
     return send_file(
-        # pdf_path,
+        output_path,
         as_attachment=True,
-        download_name=f"examInsight_individual_internal_report_{student_id}.pdf",
+        download_name=f"examinsight_individual_internal_report_{student_id}.pdf",
         mimetype="application/pdf"
     )
 
