@@ -1290,6 +1290,7 @@ class StanineScale(Flowable):
         self.height = height
 
     def draw(self):
+        full_name = self.full_name if hasattr(self, "full_name") else "Student"
         segment = self.width / 9
 
         for i in range(1, 10):
@@ -1322,7 +1323,8 @@ class StanineScale(Flowable):
 
             self.canv.setFillColor(EI_MUTED)
             self.canv.setFont("Helvetica", 7)
-            self.canv.drawCentredString(marker_x, 68, "Student Stanine")
+            # self.canv.drawCentredString(marker_x, 68, "Student Stanine")
+            self.canv.drawCentredString(marker_x, 68, f"{full_name} | Stanine")
 
         self.canv.setFillColor(EI_MUTED)
         self.canv.setFont("Helvetica", 7)
@@ -2619,7 +2621,8 @@ def make_internal_student_info_table(data):
     table = Table(table_data, colWidths=[3.5 * cm, 5 * cm, 3.5 * cm, 5 * cm])
 
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.white),
+        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#F1F5F9")), # light background for the first column
+        ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#F1F5F9")), # white background for the second column
         ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -2696,14 +2699,39 @@ def make_subject_summary_table(data, styles):
         ]
     ]
 
-    for subject in subjects.values():
+    progress_styles = []
+
+    for row_index, subject in enumerate(subjects.values(), start=1):
+        progress_category = subject["progress_category"]
+
         table_data.append([
             subject["label"],
             format_pct(subject["previous_pct"]),
             subject["previous_grade"],
             format_pct(subject["current_pct"]),
             subject["current_grade"],
-            subject["progress_category"],
+            progress_category,
+        ])
+
+        progress_value = str(progress_category or "").strip().lower()
+
+        if "below" in progress_value:
+            bg_color = colors.HexColor("#FEE2E2")
+            text_color = colors.HexColor("#991B1B")
+        elif "above" in progress_value:
+            bg_color = colors.HexColor("#DCFCE7")
+            text_color = colors.HexColor("#166534")
+        elif "expected" in progress_value:
+            bg_color = colors.HexColor("#FEF3C7")
+            text_color = colors.HexColor("#92400E")
+        else:
+            bg_color = colors.white
+            text_color = EI_DARK
+
+        progress_styles.extend([
+            ("BACKGROUND", (5, row_index), (5, row_index), bg_color),
+            ("TEXTCOLOR", (5, row_index), (5, row_index), text_color),
+            ("FONTNAME", (5, row_index), (5, row_index), "Helvetica"),
         ])
 
     table = Table(
@@ -2711,8 +2739,8 @@ def make_subject_summary_table(data, styles):
         colWidths=[3.2 * cm, 2.5 * cm, 2.7 * cm, 2.5 * cm, 2.7 * cm, 3.2 * cm]
     )
 
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), EI_DARK),
+    base_styles = [
+        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 8),
@@ -2723,10 +2751,11 @@ def make_subject_summary_table(data, styles):
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, EI_LIGHT]),
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-    ]))
+    ]
+
+    table.setStyle(TableStyle(base_styles + progress_styles))
 
     return table
-
 
 def make_progress_table(data, styles):
     subjects = data["subjects"]
@@ -2743,9 +2772,13 @@ def make_progress_table(data, styles):
         ]
     ]
 
-    for subject in subjects.values():
+    # Store row-specific colour styles here
+    progress_styles = []
+
+    for row_index, subject in enumerate(subjects.values(), start=1):
         previous_pct = subject["previous_pct"]
         current_pct = subject["current_pct"]
+        progress_category = subject["progress_category"]
 
         if previous_pct is not None and current_pct is not None:
             change = current_pct - previous_pct
@@ -2760,7 +2793,29 @@ def make_progress_table(data, styles):
             change_text,
             subject["previous_grade"],
             subject["current_grade"],
-            subject["progress_category"],
+            progress_category,
+        ])
+
+        # Apply colour based on progress category
+        progress_value = str(progress_category or "").strip().lower()
+
+        if "below" in progress_value:
+            bg_color = colors.HexColor("#FEE2E2")
+            text_color = colors.HexColor("#991B1B")
+        elif "above" in progress_value:
+            bg_color = colors.HexColor("#DCFCE7")
+            text_color = colors.HexColor("#166534")
+        elif "expected" in progress_value:
+            bg_color = colors.HexColor("#FEF3C7")
+            text_color = colors.HexColor("#92400E")
+        else:
+            bg_color = colors.white
+            text_color = EI_DARK
+
+        progress_styles.extend([
+            ("BACKGROUND", (6, row_index), (6, row_index), bg_color),
+            ("TEXTCOLOR", (6, row_index), (6, row_index), text_color),
+            ("FONTNAME", (6, row_index), (6, row_index), "Helvetica"),
         ])
 
     table = Table(
@@ -2768,8 +2823,8 @@ def make_progress_table(data, styles):
         colWidths=[2.8 * cm, 2.3 * cm, 2.3 * cm, 2.0 * cm, 2.5 * cm, 2.5 * cm, 2.6 * cm]
     )
 
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), EI_DARK),
+    base_styles = [
+        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 8),
@@ -2780,10 +2835,11 @@ def make_progress_table(data, styles):
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, EI_LIGHT]),
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-    ]))
+    ]
+
+    table.setStyle(TableStyle(base_styles + progress_styles))
 
     return table
-
 
 def make_internal_threshold_table(data, styles):
     avg = data["overall_average"]
@@ -2812,13 +2868,13 @@ def make_internal_threshold_table(data, styles):
         table_data.append([
             item["threshold"],
             item["meaning"],
-            "Achieved" if item["achieved"] else "Not Yet"
+            "Achieved" if item["achieved"] else "Target"
         ])
 
     table = Table(table_data, colWidths=[4.5 * cm, 8.5 * cm, 3.5 * cm])
 
     table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), EI_DARK),
+        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 8),
@@ -3289,7 +3345,6 @@ def get_kpi_subtitle_style():
 def generate_intl_indv_rpt(student_id):
     """
     Generates the individual internal assessment PDF report.
-    This can be called by your Flask route.
     """
 
     data = build_internal_individual_report_data(student_id)
