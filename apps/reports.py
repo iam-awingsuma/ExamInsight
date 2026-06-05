@@ -3222,7 +3222,7 @@ def progress_interpretation_internal(data):
         f"and focused intervention will help sustain progress across the next assessment cycle."
     )
 
-
+# fallback function to generate support points based on the available data if the AI call fails or returns incomplete output
 def generate_internal_support_points(data):
     """
     Rule-based fallback for internal assessment support points.
@@ -3321,7 +3321,7 @@ def is_valid_support_output(parsed):
 # ==============================================
 # Internal Assessment Report:
 # Learning Profile and Recommended Support
-# OpenAI interpretation with fallback functions
+# OpenAI interpretation with fallback function
 # ===============================================
 def generate_ai_internal_support_points(data):
     """
@@ -3421,8 +3421,14 @@ def generate_ai_internal_support_points(data):
         print(f"AI internal support generation failed: {e}")
         return generate_internal_support_points(data)
 
+# Fallback function for subject-specific considerations for classroom support based on internal assessment data
 def generate_subject_considerations(data):
-    priority = data["support_priority"] or "the identified support area"
+    """
+    Rule-based fallback for subject-specific and class teacher considerations.
+    Used when AI generation fails or returns incomplete output.
+    """
+
+    priority = data.get("support_priority") or "the identified support area"
 
     return {
         "english": [
@@ -3446,6 +3452,227 @@ def generate_subject_considerations(data):
             "Plan short, focused next steps and monitor whether the student responds positively to intervention."
         ]
     }
+
+# parser to split the AI output into four sections based on the expected format
+def parse_ai_subject_considerations(ai_text):
+    """
+    Parses AI output into four sections:
+    - english
+    - mathematics
+    - science
+    - class_teacher
+    """
+
+    sections = {
+        "english": [],
+        "mathematics": [],
+        "science": [],
+        "class_teacher": []
+    }
+
+    current_section = None
+
+    for line in ai_text.splitlines():
+        clean_line = line.strip()
+
+        if not clean_line:
+            continue
+
+        lower_line = clean_line.lower()
+
+        if lower_line.startswith("considerations for english"):
+            current_section = "english"
+            continue
+
+        if lower_line.startswith("considerations for mathematics"):
+            current_section = "mathematics"
+            continue
+
+        if lower_line.startswith("considerations for science"):
+            current_section = "science"
+            continue
+
+        if lower_line.startswith("considerations for a class teacher"):
+            current_section = "class_teacher"
+            continue
+
+        if clean_line.startswith("-") and current_section:
+            statement = clean_line.lstrip("-").strip()
+
+            if statement:
+                sections[current_section].append(statement)
+
+    return sections
+
+# validator to ensure the AI output contains exactly 3 statements for each subject/support section
+def is_valid_subject_considerations(parsed):
+    """
+    Checks that the AI returned exactly 3 statements
+    for each required subject/support section.
+    """
+
+    required_keys = [
+        "english",
+        "mathematics",
+        "science",
+        "class_teacher"
+    ]
+
+    for key in required_keys:
+        if key not in parsed:
+            return False
+
+        if not isinstance(parsed[key], list):
+            return False
+
+        if len(parsed[key]) != 3:
+            return False
+
+    return True
+
+# ==============================================
+# Internal Assessment Report:
+# Subject Considerations for Classroom Support
+# OpenAI interpretation with fallback function
+# ===============================================
+def generate_ai_subject_considerations(data):
+    """
+    Uses OpenAI to generate subject-specific support considerations for:
+    1. English
+    2. Mathematics
+    3. Science
+    4. Class Teacher
+
+    Falls back to generate_subject_considerations(data) if AI fails
+    or the parsed output is incomplete.
+    """
+
+    name = data.get("student_name", "The student")
+    gender = data.get("gender", "-")
+    strongest = data.get("strongest_subject") or "a subject area"
+    priority = data.get("support_priority") or "the identified support area"
+    overall = format_pct(data.get("overall_average"))
+    progress = data.get("main_progress_category") or "available progress information"
+
+    subjects = data.get("subjects", {})
+
+    english = subjects.get("english", {})
+    mathematics = subjects.get("mathematics", {})
+    science = subjects.get("science", {})
+
+    try:
+        api_key = os.getenv("OPENAI_API_KEY")
+
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY is missing or not loaded.")
+
+        client = OpenAI(api_key=api_key)
+
+        prompt = f"""
+        You are writing professional subject-specific support considerations for a student's internal assessment PDF report.
+
+        Student information:
+        Student name: {name}
+        Gender: {gender}
+        Overall average: {overall}
+        Strongest subject/area: {strongest}
+        Support priority: {priority}
+        Main progress category: {progress}
+
+        Internal assessment data:
+        English:
+        - Previous percentage: {format_pct(english.get("previous_pct"))}
+        - Previous grade: {english.get("previous_grade", "-")}
+        - Current percentage: {format_pct(english.get("current_pct"))}
+        - Current grade: {english.get("current_grade", "-")}
+        - Progress category: {english.get("progress_category", "-")}
+
+        Mathematics:
+        - Previous percentage: {format_pct(mathematics.get("previous_pct"))}
+        - Previous grade: {mathematics.get("previous_grade", "-")}
+        - Current percentage: {format_pct(mathematics.get("current_pct"))}
+        - Current grade: {mathematics.get("current_grade", "-")}
+        - Progress category: {mathematics.get("progress_category", "-")}
+
+        Science:
+        - Previous percentage: {format_pct(science.get("previous_pct"))}
+        - Previous grade: {science.get("previous_grade", "-")}
+        - Current percentage: {format_pct(science.get("current_pct"))}
+        - Current grade: {science.get("current_grade", "-")}
+        - Progress category: {science.get("progress_category", "-")}
+
+        Create the response in exactly this format:
+
+        Considerations for English:
+        - ...
+        - ...
+        - ...
+
+        Considerations for Mathematics:
+        - ...
+        - ...
+        - ...
+
+        Considerations for Science:
+        - ...
+        - ...
+        - ...
+
+        Considerations for a Class Teacher:
+        - ...
+        - ...
+        - ...
+
+        Rules:
+        - Write exactly 3 bullet statements under each heading.
+        - Each bullet must be one complete sentence.
+        - Each bullet must begin with "-".
+        - Use a professional, balanced, school-report tone.
+        - Make the statements specific to the assessment data provided.
+        - Keep the language positive, supportive, and evidence-based.
+        - Avoid deficit-based wording such as "weak", "poor", "failing", or "struggling badly".
+        - Do not include markdown tables, numbering, emojis, introductions, or closing comments.
+        - Keep each statement concise and suitable for inclusion in a PDF report.
+
+        Content guidance:
+        - English considerations should focus on reading, vocabulary, sentence construction, comprehension, writing accuracy, or extended responses.
+        - Mathematics considerations should focus on arithmetic fluency, number facts, problem-solving, reasoning, modelling, or misconception review.
+        - Science considerations should focus on scientific vocabulary, explanation, observation, practical investigation, and applying concepts.
+        - Class teacher considerations should focus on classroom planning, targeted support, evidence review, feedback, and monitoring the student's response to intervention.
+        - Link the class teacher section to the support priority where appropriate.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an educational data analyst writing professional, supportive, "
+                        "and evidence-based subject considerations for internal assessment student reports."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=650
+        )
+
+        ai_text = response.choices[0].message.content.strip()
+
+        parsed = parse_ai_subject_considerations(ai_text)
+
+        if not is_valid_subject_considerations(parsed):
+            return generate_subject_considerations(data)
+
+        return parsed
+
+    except Exception as e:
+        print(f"AI subject consideration generation failed: {e}")
+        return generate_subject_considerations(data)
 
 # =============================================================================
 # Utility and Formatting Helpers
@@ -3714,21 +3941,22 @@ def generate_intl_indv_rpt(student_id):
     story.append(support_table)
     story.append(Spacer(1, 10))
 
-    subject_considerations = generate_subject_considerations(data)
+    subject_considerations = generate_ai_subject_considerations(data)
 
     story.extend(paragraph_list("Considerations for English", subject_considerations["english"], styles))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 6))
 
     story.extend(paragraph_list("Considerations for Mathematics", subject_considerations["mathematics"], styles))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 6))
 
     story.extend(paragraph_list("Considerations for Science", subject_considerations["science"], styles))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 6))
 
     story.extend(paragraph_list("Considerations for a Class Teacher", subject_considerations["class_teacher"], styles))
 
-    # Change this if your logo variable is stored somewhere else.
-    # If you already have logo_path globally, keep it.
+    # global logo path variable
+    # report generates even without the logo in case the image file is missing or the path is incorrect, 
+    # but it will simply omit the logo from the header
     try:
         selected_logo_path = logo_path
     except NameError:
