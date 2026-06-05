@@ -1551,9 +1551,28 @@ def make_kpi_table(data):
 def make_threshold_table(data):
     rows = [["Reading Literacy Thresholds", "Meaning", "Status"]] + data["thresholds"]
 
+    status_styles = []
+
+    # Start at row 1 because row 0 is the header
+    for row_index, row in enumerate(data["thresholds"], start=1):
+        status = str(row[2]).strip().lower()
+
+        if status == "achieved":
+            bg_color = colors.HexColor("#DCFCE7")    # light green
+            text_color = colors.HexColor("#166534")  # green text
+        else:
+            bg_color = colors.HexColor("#FEF3C7")    # light yellow
+            text_color = colors.HexColor("#92400E")  # yellow/brown text
+
+        status_styles.extend([
+            ("BACKGROUND", (2, row_index), (2, row_index), bg_color),
+            ("TEXTCOLOR", (2, row_index), (2, row_index), text_color),
+            ("FONTNAME", (2, row_index), (2, row_index), "Helvetica"),
+        ])
+
     table = Table(rows, colWidths=[5.0 * cm, 8.2 * cm, 4.0 * cm])
 
-    table.setStyle(TableStyle([
+    base_styles = [
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
@@ -1564,29 +1583,106 @@ def make_threshold_table(data):
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F8FAFC")]),
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-    ]))
+    ]
+
+    table.setStyle(TableStyle(base_styles + status_styles))
 
     return table
 
 # Table to display the student's NGRT history with exam label, SAS, Stanine,
 # Reading Age, and Progress Category for each assessment taken
+# def make_history_table(data):
+#     rows = [["External Benchmark Test", "SAS", "Stanine", "Reading Age", "Progress Category"]]
+
+#     for item in data["history"]:
+#         progress_value = str(item.get("progress", "-")).strip()
+
+#         rows.append([
+#             item["exam_label"],
+#             f"{item['sas']:.0f}",
+#             f"{item['stanine']:.0f}",
+#             item["reading_age"],
+#             "No Progress Available" if progress_value == "-" else progress_value
+#         ])
+
+#     table = Table(rows, colWidths=[4.8 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 4.8 * cm])
+
+#     table.setStyle(TableStyle([
+#         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
+#         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+#         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+#         ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+#         ("FONTSIZE", (0, 0), (-1, -1), 8),
+#         ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+#         ("ALIGN", (1, 1), (2, -1), "CENTER"),
+#         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F8FAFC")]),
+#         ("TOPPADDING", (0, 0), (-1, -1), 5),
+#         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+#     ]))
+
+#     return table
+
 def make_history_table(data):
     rows = [["External Benchmark Test", "SAS", "Stanine", "Reading Age", "Progress Category"]]
 
-    for item in data["history"]:
+    progress_styles = []
+
+    for row_index, item in enumerate(data["history"], start=1):
         progress_value = str(item.get("progress", "-")).strip()
+
+        display_progress = "No Progress Available" if progress_value == "-" else progress_value
 
         rows.append([
             item["exam_label"],
             f"{item['sas']:.0f}",
             f"{item['stanine']:.0f}",
             item["reading_age"],
-            "No Progress Available" if progress_value == "-" else progress_value
+            display_progress
+        ])
+
+        progress_lower = display_progress.lower()
+
+        if progress_lower == "no progress available":
+            bg_color = EI_BLUE_BG
+            text_color = EI_BLUE
+            font_name = "Helvetica"
+
+        elif progress_lower == "lower than expected":
+            # bg_color = colors.HexColor("#FEE2E2")    # light red
+            # text_color = colors.HexColor("#991B1B")  # red text
+            bg_color = EI_RED_BG    # light red
+            text_color = EI_RED  # red text
+            font_name = "Helvetica"
+
+        elif progress_lower == "expected":
+            # bg_color = colors.HexColor("#FEF3C7")    # light yellow
+            # text_color = colors.HexColor("#92400E")  # yellow/brown text
+            bg_color = EI_YELLOW_BG    # light yellow
+            text_color = EI_YELLOW  # yellow/brown text
+            font_name = "Helvetica"
+
+        elif progress_lower == "better than expected":
+            # bg_color = colors.HexColor("#DCFCE7")    # light green
+            # text_color = colors.HexColor("#166534")  # green text
+            bg_color = EI_GREEN_BG    # light green
+            text_color = EI_GREEN  # green text
+            font_name = "Helvetica"
+
+        else:
+            bg_color = colors.white
+            text_color = colors.black
+            font_name = "Helvetica"
+
+        progress_styles.extend([
+            ("BACKGROUND", (4, row_index), (4, row_index), bg_color),
+            ("TEXTCOLOR", (4, row_index), (4, row_index), text_color),
+            ("FONTNAME", (4, row_index), (4, row_index), font_name),
+            ("ALIGN", (4, row_index), (4, row_index), "CENTER"),
         ])
 
     table = Table(rows, colWidths=[4.8 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 4.8 * cm])
 
-    table.setStyle(TableStyle([
+    base_styles = [
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
@@ -1594,10 +1690,13 @@ def make_history_table(data):
         ("FONTSIZE", (0, 0), (-1, -1), 8),
         ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("ALIGN", (1, 1), (2, -1), "CENTER"),
+        ("ALIGN", (4, 1), (4, -1), "CENTER"),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F8FAFC")]),
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-    ]))
+    ]
+
+    table.setStyle(TableStyle(base_styles + progress_styles))
 
     return table
 
