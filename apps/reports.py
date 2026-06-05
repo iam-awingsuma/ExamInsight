@@ -2646,12 +2646,41 @@ def make_internal_kpi_table(data):
     progress = data["main_progress_category"] or "-"
     priority = data["support_priority"] or "-"
 
+    # table_data = [
+    #     [
+    #         make_kpi_cell(overall, "Overall Current Average", "Across English, Maths, Science"),
+    #         make_kpi_cell(strongest, "Strongest Subject", "Highest current percentage"),
+    #         make_kpi_cell(progress, "Main Progress Category", "Most common progress category"),
+    #         make_kpi_cell(priority, "Support Priority", "Lowest current percentage"),
+    #     ]
+    # ]
+
     table_data = [
         [
-            make_kpi_cell(overall, "Overall Current Average", "Across English, Maths, Science"),
-            make_kpi_cell(strongest, "Strongest Subject", "Highest current percentage"),
-            make_kpi_cell(progress, "Main Progress Category", "Most common progress category"),
-            make_kpi_cell(priority, "Support Priority", "Lowest current percentage"),
+            make_kpi_cell(
+                overall,
+                "Overall Current Average",
+                "Across English, Maths, Science",
+                EI_BLUE
+            ),
+            make_kpi_cell(
+                strongest,
+                "Strongest Subject",
+                "Highest current percentage",
+                EI_GREEN
+            ),
+            make_kpi_cell(
+                progress,
+                "Main Progress Category",
+                "Most common progress category",
+                EI_YELLOW
+            ),
+            make_kpi_cell(
+                priority,
+                "Support Priority",
+                "Lowest current percentage",
+                EI_RED
+            ),
         ]
     ]
 
@@ -2675,9 +2704,18 @@ def make_internal_kpi_table(data):
     return table
 
 
-def make_kpi_cell(value, title, subtitle):
+def make_kpi_cell(value, title, subtitle, value_color=EI_DARK):
+    value_style = ParagraphStyle(
+        name=f"KPIValueStyle_{str(value_color)}",
+        fontName="Helvetica-Bold",
+        fontSize=15,
+        leading=18,
+        textColor=value_color,
+        alignment=TA_CENTER,
+    )
+
     return [
-        Paragraph(str(value), get_kpi_value_style()),
+        Paragraph(str(value), value_style),
         Spacer(1, 2),
         Paragraph(title, get_kpi_title_style()),
         Spacer(1, 2),
@@ -2864,28 +2902,51 @@ def make_internal_threshold_table(data, styles):
 
     table_data = [["Threshold", "Meaning", "Status"]]
 
-    for item in thresholds:
+    status_styles = []
+
+    for row_index, item in enumerate(thresholds, start=1):
+        status_text = "Achieved" if item["achieved"] else "Target"
+
         table_data.append([
             item["threshold"],
             item["meaning"],
-            "Achieved" if item["achieved"] else "Target"
+            status_text
+        ])
+
+        if item["achieved"]:
+            bg_color = colors.HexColor("#DCFCE7")   # light green
+            text_color = colors.HexColor("#166534") # green text
+        else:
+            bg_color = colors.HexColor("#FEF3C7")   # light yellow
+            text_color = colors.HexColor("#92400E") # yellow/brown text
+
+        status_styles.extend([
+            ("BACKGROUND", (2, row_index), (2, row_index), bg_color),
+            ("TEXTCOLOR", (2, row_index), (2, row_index), text_color),
+            ("FONTNAME", (2, row_index), (2, row_index), "Helvetica"),
         ])
 
     table = Table(table_data, colWidths=[4.5 * cm, 8.5 * cm, 3.5 * cm])
 
-    table.setStyle(TableStyle([
+    base_styles = [
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
         ("FONTSIZE", (0, 0), (-1, -1), 8),
+
         ("ALIGN", (2, 1), (2, -1), "CENTER"),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+
         ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, EI_LIGHT]),
+
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-    ]))
+    ]
+
+    table.setStyle(TableStyle(base_styles + status_styles))
 
     return table
 
@@ -2933,7 +2994,7 @@ class SubjectProgressBarChart(Flowable):
 
         subject_values = list(self.subjects.values())
         group_width = chart_width / len(subject_values)
-        bar_width = 0.35 * cm
+        bar_width = 0.85 * cm
 
         for index, subject in enumerate(subject_values):
             group_x = x0 + index * group_width + group_width / 2
@@ -3000,7 +3061,7 @@ class SubjectComparisonBarChart(Flowable):
 
         c.setFont("Helvetica-Bold", 9)
         c.setFillColor(EI_DARK)
-        c.drawString(0, self.height - 0.4 * cm, "Student vs Class and Cohort Average: Internal Assessment Comparison")
+        c.drawString(0, self.height - 0.4 * cm, "Student vs Class and Cohort Average by Subject")
 
         # Axis
         c.setStrokeColor(EI_BORDER)
@@ -3018,7 +3079,7 @@ class SubjectComparisonBarChart(Flowable):
 
         subject_keys = ["english", "mathematics", "science"]
         group_width = chart_width / len(subject_keys)
-        bar_width = 0.25 * cm
+        bar_width = 0.85 * cm
 
         for index, key in enumerate(subject_keys):
             subject = self.subjects[key]
