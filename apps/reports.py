@@ -3218,30 +3218,202 @@ def progress_interpretation_internal(data):
 
 
 def generate_internal_support_points(data):
-    name = data["student_name"]
-    strongest = data["strongest_subject"] or "a subject area"
-    priority = data["support_priority"] or "a subject area"
-    overall = format_pct(data["overall_average"])
-    progress = data["main_progress_category"] or "available progress information"
+    """
+    Rule-based fallback for internal assessment support points.
+    """
+
+    name = data.get("student_name", "The student")
+    strongest = data.get("strongest_subject") or "a subject area"
+    priority = data.get("support_priority") or "a subject area"
+    overall = format_pct(data.get("overall_average"))
+    progress = data.get("main_progress_category") or "available progress information"
 
     return {
         "strengths": [
             f"{name} has an overall current average of {overall} across the available internal assessment records.",
-            f"{strongest} is currently the student's strongest subject based on the available current percentage scores.",
-            f"The student's progress category is mainly described as {progress}, showing the current direction of learning."
+            f"{strongest} is currently a relative strength based on the available current percentage scores.",
+            f"The main progress category is {progress}, providing a useful indication of the student's current learning direction."
         ],
         "development_areas": [
             f"{priority} should be monitored as a priority area for additional support or targeted review.",
-            "The student may benefit from further opportunities to revisit misconceptions and strengthen core skills.",
-            "Progress should continue to be checked using classroom evidence, formative assessment, and teacher feedback."
+            "The student may benefit from further opportunities to revisit key concepts, address misconceptions, and strengthen core skills.",
+            "Progress should continue to be reviewed using classroom evidence, formative assessment, and teacher feedback."
         ],
         "next_steps": [
             f"Provide focused intervention or guided practice in {priority} to address gaps and strengthen confidence.",
-            "Use short review tasks, modelled examples, and regular feedback to support steady improvement.",
+            "Use short review tasks, modelled examples, success criteria, and regular feedback to support steady improvement.",
             "Continue to monitor performance across English, Mathematics, and Science during the next assessment cycle."
         ]
     }
 
+# parser to split the AI output into three sections based on the expected format
+def parse_ai_support_sections(ai_text):
+    """
+    Parses AI output into three sections:
+    - strengths
+    - development_areas
+    - next_steps
+    """
+
+    sections = {
+        "strengths": [],
+        "development_areas": [],
+        "next_steps": []
+    }
+
+    current_section = None
+
+    for line in ai_text.splitlines():
+        clean_line = line.strip()
+
+        if not clean_line:
+            continue
+
+        lower_line = clean_line.lower()
+
+        if lower_line.startswith("strengths"):
+            current_section = "strengths"
+            continue
+
+        if lower_line.startswith("areas for development"):
+            current_section = "development_areas"
+            continue
+
+        if lower_line.startswith("recommended next steps"):
+            current_section = "next_steps"
+            continue
+
+        if clean_line.startswith("-") and current_section:
+            statement = clean_line.lstrip("-").strip()
+
+            if statement:
+                sections[current_section].append(statement)
+
+    return sections
+
+# validator to ensure the AI output contains exactly 3 statements for each section
+def is_valid_support_output(parsed):
+    """
+    Checks that the AI returned exactly 3 statements
+    for each required section.
+    """
+
+    required_keys = ["strengths", "development_areas", "next_steps"]
+
+    for key in required_keys:
+        if key not in parsed:
+            return False
+
+        if not isinstance(parsed[key], list):
+            return False
+
+        if len(parsed[key]) != 3:
+            return False
+
+    return True
+
+# ==============================================
+# Internal Assessment Report:
+# Learning Profile and Recommended Support
+# OpenAI interpretation with fallback functions
+# ===============================================
+def generate_ai_internal_support_points(data):
+    """
+    Uses OpenAI to generate:
+    1. Strengths
+    2. Areas for Development
+    3. Recommended Next Steps
+
+    Returns a dictionary with three separate lists.
+    Falls back to rule-based functions if the AI call fails or parsing is incomplete.
+    """
+    name = data.get("student_name", "The student")
+    strongest = data.get("strongest_subject") or "a subject area"
+    priority = data.get("support_priority") or "a subject area"
+    overall = format_pct(data.get("overall_average"))
+    progress = data.get("main_progress_category") or "available progress information"
+
+    try:
+        api_key = os.getenv("OPENAI_API_KEY")
+
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY is missing or not loaded.")
+
+        client = OpenAI(api_key=api_key)
+
+        prompt = f"""
+        You are writing professional comments for a student's internal assessment PDF report.
+
+        Student information:
+        Student name: {name}
+        Gender: {data.get("gender")}
+        Strongest subject/area: {strongest}
+        Support priority: {priority}
+        Overall average: {overall}
+        Main progress category: {progress}
+
+        Create the response in exactly this format:
+
+        Strengths:
+        - ...
+        - ...
+        - ...
+
+        Areas for Development:
+        - ...
+        - ...
+        - ...
+
+        Recommended Next Steps:
+        - ...
+        - ...
+        - ...
+
+        Rules:
+        - Write exactly 3 bullet statements under each heading.
+        - Each bullet must be one sentence only.
+        - Each bullet must begin with "-".
+        - Use a professional, balanced, school-report tone.
+        - Make the statements specific to the data provided.
+        - Refer to the strongest subject/area in the Strengths section.
+        - Refer to the support priority in the Areas for Development section.
+        - Provide practical support actions in the Recommended Next Steps section.
+        - Avoid deficit-based wording such as "weak", "poor", "failing", or "struggling badly".
+        - Do not include markdown tables, numbering, emojis, introductions, or closing comments.
+        """
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an educational data analyst writing professional, supportive, "
+                        "and evidence-based comments for internal assessment student reports. "
+                        "You write clearly for teachers and parents."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3,
+            max_tokens=500
+        )
+
+        ai_text = response.choices[0].message.content.strip()
+
+        parsed = parse_ai_support_sections(ai_text)
+
+        if not is_valid_support_output(parsed):
+            return generate_internal_support_points(data)
+
+        return parsed
+
+    except Exception as e:
+        print(f"AI internal support generation failed: {e}")
+        return generate_internal_support_points(data)
 
 def generate_subject_considerations(data):
     priority = data["support_priority"] or "the identified support area"
@@ -3507,7 +3679,7 @@ def generate_intl_indv_rpt(student_id):
     ))
     story.append(Spacer(1, 10))
 
-    support = generate_internal_support_points(data)
+    support = generate_ai_internal_support_points(data)
 
     support_table = Table(
         [[
