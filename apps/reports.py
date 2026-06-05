@@ -3061,7 +3061,7 @@ class SubjectComparisonBarChart(Flowable):
 
         c.setFont("Helvetica-Bold", 9)
         c.setFillColor(EI_DARK)
-        c.drawString(0, self.height - 0.4 * cm, "Student vs Class and Cohort Average by Subject")
+        c.drawString(0, self.height - 0.2 * cm, "Student vs Class and Cohort Average by Subject")
 
         # Axis
         c.setStrokeColor(EI_BORDER)
@@ -3080,9 +3080,12 @@ class SubjectComparisonBarChart(Flowable):
         subject_keys = ["english", "mathematics", "science"]
         group_width = chart_width / len(subject_keys)
         bar_width = 0.85 * cm
+        bar_gap = 5
 
         for index, key in enumerate(subject_keys):
             subject = self.subjects[key]
+
+            # Center of each subject group
             group_x = x0 + index * group_width + group_width / 2
 
             student_value = subject["current_pct"] or 0
@@ -3090,23 +3093,26 @@ class SubjectComparisonBarChart(Flowable):
             cohort_value = self.averages["cohort"].get(key) or 0
 
             values = [
-                ("Student", student_value, colors.HexColor("#2563EB"), -bar_width - 5),
+                ("Student", student_value, colors.HexColor("#2563EB"), -bar_width - bar_gap),
                 ("Class", class_value, colors.HexColor("#10B981"), 0),
-                ("Cohort", cohort_value, colors.HexColor("#F59E0B"), bar_width + 5),
+                ("Cohort", cohort_value, colors.HexColor("#F59E0B"), bar_width + bar_gap),
             ]
 
             for label, value, color, offset in values:
-                height = (value / 100) * chart_height
+                bar_height = (value / 100) * chart_height
                 c.setFillColor(color)
-                c.rect(group_x + offset, y0, bar_width, height, fill=1, stroke=0)
+                c.rect(group_x + offset, y0, bar_width, bar_height, fill=1, stroke=0)
 
                 c.setFont("Helvetica", 6)
                 c.setFillColor(EI_DARK)
-                c.drawCentredString(group_x + offset + bar_width / 2, y0 + height + 3, format_pct(value))
+                c.drawCentredString(group_x + offset + bar_width / 2, y0 + bar_height + 4, format_pct(value))
+
+            # Label centered under the full 3-bar group
+            label_x = group_x + (bar_width / 2)
 
             c.setFont("Helvetica", 7)
             c.setFillColor(EI_MUTED)
-            c.drawCentredString(group_x, y0 - 12, subject["label"])
+            c.drawCentredString(label_x, y0 - 16, subject["label"])
 
         # Legend
         legend_y = self.height - 0.8 * cm
