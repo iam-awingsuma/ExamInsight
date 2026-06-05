@@ -3944,13 +3944,13 @@ def generate_intl_indv_rpt(student_id):
     subject_considerations = generate_ai_subject_considerations(data)
 
     story.extend(paragraph_list("Considerations for English", subject_considerations["english"], styles))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 8))
 
     story.extend(paragraph_list("Considerations for Mathematics", subject_considerations["mathematics"], styles))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 8))
 
     story.extend(paragraph_list("Considerations for Science", subject_considerations["science"], styles))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 8))
 
     story.extend(paragraph_list("Considerations for a Class Teacher", subject_considerations["class_teacher"], styles))
 
