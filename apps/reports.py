@@ -2937,14 +2937,14 @@ def make_progress_table(data, styles):
         progress_value = str(progress_category or "").strip().lower()
 
         if "below" in progress_value:
-            bg_color = colors.HexColor("#FEE2E2")
-            text_color = colors.HexColor("#991B1B")
+            bg_color = EI_RED_BG
+            text_color = EI_RED
         elif "above" in progress_value:
-            bg_color = colors.HexColor("#DCFCE7")
-            text_color = colors.HexColor("#166534")
+            bg_color = EI_GREEN_BG
+            text_color = EI_GREEN
         elif "expected" in progress_value:
-            bg_color = colors.HexColor("#FEF3C7")
-            text_color = colors.HexColor("#92400E")
+            bg_color = EI_YELLOW_BG
+            text_color = EI_YELLOW
         else:
             bg_color = colors.white
             text_color = EI_DARK
