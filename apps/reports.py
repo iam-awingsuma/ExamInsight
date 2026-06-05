@@ -1283,14 +1283,14 @@ class StanineScale(Flowable):
     """
     Draws stanine 1-9 scale and marks the student stanine.
     """
-    def __init__(self, stanine, width=17 * cm, height=2.2 * cm):
+    def __init__(self, stanine, student_full_name="Student", width=17 * cm, height=2.2 * cm):
         Flowable.__init__(self)
         self.stanine = safe_int(stanine)
         self.width = width
         self.height = height
+        self.student_full_name = student_full_name
 
     def draw(self):
-        full_name = self.full_name if hasattr(self, "full_name") else "Student"
         segment = self.width / 9
 
         for i in range(1, 10):
@@ -1324,7 +1324,7 @@ class StanineScale(Flowable):
             self.canv.setFillColor(EI_MUTED)
             self.canv.setFont("Helvetica", 7)
             # self.canv.drawCentredString(marker_x, 68, "Student Stanine")
-            self.canv.drawCentredString(marker_x, 68, f"{full_name} | Stanine")
+            self.canv.drawCentredString(marker_x, 68, f"{self.student_full_name}'s Stanine")
 
         self.canv.setFillColor(EI_MUTED)
         self.canv.setFont("Helvetica", 7)
@@ -2353,7 +2353,9 @@ def generate_ngrt_indv_extl_rpt(student_id):
 
     story.append(section_title("Attainment Band", styles))
     story.append(Spacer(1, 10))
-    story.append(StanineScale(data["stanine"]))
+
+    student_full_name = data.get("name", "Student")
+    story.append(StanineScale(data["stanine"], student_full_name))
     story.append(Spacer(1, 10))
 
     story.append(make_threshold_table(data))
