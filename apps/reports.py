@@ -4571,15 +4571,24 @@ def percentage(part, whole):
 # Reusable table style
 # ---------------------------------------------------------
 
-def internal_summary_table_style():
+def internal_summary_table_style(subject_label):
     """
     Standard table style for internal assessment summary PDFs.
     Used for English, Mathematics, and Science summary reports.
     """
 
+    if subject_label == "English":
+        header_color = colors.HexColor("#0BA6DF")
+    elif subject_label == "Mathematics":
+        header_color = colors.HexColor("#F9A825")
+    elif subject_label == "Science":
+        header_color = colors.HexColor("#4CAF50")
+    else:
+        header_color = EI_BLUE
+
     return TableStyle([
         # Header row
-        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
+        ("BACKGROUND", (0, 0), (-1, 0), header_color),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
 
@@ -4604,12 +4613,12 @@ def internal_summary_table_style():
 
 
 # Optional: keep this if your old English code still calls it
-def english_summary_table_style():
-    """
-    Backward-compatible wrapper.
-    """
+# def english_summary_table_style():
+#     """
+#     Backward-compatible wrapper.
+#     """
 
-    return internal_summary_table_style()
+#     return internal_summary_table_style()
 
 
 # ---------------------------------------------------------
@@ -5132,7 +5141,7 @@ def build_internal_subject_summary_pdf(subject_key, filters=None):
     ]
 
     summary_table = Table(summary_data, colWidths=[250, 210])
-    summary_table.setStyle(internal_summary_table_style())
+    summary_table.setStyle(internal_summary_table_style(subject_label))
 
     story.append(summary_table)
     story.append(Spacer(1, 8))
@@ -5156,7 +5165,7 @@ def build_internal_subject_summary_pdf(subject_key, filters=None):
     ]
 
     attainment_table = Table(attainment_data, colWidths=[170, 120, 80, 90])
-    attainment_table.setStyle(internal_summary_table_style())
+    attainment_table.setStyle(internal_summary_table_style(subject_label))
 
     story.append(attainment_table)
     story.append(Spacer(1, 6))
@@ -5192,7 +5201,7 @@ def build_internal_subject_summary_pdf(subject_key, filters=None):
     ]
 
     threshold_table = Table(threshold_data, colWidths=[250, 100, 110])
-    threshold_table.setStyle(internal_summary_table_style())
+    threshold_table.setStyle(internal_summary_table_style(subject_label))
 
     story.append(threshold_table)
     story.append(Spacer(1, 10))
@@ -5240,7 +5249,7 @@ def build_internal_subject_summary_pdf(subject_key, filters=None):
         colWidths=[50, 55, 65, 65, 55, 55, 45, 55, 45]
     )
 
-    class_table.setStyle(internal_summary_table_style())
+    class_table.setStyle(internal_summary_table_style(subject_label))
 
     story.append(class_table)
     story.append(Spacer(1, 6))
