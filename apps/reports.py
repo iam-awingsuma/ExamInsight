@@ -4580,7 +4580,7 @@ def internal_summary_table_style(subject_label):
     if subject_label == "English":
         header_color = colors.HexColor("#0BA6DF")
     elif subject_label == "Mathematics":
-        header_color = colors.HexColor("#F9A825")
+        header_color = colors.HexColor("#FF6600")
     elif subject_label == "Science":
         header_color = colors.HexColor("#4CAF50")
     else:
@@ -4625,10 +4625,19 @@ def internal_summary_table_style(subject_label):
 # Progress table with background colours
 # ---------------------------------------------------------
 
-def make_internal_summary_progress_table(progress):
+def make_internal_summary_progress_table(progress, subject_label):
     """
     Creates the progress distribution table with coloured row backgrounds.
     """
+
+    if subject_label == "English":
+        header_color = colors.HexColor("#0BA6DF")
+    elif subject_label == "Mathematics":
+        header_color = colors.HexColor("#FF6600")
+    elif subject_label == "Science":
+        header_color = colors.HexColor("#4CAF50")
+    else:
+        header_color = EI_BLUE
 
     progress_data = [
         ["Progress Category", "Count", "Percentage"],
@@ -4642,7 +4651,7 @@ def make_internal_summary_progress_table(progress):
 
     progress_table.setStyle(TableStyle([
         # Header row
-        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
+        ("BACKGROUND", (0, 0), (-1, 0), header_color),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
 
@@ -4651,10 +4660,10 @@ def make_internal_summary_progress_table(progress):
         ("FONTSIZE", (0, 0), (-1, -1), 8),
 
         # Row background colours
-        ("BACKGROUND", (0, 1), (-1, 1), EI_GREEN_BG),   # Above Expected
-        ("BACKGROUND", (0, 2), (-1, 2), EI_YELLOW_BG),  # Expected
-        ("BACKGROUND", (0, 3), (-1, 3), EI_RED_BG),     # Below Expected
-        ("BACKGROUND", (0, 4), (-1, 4), EI_BLUE_BG),    # No Progress Available
+        ("BACKGROUND", (0, 1), (-1, 1), colors.white),   # Above Expected
+        ("BACKGROUND", (0, 2), (-1, 2), colors.white),  # Expected
+        ("BACKGROUND", (0, 3), (-1, 3), colors.white),     # Below Expected
+        ("BACKGROUND", (0, 4), (-1, 4), colors.white),    # No Progress Available
 
         # Row text colours
         ("TEXTCOLOR", (0, 1), (-1, 1), EI_GREEN),
@@ -5178,7 +5187,7 @@ def build_internal_subject_summary_pdf(subject_key, filters=None):
     story.append(Paragraph("Progress Distribution", styles["SummarySectionTitle"]))
     story.append(Spacer(1, 6))
 
-    progress_table = make_internal_summary_progress_table(report["progress"])
+    progress_table = make_internal_summary_progress_table(report["progress"], subject_label)
 
     story.append(progress_table)
     story.append(Spacer(1, 6))
