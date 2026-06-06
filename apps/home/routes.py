@@ -32,6 +32,8 @@ from apps.reports import (
     generate_ngrt_indv_extl_rpt, 
     generate_intl_indv_rpt,
     generate_internal_cohort_listing_pdf,
+    generate_internal_cohort_listing_by_yrgrp_pdf,
+    ALLOWED_INTERNAL_YRGRPS,
 )
 
 from urllib.parse import urlencode
@@ -1969,6 +1971,34 @@ def download_internal_cohort_listing_pdf():
         output_path,
         as_attachment=True,
         download_name="examinsight_internal_cohort_listing.pdf",
+        mimetype="application/pdf"
+    )
+
+# Route for selecting and downloading internal assessment
+# cohort listing by year group
+@blueprint.route("/reports/internal/cohort-listing/pdf/yrgrp")
+def download_internal_cohort_listing_by_yrgrp_pdf():
+    """
+    Downloads the Internal Assessment cohort listing PDF
+    for the selected year group only.
+    """
+
+    yrgrp = request.args.get("yrgrp", "").strip().lower()
+
+    if yrgrp not in ALLOWED_INTERNAL_YRGRPS:
+        abort(400, description="Please select a valid year group: 2-A to 2-F.")
+
+    output_path = generate_internal_cohort_listing_by_yrgrp_pdf(yrgrp)
+
+    if not output_path or not os.path.exists(output_path):
+        abort(404)
+
+    yrgrp_display = yrgrp.upper()
+
+    return send_file(
+        output_path,
+        as_attachment=True,
+        download_name=f"examinsight_internal_cohort_listing_{yrgrp_display}.pdf",
         mimetype="application/pdf"
     )
 

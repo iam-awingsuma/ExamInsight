@@ -130,17 +130,35 @@
           </div>
 
           <div class="col-6 col-md-6">
-            <a href="">
-              <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
-                <span class="badge bg-gradient-info text-end mb-n4 fs-6">Class Listing Report</span>
-                <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
-                    <img src="https://img.icons8.com/?size=100&id=ENxtXoyL3doy&format=png&color=000000" alt="Icon" width="38" height="auto">
-                </div>
-                <small class="text-start text-xs">
-                  Class-based student list showing internal assessment details to support monitoring progress and reviewing performance.
-                </small>
+            <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #44ACFF">
+              <span class="badge bg-gradient-info text-end mb-n4 fs-6">Class Listing Report</span>
+              <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
+                  <img src="https://img.icons8.com/?size=100&id=ENxtXoyL3doy&format=png&color=000000" alt="Icon" width="38" height="auto">
               </div>
-            </a>
+              <small class="text-start text-xs">
+                Class-based student list showing internal assessment details to support monitoring progress and reviewing performance.
+              </small>
+              <div class="text-center d-flex align-items-center justify-content-center">
+                <!-- Year group buttons -->
+                {% set year_groups = [
+                  ('2-a', 'Year 2-A'),
+                  ('2-b', 'Year 2-B'),
+                  ('2-c', 'Year 2-C'),
+                  ('2-d', 'Year 2-D'),
+                  ('2-e', 'Year 2-E'),
+                  ('2-f', 'Year 2-F')
+                ] %}
+                <div class="text-center mt-2 ei-buttons col-10 col-md-10 col-lg-10 d-flex align-items-center justify-content-center flex-wrap">
+                  {% for yrgrp_value, yrgrp_label in year_groups %}
+                    <button type="button" class="ei-button text-xs font-weight-bold" data-yrgrp="{{ yrgrp_value }}">
+                      <a href="/reports/internal/cohort-listing/pdf/yrgrp?yrgrp={{ yrgrp_value }}">
+                        {{ yrgrp_label }}
+                      </a>
+                    </button>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -385,6 +403,29 @@
           window.location.href = `/reports/external/ngrt-listing/${selectedExam}/${selectedYrgrp}`;
         });
       });
+
+      const cohortDownloadButtons = document.querySelectorAll(".internal-cohort-download-btn");
+
+      if (!cohortDownloadButtons || cohortDownloadButtons.length === 0) {
+        return;
+      }
+
+      cohortDownloadButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          const yrgrp = button.dataset.yrgrpIntl;
+
+          if (!yrgrp) {
+            alert("No year group selected.");
+            return;
+          }
+
+          const params = new URLSearchParams();
+          params.append("yrgrp", yrgrp);
+
+          window.location.href = `/reports/internal/cohort-listing/pdf/yrgrp?${params.toString()}`;
+        });
+      });
+
     });
   </script>
 {% endblock extra_js %}

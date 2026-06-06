@@ -4257,7 +4257,20 @@ def make_student_listing_cell(student, styles):
 
     return Paragraph(text, styles["student"])
 
+# function to determine the report scope label based on filters applied to the cohort listing
+def get_internal_listing_scope_label(filters):
+    """
+    Returns report scope label for the Internal Assessment cohort listing.
+    - Classwise if a specific year group is selected
+    - Cohort if no specific year group is selected
+    """
 
+    yrgrp = (filters or {}).get("yrgrp", "").strip()
+
+    if yrgrp and yrgrp != "All Year Groups":
+        return f"Year {yrgrp.upper()} Classwise Report"
+
+    return "Cohort Report"
 
 # main PDF generator
 def generate_internal_cohort_listing_pdf(filters=None):
@@ -4301,10 +4314,11 @@ def generate_internal_cohort_listing_pdf(filters=None):
 
     story = []
 
+    report_scope = get_internal_listing_scope_label(filters)
     generated_date = datetime.now().strftime("%a, %d-%b-%Y")    
     story.append(
         Paragraph(
-            f"<b>Date Generated:</b> {generated_date}",
+            f"<b>{report_scope}</b> &emsp; | &emsp; <b>Date Generated:</b> {generated_date}",
             styles["SmallText"]
         )
     )
@@ -4397,16 +4411,51 @@ def generate_internal_cohort_listing_pdf(filters=None):
         onFirstPage=lambda canvas, doc: add_header_footer(
             canvas,
             doc,
-            report_title="ExamInsight: Internal Assessment Cohort Listing Report",
+            report_title="ExamInsight: Internal Assessment Listing Report",
             logo_path=selected_logo_path
         ),
         onLaterPages=lambda canvas, doc: add_header_footer(
             canvas,
             doc,
-            report_title="ExamInsight: Internal Assessment Cohort Listing Report",
+            report_title="ExamInsight: Internal Assessment Listing Report",
             logo_path=selected_logo_path
         )
     )
 
     return output_path
+
+# =========================================================
+# Allowed Internal Assessment Year Groups
+# Database stores yrgrp values in lowercase.
+# =========================================================
+
+ALLOWED_INTERNAL_YRGRPS = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
+
+# helper function to generate a cohort listing PDF for a specific year group
+def generate_internal_cohort_listing_by_yrgrp_pdf(yrgrp):
+    """
+    Generates a downloadable Internal Assessment cohort listing PDF
+    for one selected year group only.
+
+    Database year groups are stored as lowercase:
+    2-a, 2-b, 2-c, 2-d, 2-e, 2-f.
+    """
+
+    if not yrgrp:
+        return None
+
+    yrgrp_db = yrgrp.strip().lower()
+
+    if yrgrp_db not in ALLOWED_INTERNAL_YRGRPS:
+        return None
+
+    filters = {
+        # "q": "",
+        # "gender": "All Genders",
+        "yrgrp": yrgrp_db,
+        # "status": "All Registration Status",
+        # "sen": "All SEN/SPED",
+    }
+
+    return generate_internal_cohort_listing_pdf(filters)
 
