@@ -114,13 +114,18 @@
             <div class="card card-kpi p-3 bg-white text-muted" style="border: 1px solid #FF6600">
               <span class="badge bg-gradient-warning text-end mb-n4 fs-6">Cohort Listing</span>
               <div class="icon icon-shape bg-white shadow text-center border-radius-2xl pt-1 mt-n3 mb-2 ms-n1">
-                <a href="{{ url_for('home_blueprint.download_internal_cohort_listing_pdf') }}">
-                  <img src="https://img.icons8.com/?size=100&id=WTtEHNdDRYwj&format=png&color=000000" alt="Icon" title="Download Internal Cohort Listing" width="38" height="auto">
-                </a>
+                <img src="https://img.icons8.com/?size=100&id=Zc6vYRqU6eMn&format=png&color=000000" alt="Icon" width="38" height="auto">
               </div>
-              <small class="text-start text-xs">
+              <small class="text-start text-xs mb-1">
                 Complete student listing for the internal assessment cohort with available English, Maths, and Science records.
               </small>
+              <div class="text-center d-flex align-items-center justify-content-center">
+                <button type="button" class="ei-button-intl text-xs font-weight-bold w-50">
+                  <a href="{{ url_for('home_blueprint.download_internal_cohort_listing_pdf') }}">
+                    Download PDF: Internal Cohort Listing
+                  </a>
+                </button>
+              </div>
             </div>
           </div>
 

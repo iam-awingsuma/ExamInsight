@@ -4257,6 +4257,8 @@ def make_student_listing_cell(student, styles):
 
     return Paragraph(text, styles["student"])
 
+
+
 # main PDF generator
 def generate_internal_cohort_listing_pdf(filters=None):
     """

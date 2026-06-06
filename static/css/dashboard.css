@@ -115,6 +115,34 @@
   color: #000;
 }
 
+/* Intl Assmt Cohort Listing button */
+.ei-button-intl {
+  border: none;
+  padding: 8px 14px;
+  background: #FAFFCB;
+  color: #2c3947;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.25s ease;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* Hover inactive buttons only */
+.ei-button-intl:hover:not(.active) {
+  background: #A8DF8E;
+  color: #000;
+}
+
+/* Hover active button */
+.ei-button-intl:hover {
+  background: #A8DF8E;
+  color: #000;
+}
+
 /* Dropdown select styling - year group selector */
 .ei-select {
   border: 1px solid #44ACFF;
