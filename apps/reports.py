@@ -4578,11 +4578,11 @@ def internal_summary_table_style(subject_label):
     """
 
     if subject_label == "English":
-        header_color = colors.HexColor("#0BA6DF")
+        header_color = EI_BLUE
     elif subject_label == "Mathematics":
-        header_color = colors.HexColor("#FF6600")
+        header_color = EI_YELLOW
     elif subject_label == "Science":
-        header_color = colors.HexColor("#4CAF50")
+        header_color = EI_GREEN
     else:
         header_color = EI_BLUE
 
@@ -4631,11 +4631,11 @@ def make_internal_summary_progress_table(progress, subject_label):
     """
 
     if subject_label == "English":
-        header_color = colors.HexColor("#0BA6DF")
+        header_color = EI_BLUE
     elif subject_label == "Mathematics":
-        header_color = colors.HexColor("#FF6600")
+        header_color = EI_YELLOW
     elif subject_label == "Science":
-        header_color = colors.HexColor("#4CAF50")
+        header_color = EI_GREEN
     else:
         header_color = EI_BLUE
 
@@ -5084,6 +5084,15 @@ def build_internal_subject_summary_pdf(subject_key, filters=None):
         )
     )
 
+    if subject_key == "english":
+        fontColor = EI_BLUE
+    elif subject_key == "mathematics":
+        fontColor = EI_ORANGE
+    elif subject_key == "science":
+        fontColor = EI_GREEN
+    else:
+        fontColor = EI_BLUE
+
     # Section title style similar to other ExamInsight reports.
     styles.add(
         ParagraphStyle(
@@ -5092,7 +5101,7 @@ def build_internal_subject_summary_pdf(subject_key, filters=None):
             fontName="Helvetica-Bold",
             fontSize=11,
             leading=13,
-            textColor=EI_BLUE,
+            textColor=fontColor,
             spaceBefore=8,
             spaceAfter=5,
         )
