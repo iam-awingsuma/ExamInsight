@@ -34,6 +34,10 @@ from apps.reports import (
     generate_internal_cohort_listing_pdf,
     generate_internal_cohort_listing_by_yrgrp_pdf,
     ALLOWED_INTERNAL_YRGRPS,
+    INTERNAL_SUMMARY_SUBJECTS,
+    build_internal_english_summary_pdf,
+    build_internal_mathematics_summary_pdf,
+    build_internal_science_summary_pdf,
 )
 
 from urllib.parse import urlencode
@@ -2000,6 +2004,88 @@ def download_internal_cohort_listing_by_yrgrp_pdf():
         as_attachment=True,
         download_name=f"examinsight_internal_cohort_listing_{yrgrp_display}.pdf",
         mimetype="application/pdf"
+    )
+
+
+# Route for Summary Report: English
+@blueprint.route("/reports/internal/summary/english/pdf")
+def download_internal_english_summary_pdf():
+    """
+    Downloads the English Internal Assessment Summary Report.
+    """
+
+    filters = {
+        "q": request.args.get("q", "").strip(),
+        "gender": request.args.get("gender", "").strip(),
+        "yrgrp": request.args.get("yrgrp", "").strip(),
+        "status": request.args.get("status", "").strip(),
+        "sen": request.args.get("sen", "").strip(),
+    }
+
+    pdf_buffer = build_internal_english_summary_pdf(filters)
+
+    if not pdf_buffer:
+        abort(404)
+
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=INTERNAL_SUMMARY_SUBJECTS["english"]["filename"],
+        mimetype="application/pdf",
+    )
+
+# Route for Summary Report: Mathematics
+@blueprint.route("/reports/internal/summary/mathematics/pdf")
+def download_internal_mathematics_summary_pdf():
+    """
+    Downloads the Mathematics Internal Assessment Summary Report.
+    """
+
+    filters = {
+        "q": request.args.get("q", "").strip(),
+        "gender": request.args.get("gender", "").strip(),
+        "yrgrp": request.args.get("yrgrp", "").strip(),
+        "status": request.args.get("status", "").strip(),
+        "sen": request.args.get("sen", "").strip(),
+    }
+
+    pdf_buffer = build_internal_mathematics_summary_pdf(filters)
+
+    if not pdf_buffer:
+        abort(404)
+
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=INTERNAL_SUMMARY_SUBJECTS["mathematics"]["filename"],
+        mimetype="application/pdf",
+    )
+
+# Route for Summary Report: Science
+@blueprint.route("/reports/internal/summary/science/pdf")
+def download_internal_science_summary_pdf():
+    """
+    Downloads the Science Internal Assessment Summary Report.
+    """
+
+    filters = {
+        "q": request.args.get("q", "").strip(),
+        "gender": request.args.get("gender", "").strip(),
+        "yrgrp": request.args.get("yrgrp", "").strip(),
+        "status": request.args.get("status", "").strip(),
+        "sen": request.args.get("sen", "").strip(),
+    }
+
+    pdf_buffer = build_internal_science_summary_pdf(filters)
+
+    if not pdf_buffer:
+        abort(404)
+
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=INTERNAL_SUMMARY_SUBJECTS["science"]["filename"],
+        mimetype="application/pdf",
     )
 
 #************************

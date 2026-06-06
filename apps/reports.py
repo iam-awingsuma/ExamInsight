@@ -103,17 +103,6 @@ def format_year_group(yrgrp):
 
     return yrgrp.upper()
 
-# def format_student_name(row):
-#     """
-#     Builds full student name from forename and surname.
-#     """
-#     forename = clean_value(row.get("forename"), "")
-#     surname = clean_value(row.get("surname"), "")
-
-#     full_name = f"{forename} {surname}".strip()
-
-#     return full_name if full_name else "-"
-
 def sort_year_group_key(yrgrp):
     """
     Sorts year groups naturally: 2-A, 2-B, 2-C, etc.
@@ -464,11 +453,6 @@ def add_header_footer(canvas, doc, report_title, logo_path=None):
     canvas.setStrokeColor(colors.HexColor("#9CA3AF"))
     canvas.setLineWidth(0.5)
     canvas.line(left_margin, footer_line_y, page_width - right_margin, footer_line_y)
-
-    # footnote = (
-    #     "ExamInsight: Attainment and Progress Tracking in Year 2 Internal Assessments "
-    #     "and External Benchmark Tests at Pristine Private School | Page %d" % doc.page
-    # )
 
     footnote = (
         "ExamInsight: Attainment and Progress Tracking in Year 2 Internal Assessments "
@@ -2750,15 +2734,6 @@ def make_internal_kpi_table(data):
     progress = data["main_progress_category"] or "-"
     priority = data["support_priority"] or "-"
 
-    # table_data = [
-    #     [
-    #         make_kpi_cell(overall, "Overall Current Average", "Across English, Maths, Science"),
-    #         make_kpi_cell(strongest, "Strongest Subject", "Highest current percentage"),
-    #         make_kpi_cell(progress, "Main Progress Category", "Most common progress category"),
-    #         make_kpi_cell(priority, "Support Priority", "Lowest current percentage"),
-    #     ]
-    # ]
-
     table_data = [
         [
             make_kpi_cell(
@@ -4461,3 +4436,868 @@ def generate_internal_cohort_listing_by_yrgrp_pdf(yrgrp):
 
     return generate_internal_cohort_listing_pdf(filters)
 
+
+# =========================================================
+# Summary Report: Internal Assessment
+# English, Mathematics, and Science.
+# =========================================================
+
+# -----------------------------
+# Subject Configuration
+# -----------------------------
+
+INTERNAL_SUMMARY_SUBJECTS = {
+    "english": {
+        "api_key": "english",
+        "label": "English",
+        "header_label": "ENGLISH INTERNAL ASSESSMENT",
+        "total_label": "Total Intake for English Assessment",
+        "threshold_label": "English Attainment Thresholds",
+        "current_label": "Current English %",
+        "filename": "examinsight_english_internal_summary_report.pdf",
+    },
+
+    "mathematics": {
+        "api_key": "mathematics",
+        "label": "Mathematics",
+        "header_label": "MATHEMATICS INTERNAL ASSESSMENT",
+        "total_label": "Total Intake for Mathematics Assessment",
+        "threshold_label": "Mathematics Attainment Thresholds",
+        "current_label": "Current Mathematics %",
+        "filename": "examinsight_mathematics_internal_summary_report.pdf",
+    },
+
+    "science": {
+        "api_key": "science",
+        "label": "Science",
+        "header_label": "SCIENCE INTERNAL ASSESSMENT",
+        "total_label": "Total Intake for Science Assessment",
+        "threshold_label": "Science Attainment Thresholds",
+        "current_label": "Current Science %",
+        "filename": "examinsight_science_internal_summary_report.pdf",
+    },
+}
+
+
+# ---------------------------------------------------------
+# Helper: safely convert API values to float
+# ---------------------------------------------------------
+
+def safe_report_float(value, default=None):
+    """
+    Converts a value from the API into a float.
+    Handles None, blank values, and '-' safely.
+    """
+
+    if value is None:
+        return default
+
+    value = str(value).strip()
+
+    if value == "" or value == "-":
+        return default
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+# ---------------------------------------------------------
+# Helper: safely format percentage values
+# ---------------------------------------------------------
+
+def format_report_pct(value):
+    """
+    Formats numeric values as percentages for the PDF.
+    """
+
+    value = safe_report_float(value)
+
+    if value is None:
+        return "-"
+
+    if value.is_integer():
+        return f"{int(value)}%"
+
+    return f"{value:.1f}%"
+
+
+# ---------------------------------------------------------
+# Helper: normalise progress category text
+# ---------------------------------------------------------
+
+def normalise_progress_category(value):
+    """
+    Normalises progress category values from the API.
+    Expected values may include:
+    - Below Expected
+    - Expected
+    - Above Expected
+    """
+
+    value = str(value or "").strip()
+
+    if not value or value == "-":
+        return "No Progress Available"
+
+    lower_value = value.lower()
+
+    if "below" in lower_value:
+        return "Below Expected"
+
+    if "above" in lower_value:
+        return "Above Expected"
+
+    if "expected" in lower_value:
+        return "Expected"
+
+    return value
+
+
+# ---------------------------------------------------------
+# Helper: percentage count
+# ---------------------------------------------------------
+
+def percentage(part, whole):
+    """
+    Returns percentage rounded to 1 decimal place.
+    """
+
+    return round((part / whole) * 100, 1) if whole else 0.0
+
+
+# ---------------------------------------------------------
+# Reusable table style
+# ---------------------------------------------------------
+
+def internal_summary_table_style():
+    """
+    Standard table style for internal assessment summary PDFs.
+    Used for English, Mathematics, and Science summary reports.
+    """
+
+    return TableStyle([
+        # Header row
+        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+
+        # Body
+        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+
+        # Alignment
+        ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+
+        # Borders and row colours
+        ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, EI_LIGHT]),
+
+        # Padding
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+    ])
+
+
+# Optional: keep this if your old English code still calls it
+def english_summary_table_style():
+    """
+    Backward-compatible wrapper.
+    """
+
+    return internal_summary_table_style()
+
+
+# ---------------------------------------------------------
+# Progress table with background colours
+# ---------------------------------------------------------
+
+def make_internal_summary_progress_table(progress):
+    """
+    Creates the progress distribution table with coloured row backgrounds.
+    """
+
+    progress_data = [
+        ["Progress Category", "Count", "Percentage"],
+        ["Above Expected", progress.get("above_count", 0), f'{progress.get("above_pct", 0)}%'],
+        ["Expected", progress.get("expected_count", 0), f'{progress.get("expected_pct", 0)}%'],
+        ["Below Expected", progress.get("below_count", 0), f'{progress.get("below_pct", 0)}%'],
+        ["No Progress Available", progress.get("no_progress_count", 0), f'{progress.get("no_progress_pct", 0)}%'],
+    ]
+
+    progress_table = Table(progress_data, colWidths=[250, 100, 110])
+
+    progress_table.setStyle(TableStyle([
+        # Header row
+        ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+
+        # Body text
+        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+
+        # Row background colours
+        ("BACKGROUND", (0, 1), (-1, 1), EI_GREEN_BG),   # Above Expected
+        ("BACKGROUND", (0, 2), (-1, 2), EI_YELLOW_BG),  # Expected
+        ("BACKGROUND", (0, 3), (-1, 3), EI_RED_BG),     # Below Expected
+        ("BACKGROUND", (0, 4), (-1, 4), EI_BLUE_BG),    # No Progress Available
+
+        # Row text colours
+        ("TEXTCOLOR", (0, 1), (-1, 1), EI_GREEN),
+        ("TEXTCOLOR", (0, 2), (-1, 2), EI_YELLOW),
+        ("TEXTCOLOR", (0, 3), (-1, 3), EI_RED),
+        ("TEXTCOLOR", (0, 4), (-1, 4), EI_BLUE),
+
+        # Layout
+        ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
+
+        # Padding
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+    ]))
+
+    return progress_table
+
+
+# ---------------------------------------------------------
+# Generic Subject Summary Data Builder
+# ---------------------------------------------------------
+
+def build_internal_subject_summary_data(subject_key, filters=None):
+    """
+    Builds whole-cohort internal assessment summary data for one subject.
+
+    Supported subject_key values:
+    - english
+    - mathematics
+    - science
+
+    Data source:
+    /api/reports/internal/combined-data
+    """
+
+    filters = filters or {}
+
+    subject_config = INTERNAL_SUMMARY_SUBJECTS.get(subject_key)
+
+    if not subject_config:
+        return None
+
+    api_subject_key = subject_config["api_key"]
+    subject_label = subject_config["label"]
+
+    # Build API URL using the current Flask host.
+    base_url = request.host_url.rstrip("/")
+    api_url = f"{base_url}/api/reports/internal/combined-data"
+
+    # Add query parameters only if filters are supplied.
+    query_params = {
+        key: value
+        for key, value in filters.items()
+        if value is not None and str(value).strip() != ""
+    }
+
+    if query_params:
+        api_url = f"{api_url}?{urlencode(query_params)}"
+
+    # Request filtered or full cohort data from your API.
+    response = requests.get(api_url, timeout=20)
+
+    if response.status_code != 200:
+        return None
+
+    students = response.json()
+
+    # Keep only students with at least some assessment data for this subject.
+    subject_records = []
+
+    for student in students:
+        internal = student.get("internal_assessment", {})
+        subject_data = internal.get(api_subject_key, {})
+
+        previous_pct = safe_report_float(subject_data.get("previous_percentage"))
+        current_pct = safe_report_float(subject_data.get("current_percentage"))
+
+        # Skip completely blank subject records.
+        if previous_pct is None and current_pct is None:
+            continue
+
+        yrgrp = str(student.get("yrgrp") or "Unknown").strip().upper()
+
+        subject_records.append({
+            "student_id": student.get("student_id"),
+            "name": student.get("name"),
+            "yrgrp": yrgrp,
+            "previous_pct": previous_pct,
+            "previous_grade": subject_data.get("previous_grade", "-"),
+            "current_pct": current_pct,
+            "current_grade": subject_data.get("current_grade", "-"),
+            "progress_category": normalise_progress_category(
+                subject_data.get("progress_category")
+            ),
+        })
+
+    total_students = len(subject_records)
+
+    # Safe empty structure if no data exists.
+    if total_students == 0:
+        return {
+            "subject_label": subject_label,
+            "total_students": 0,
+            "avg_previous": 0,
+            "avg_current": 0,
+            "avg_change": 0,
+            "attainment": {},
+            "progress": {},
+            "thresholds": {},
+            "classes": [],
+            "statements": {
+                "overview": f"No {subject_label} internal assessment data is available.",
+                "attainment": f"No {subject_label} attainment distribution can be calculated.",
+                "progress": f"No {subject_label} progress data is available.",
+                "comparison": "No class/year group comparison can be generated.",
+            }
+        }
+
+    # Extract valid previous/current values.
+    previous_values = [
+        row["previous_pct"]
+        for row in subject_records
+        if row["previous_pct"] is not None
+    ]
+
+    current_values = [
+        row["current_pct"]
+        for row in subject_records
+        if row["current_pct"] is not None
+    ]
+
+    avg_previous = round(sum(previous_values) / len(previous_values), 1) if previous_values else 0
+    avg_current = round(sum(current_values) / len(current_values), 1) if current_values else 0
+    avg_change = round(avg_current - avg_previous, 1)
+
+    # -----------------------------------------------------
+    # Attainment distribution based on current percentage
+    # -----------------------------------------------------
+    below_60 = sum(
+        1 for row in subject_records
+        if row["current_pct"] is not None and row["current_pct"] < 60
+    )
+
+    range_60_69 = sum(
+        1 for row in subject_records
+        if row["current_pct"] is not None and 60 <= row["current_pct"] < 70
+    )
+
+    range_70_79 = sum(
+        1 for row in subject_records
+        if row["current_pct"] is not None and 70 <= row["current_pct"] < 80
+    )
+
+    range_80_plus = sum(
+        1 for row in subject_records
+        if row["current_pct"] is not None and row["current_pct"] >= 80
+    )
+
+    attainment = {
+        "below_60_count": below_60,
+        "below_60_pct": percentage(below_60, total_students),
+
+        "range_60_69_count": range_60_69,
+        "range_60_69_pct": percentage(range_60_69, total_students),
+
+        "range_70_79_count": range_70_79,
+        "range_70_79_pct": percentage(range_70_79, total_students),
+
+        "range_80_plus_count": range_80_plus,
+        "range_80_plus_pct": percentage(range_80_plus, total_students),
+    }
+
+    # -----------------------------------------------------
+    # Progress category distribution
+    # -----------------------------------------------------
+    below_expected = sum(
+        1 for row in subject_records
+        if row["progress_category"] == "Below Expected"
+    )
+
+    expected = sum(
+        1 for row in subject_records
+        if row["progress_category"] == "Expected"
+    )
+
+    above_expected = sum(
+        1 for row in subject_records
+        if row["progress_category"] == "Above Expected"
+    )
+
+    no_progress = sum(
+        1 for row in subject_records
+        if row["progress_category"] == "No Progress Available"
+    )
+
+    progress_total = below_expected + expected + above_expected + no_progress
+
+    progress = {
+        "below_count": below_expected,
+        "below_pct": percentage(below_expected, progress_total),
+
+        "expected_count": expected,
+        "expected_pct": percentage(expected, progress_total),
+
+        "above_count": above_expected,
+        "above_pct": percentage(above_expected, progress_total),
+
+        "no_progress_count": no_progress,
+        "no_progress_pct": percentage(no_progress, progress_total),
+    }
+
+    # -----------------------------------------------------
+    # Attainment thresholds
+    # -----------------------------------------------------
+    at_60 = sum(
+        1 for row in subject_records
+        if row["current_pct"] is not None and row["current_pct"] >= 60
+    )
+
+    at_70 = sum(
+        1 for row in subject_records
+        if row["current_pct"] is not None and row["current_pct"] >= 70
+    )
+
+    at_80 = sum(
+        1 for row in subject_records
+        if row["current_pct"] is not None and row["current_pct"] >= 80
+    )
+
+    thresholds = {
+        "at_60_count": at_60,
+        "at_60_pct": percentage(at_60, total_students),
+
+        "at_70_count": at_70,
+        "at_70_pct": percentage(at_70, total_students),
+
+        "at_80_count": at_80,
+        "at_80_pct": percentage(at_80, total_students),
+    }
+
+    # -----------------------------------------------------
+    # Class/year group comparison
+    # -----------------------------------------------------
+    grouped = {}
+
+    for row in subject_records:
+        yrgrp = row["yrgrp"]
+
+        if yrgrp not in grouped:
+            grouped[yrgrp] = []
+
+        grouped[yrgrp].append(row)
+
+    class_rows = []
+
+    for yrgrp, rows in sorted(grouped.items()):
+        class_previous = [
+            row["previous_pct"]
+            for row in rows
+            if row["previous_pct"] is not None
+        ]
+
+        class_current = [
+            row["current_pct"]
+            for row in rows
+            if row["current_pct"] is not None
+        ]
+
+        class_avg_previous = round(sum(class_previous) / len(class_previous), 1) if class_previous else 0
+        class_avg_current = round(sum(class_current) / len(class_current), 1) if class_current else 0
+        class_change = round(class_avg_current - class_avg_previous, 1)
+
+        class_at_60 = sum(
+            1 for row in rows
+            if row["current_pct"] is not None and row["current_pct"] >= 60
+        )
+
+        class_above_expected = sum(
+            1 for row in rows
+            if row["progress_category"] == "Above Expected"
+        )
+
+        class_expected = sum(
+            1 for row in rows
+            if row["progress_category"] == "Expected"
+        )
+
+        class_below_expected = sum(
+            1 for row in rows
+            if row["progress_category"] == "Below Expected"
+        )
+
+        class_rows.append({
+            "yrgrp": yrgrp,
+            "count": len(rows),
+            "avg_previous": class_avg_previous,
+            "avg_current": class_avg_current,
+            "avg_change": class_change,
+            "at_60_pct": percentage(class_at_60, len(rows)),
+            "below_expected": class_below_expected,
+            "expected": class_expected,
+            "above_expected": class_above_expected,
+        })
+
+    # -----------------------------------------------------
+    # Interpretation statements
+    # -----------------------------------------------------
+    dominant_attainment = max(
+        [
+            ("below 60%", below_60, attainment["below_60_pct"]),
+            ("60%-69%", range_60_69, attainment["range_60_69_pct"]),
+            ("70%-79%", range_70_79, attainment["range_70_79_pct"]),
+            ("80% and above", range_80_plus, attainment["range_80_plus_pct"]),
+        ],
+        key=lambda item: item[1]
+    )
+
+    dominant_progress = max(
+        [
+            ("Below Expected", below_expected, progress["below_pct"]),
+            ("Expected", expected, progress["expected_pct"]),
+            ("Above Expected", above_expected, progress["above_pct"]),
+            ("No Progress Available", no_progress, progress["no_progress_pct"]),
+        ],
+        key=lambda item: item[1]
+    )
+
+    if class_rows:
+        highest_class = max(class_rows, key=lambda row: row["avg_current"])
+        lowest_class = min(class_rows, key=lambda row: row["avg_current"])
+
+        comparison_statement = (
+            f"The highest {subject_label} current average is in {highest_class['yrgrp']} "
+            f"at {highest_class['avg_current']}%, while the lowest current average is in "
+            f"{lowest_class['yrgrp']} at {lowest_class['avg_current']}%."
+        )
+    else:
+        comparison_statement = "Class/year group comparison is not available."
+
+    return {
+        "subject_label": subject_label,
+        "total_students": total_students,
+        "avg_previous": avg_previous,
+        "avg_current": avg_current,
+        "avg_change": avg_change,
+        "attainment": attainment,
+        "progress": progress,
+        "thresholds": thresholds,
+        "classes": class_rows,
+        "statements": {
+            "overview": (
+                f"The {subject_label} cohort has an average current attainment of {avg_current}% "
+                f"compared with a previous average of {avg_previous}%, showing an average change of {avg_change:+.1f} percentage points."
+            ),
+            "attainment": (
+                f"The largest attainment group is {dominant_attainment[0]}, "
+                f"with {dominant_attainment[1]} students ({dominant_attainment[2]}%)."
+            ),
+            "progress": (
+                f"The most common {subject_label} progress category is {dominant_progress[0]}, "
+                f"representing {dominant_progress[1]} students ({dominant_progress[2]}%)."
+            ),
+            "comparison": comparison_statement,
+        }
+    }
+
+
+# ---------------------------------------------------------
+# Generic Subject Summary PDF Builder
+# ---------------------------------------------------------
+
+def build_internal_subject_summary_pdf(subject_key, filters=None):
+    """
+    Builds a downloadable Internal Assessment Summary Report for a selected subject.
+
+    Supported subject_key values:
+    - english
+    - mathematics
+    - science
+    """
+
+    subject_config = INTERNAL_SUMMARY_SUBJECTS.get(subject_key)
+
+    if not subject_config:
+        return None
+
+    report = build_internal_subject_summary_data(subject_key, filters)
+
+    if not report:
+        return None
+
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=60,
+        bottomMargin=60,
+    )
+
+    styles = getSampleStyleSheet()
+
+    # Small paragraph style for interpretation statements.
+    styles.add(
+        ParagraphStyle(
+            name="SmallText",
+            parent=styles["Normal"],
+            fontName="Helvetica",
+            fontSize=8.5,
+            leading=11,
+            textColor=EI_DARK,
+        )
+    )
+
+    # Section title style similar to other ExamInsight reports.
+    styles.add(
+        ParagraphStyle(
+            name="SummarySectionTitle",
+            parent=styles["Heading2"],
+            fontName="Helvetica-Bold",
+            fontSize=11,
+            leading=13,
+            textColor=EI_BLUE,
+            spaceBefore=8,
+            spaceAfter=5,
+        )
+    )
+
+    story = []
+
+    subject_label = subject_config["label"]
+    report_title = "ExamInsight: Summary Report"
+
+    # -----------------------------------------------------
+    # Report intro
+    # -----------------------------------------------------
+    generated_date = datetime.now().strftime("%a, %d-%b-%Y")
+
+    if subject_label == "English":
+        header_ = f'<font color="{EI_BLUE.hexval()}"><b>{subject_config["header_label"]}</b></font>'
+    elif subject_label == "Mathematics":
+        header_ = f'<font color="{EI_ORANGE.hexval()}"><b>{subject_config["header_label"]}</b></font>'
+    elif subject_label == "Science":
+        header_ = f'<font color="{EI_GREEN.hexval()}"><b>{subject_config["header_label"]}</b></font>'
+    else:
+        f'<font color="{EI_BLUE.hexval()}"><b>{report_title}</b></font>'
+
+    story.append(
+        Paragraph(
+            header_ +
+            f' &nbsp; | &nbsp; '
+            f"<b>Date Generated:</b> {generated_date}",
+            styles["SmallText"]
+        )
+    )
+    story.append(Spacer(1, 8))
+
+    story.append(
+        Paragraph(
+            f"This report summarises the {subject_label} internal assessment dataset for the selected cohort. "
+            "It highlights overall performance, progress trends, attainment thresholds, and comparative "
+            "outcomes across classes/year groups.",
+            styles["SmallText"]
+        )
+    )
+    story.append(Spacer(1, 12))
+
+    # -----------------------------------------------------
+    # KPI summary table
+    # -----------------------------------------------------
+    summary_data = [
+        ["Metric", "Value"],
+        ["Subject", subject_label],
+        [subject_config["total_label"], report["total_students"]],
+        ["Average Previous Attainment", f'{report["avg_previous"]}%'],
+        ["Average Current Attainment", f'{report["avg_current"]}%'],
+        ["Average Change", f'{report["avg_change"]:+.1f} percentage points'],
+    ]
+
+    summary_table = Table(summary_data, colWidths=[250, 210])
+    summary_table.setStyle(internal_summary_table_style())
+
+    story.append(summary_table)
+    story.append(Spacer(1, 8))
+    story.append(Paragraph(report["statements"]["overview"], styles["SmallText"]))
+    story.append(Spacer(1, 10))
+
+    # -----------------------------------------------------
+    # Attainment distribution
+    # -----------------------------------------------------
+    story.append(Paragraph("Attainment Distribution", styles["SummarySectionTitle"]))
+    story.append(Spacer(1, 6))
+
+    att = report["attainment"]
+
+    attainment_data = [
+        ["Band", "Current % Range", "Count", "Percentage"],
+        ["Below Expected Attainment", "Below 60%", att.get("below_60_count", 0), f'{att.get("below_60_pct", 0)}%'],
+        ["Expected Range", "60%-69%", att.get("range_60_69_count", 0), f'{att.get("range_60_69_pct", 0)}%'],
+        ["Secure Attainment", "70%-79%", att.get("range_70_79_count", 0), f'{att.get("range_70_79_pct", 0)}%'],
+        ["High Attainment", "80% and above", att.get("range_80_plus_count", 0), f'{att.get("range_80_plus_pct", 0)}%'],
+    ]
+
+    attainment_table = Table(attainment_data, colWidths=[170, 120, 80, 90])
+    attainment_table.setStyle(internal_summary_table_style())
+
+    story.append(attainment_table)
+    story.append(Spacer(1, 6))
+    story.append(Paragraph(report["statements"]["attainment"], styles["SmallText"]))
+    story.append(Spacer(1, 10))
+
+    # -----------------------------------------------------
+    # Progress distribution
+    # -----------------------------------------------------
+    story.append(Paragraph("Progress Distribution", styles["SummarySectionTitle"]))
+    story.append(Spacer(1, 6))
+
+    progress_table = make_internal_summary_progress_table(report["progress"])
+
+    story.append(progress_table)
+    story.append(Spacer(1, 6))
+    story.append(Paragraph(report["statements"]["progress"], styles["SmallText"]))
+    story.append(Spacer(1, 10))
+
+    # -----------------------------------------------------
+    # Attainment thresholds
+    # -----------------------------------------------------
+    story.append(Paragraph(subject_config["threshold_label"], styles["SummarySectionTitle"]))
+    story.append(Spacer(1, 6))
+
+    thr = report["thresholds"]
+
+    threshold_data = [
+        ["Threshold", "Count", "Percentage"],
+        [f'{subject_config["current_label"]} >= 60', thr.get("at_60_count", 0), f'{thr.get("at_60_pct", 0)}%'],
+        [f'{subject_config["current_label"]} >= 70', thr.get("at_70_count", 0), f'{thr.get("at_70_pct", 0)}%'],
+        [f'{subject_config["current_label"]} >= 80', thr.get("at_80_count", 0), f'{thr.get("at_80_pct", 0)}%'],
+    ]
+
+    threshold_table = Table(threshold_data, colWidths=[250, 100, 110])
+    threshold_table.setStyle(internal_summary_table_style())
+
+    story.append(threshold_table)
+    story.append(Spacer(1, 10))
+
+    # -----------------------------------------------------
+    # Move comparison table to page 2
+    # -----------------------------------------------------
+    story.append(PageBreak())
+
+    # -----------------------------------------------------
+    # Class/year group comparison
+    # -----------------------------------------------------
+    story.append(Paragraph("Class / Year Group Comparison", styles["SummarySectionTitle"]))
+    story.append(Spacer(1, 6))
+
+    class_data = [
+        [
+            "Class",
+            "Students",
+            "Avg Previous",
+            "Avg Current",
+            "Change",
+            "% >= 60",
+            "Below",
+            "Expected",
+            "Above",
+        ]
+    ]
+
+    for row in report["classes"]:
+        class_data.append([
+            row["yrgrp"],
+            row["count"],
+            f'{row["avg_previous"]}%',
+            f'{row["avg_current"]}%',
+            f'{row["avg_change"]:+.1f}',
+            f'{row["at_60_pct"]}%',
+            row["below_expected"],
+            row["expected"],
+            row["above_expected"],
+        ])
+
+    class_table = Table(
+        class_data,
+        colWidths=[50, 55, 65, 65, 55, 55, 45, 55, 45]
+    )
+
+    class_table.setStyle(internal_summary_table_style())
+
+    story.append(class_table)
+    story.append(Spacer(1, 6))
+    story.append(Paragraph(report["statements"]["comparison"], styles["SmallText"]))
+
+    # -----------------------------------------------------
+    # Build PDF with your existing header/footer function
+    # -----------------------------------------------------
+    try:
+        selected_logo_path = logo_path
+    except NameError:
+        selected_logo_path = None
+
+    doc.build(
+        story,
+        onFirstPage=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title=report_title,
+            logo_path=selected_logo_path,
+        ),
+        onLaterPages=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title=report_title,
+            logo_path=selected_logo_path,
+        ),
+    )
+
+    buffer.seek(0)
+
+    return buffer
+
+
+# ---------------------------------------------------------
+# Subject Wrapper Functions
+# ---------------------------------------------------------
+
+def build_internal_english_summary_pdf(filters=None):
+    """
+    Builds the downloadable English Internal Assessment Summary Report.
+    """
+
+    return build_internal_subject_summary_pdf("english", filters)
+
+
+def build_internal_mathematics_summary_pdf(filters=None):
+    """
+    Builds the downloadable Mathematics Internal Assessment Summary Report.
+    """
+
+    return build_internal_subject_summary_pdf("mathematics", filters)
+
+
+def build_internal_science_summary_pdf(filters=None):
+    """
+    Builds the downloadable Science Internal Assessment Summary Report.
+    """
+
+    return build_internal_subject_summary_pdf("science", filters)
