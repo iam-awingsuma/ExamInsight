@@ -564,7 +564,7 @@ def build_ngrt_summary_pdf(exam):
     # ------------------------------------------
     # Title
     # ------------------------------------------
-    generated_date = datetime.now().strftime("%A, %d-%b-%Y")
+    generated_date = datetime.now().strftime("%a, %d-%b-%Y")
     story.append(Paragraph(f"<b>Date Generated:</b> {generated_date}", styles["Normal"]))
     story.append(Spacer(1, 14))
 
@@ -776,7 +776,7 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
     )
 
     # Title not added here, the header already draws it.
-    generated_date = datetime.now().strftime("%A, %d-%b-%Y")
+    generated_date = datetime.now().strftime("%a, %d-%b-%Y")
 
     story.append(
         Paragraph(
@@ -1217,7 +1217,7 @@ def build_individual_report_data(student_id):
         "reader_profile": profile,
         "history": get_ngrt_history(student_id),
         "thresholds": get_threshold_status(latest_sas),
-        "date_generated": datetime.now().strftime("%A, %d-%B-%Y"),
+        "date_generated": datetime.now().strftime("%a, %d-%B-%Y"),
     }
 
     data["averages"] = get_class_and_cohort_average(student, latest_exam_key)
@@ -2647,7 +2647,7 @@ def build_internal_individual_report_data(student_id):
         "status": clean_text(getattr(student, "status", "")),
         "nationality": clean_text(getattr(student, "nationality", "")),
         "sped": clean_text(getattr(student, "sped", "")),
-        "date_generated": datetime.now().strftime("%A, %d-%b-%Y"),
+        "date_generated": datetime.now().strftime("%a, %d-%B-%Y"),
 
         "subjects": subjects,
         "overall_average": overall_average,
