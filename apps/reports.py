@@ -4268,9 +4268,9 @@ def get_internal_listing_scope_label(filters):
     yrgrp = (filters or {}).get("yrgrp", "").strip()
 
     if yrgrp and yrgrp != "All Year Groups":
-        return f"Year {yrgrp.upper()} Classwise Report"
+        return f"YEAR {yrgrp.upper()} CLASSWISE REPORT", EI_BLUE
 
-    return "Cohort Report"
+    return "COHORT REPORT", EI_ORANGE
 
 # main PDF generator
 def generate_internal_cohort_listing_pdf(filters=None):
@@ -4314,11 +4314,13 @@ def generate_internal_cohort_listing_pdf(filters=None):
 
     story = []
 
-    report_scope = get_internal_listing_scope_label(filters)
+    report_scope, report_scope_color = get_internal_listing_scope_label(filters)
     generated_date = datetime.now().strftime("%a, %d-%b-%Y")    
     story.append(
         Paragraph(
-            f"<b>{report_scope}</b> &emsp; | &emsp; <b>Date Generated:</b> {generated_date}",
+            f'<font color="{report_scope_color.hexval()}"><b>{report_scope}</b></font>'
+            f' &emsp; | &emsp; '
+            f'<b>Date Generated:</b> {generated_date}',
             styles["SmallText"]
         )
     )
