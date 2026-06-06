@@ -25,6 +25,10 @@ from reportlab.platypus import (
     Flowable,
 )
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from urllib.parse import urlencode
+import requests
+
+from flask import request
 
 from sqlalchemy import func
 
@@ -56,7 +60,6 @@ def safe_pct(part, whole):
 def get_ngrt_model_by_exam(exam):
     """
     Return the NGRT model based on the selected report option.
-
     Allowed values: ngrta, ngrtb, ngrtc
     """
     exam = (exam or "").strip().lower()
@@ -68,11 +71,13 @@ def get_ngrt_model_by_exam(exam):
 
     return exam_map.get(exam)
 
+# returns blank white space if value is None
 def clean_pdf_text(value, default=""):
     if value is None:
         return default
     return escape(str(value).strip())
 
+# returns "-"" if the value is null
 def clean_value(value, default="-"):
     """
     Safely display empty/null values in the PDF.
@@ -98,16 +103,16 @@ def format_year_group(yrgrp):
 
     return yrgrp.upper()
 
-def format_student_name(row):
-    """
-    Builds full student name from forename and surname.
-    """
-    forename = clean_value(row.get("forename"), "")
-    surname = clean_value(row.get("surname"), "")
+# def format_student_name(row):
+#     """
+#     Builds full student name from forename and surname.
+#     """
+#     forename = clean_value(row.get("forename"), "")
+#     surname = clean_value(row.get("surname"), "")
 
-    full_name = f"{forename} {surname}".strip()
+#     full_name = f"{forename} {surname}".strip()
 
-    return full_name if full_name else "-"
+#     return full_name if full_name else "-"
 
 def sort_year_group_key(yrgrp):
     """
@@ -3907,6 +3912,7 @@ def get_kpi_subtitle_style():
 # =============================================================================
 # Main PDF builder - internal assessments (Assessment Data + Report Generation)
 # =============================================================================
+
 def generate_intl_indv_rpt(student_id):
     """
     Generates the individual internal assessment PDF report.
@@ -4078,3 +4084,327 @@ def generate_intl_indv_rpt(student_id):
     )
 
     return output_path
+
+# ===================================================
+# Cohort listing-related report generation functions
+# ===================================================
+
+# Defines paragraph styles used in the cohort listing report
+def get_listing_styles():
+    return {
+        "header": ParagraphStyle(
+            name="ListingHeader",
+            fontName="Helvetica-Bold",
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor("#111827"),
+            alignment=TA_CENTER,
+        ),
+        "student": ParagraphStyle(
+            name="StudentInfo",
+            fontName="Helvetica",
+            fontSize=8,
+            leading=10,
+            textColor=EI_MUTED,
+            alignment=TA_LEFT,
+        ),
+        "subject": ParagraphStyle(
+            name="SubjectInfo",
+            fontName="Helvetica",
+            fontSize=8,
+            leading=10,
+            textColor=EI_MUTED,
+            alignment=TA_LEFT,
+        ),
+        "progress": ParagraphStyle(
+            name="ProgressText",
+            fontName="Helvetica-Bold",
+            fontSize=7.5,
+            leading=9,
+            textColor=colors.white,
+            alignment=TA_CENTER,
+        ),
+        "SmallText": ParagraphStyle(
+            name="SmallText",
+            fontName="Helvetica",
+            fontSize=8,
+            leading=10,
+            textColor=EI_DARK,
+            alignment=TA_LEFT,
+            spaceAfter=3,
+        ),
+    }
+
+# formatting helpers
+def pdf_safe(value, fallback="-"):
+    if value is None or value == "":
+        return fallback
+    return str(value)
+
+
+def pdf_pct(value):
+    if value is None or value == "" or value == "-":
+        return "-"
+
+    try:
+        value = float(value)
+        if value.is_integer():
+            return f"{int(value)}%"
+        return f"{value:.1f}%"
+    except (TypeError, ValueError):
+        return str(value)
+
+
+def get_progress_colors(progress):
+    value = str(progress or "").strip().lower()
+
+    if "below" in value:
+        return colors.HexColor("#FEE2E2"), colors.HexColor("#991B1B")
+
+    if "above" in value:
+        return colors.HexColor("#DCFCE7"), colors.HexColor("#166534")
+
+    if "expected" in value:
+        return colors.HexColor("#FEF3C7"), colors.HexColor("#92400E")
+
+    return colors.white, colors.HexColor("#111827")
+
+# subject cell builder
+def make_subject_listing_cell(subject_data, styles):
+    if not subject_data:
+        subject_data = {}
+
+    prev_pct = pdf_pct(subject_data.get("previous_percentage"))
+    prev_grade = pdf_safe(subject_data.get("previous_grade"))
+    curr_pct = pdf_pct(subject_data.get("current_percentage"))
+    curr_grade = pdf_safe(subject_data.get("current_grade"))
+    progress = pdf_safe(subject_data.get("progress_category"), "No Progress Available")
+
+    bg_color, text_color = get_progress_colors(progress)
+
+    score_text = Paragraph(
+        f"""
+        Previous AY: <font color="#FF6600"><b>{prev_pct}</b></font>, <b>{prev_grade}</b><br/>
+        Current AY: <font color="#0BA6DF"><b>{curr_pct}</b></font>, <b>{curr_grade}</b>
+        """,
+        styles["subject"]
+    )
+
+    progress_style = ParagraphStyle(
+        name=f"Progress_{progress}",
+        parent=styles["progress"],
+        textColor=text_color,
+        alignment=TA_CENTER,
+        fontName="Helvetica-Bold",
+        fontSize=7.5,
+        leading=9,
+    )
+
+    progress_bar = Table(
+        [[Paragraph(progress.upper(), progress_style)]],
+        colWidths=[5.8 * cm]
+    )
+
+    progress_bar.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), bg_color),
+        ("BOX", (0, 0), (-1, -1), 0.2, bg_color),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+    ]))
+
+    cell = Table(
+        [
+            [score_text],
+            [progress_bar]
+        ],
+        colWidths=[5.8 * cm]
+    )
+
+    cell.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING", (0, 0), (-1, -1), 1),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+    ]))
+
+    return cell
+
+# student information cell builder
+def make_student_listing_cell(student, styles):
+    student_id = pdf_safe(student.get("student_id"))
+    name = pdf_safe(student.get("name"))
+    gender = pdf_safe(student.get("gender"))
+    nationality = pdf_safe(student.get("nationality"))
+    status = pdf_safe(student.get("status"))
+    yrgrp = pdf_safe(student.get("yrgrp"))
+
+    sped = str(student.get("sped") or "").strip()
+
+    sen_line = ""
+    if sped and sped.lower() != "no":
+        sen_line = f'<br/><font color="#DC2626"><b>SEN Details:</b> {sped}</font>'
+
+    text = f"""
+    <font color="#111827"><b>{student_id}</b></font>
+    <font color="#FF6600"><b>{name}</b></font><br/>
+    {gender}, {nationality}<br/>
+    {status}, Year {yrgrp}
+    {sen_line}
+    """
+
+    return Paragraph(text, styles["student"])
+
+# main PDF generator
+def generate_internal_cohort_listing_pdf(filters=None):
+    """
+    Generates a downloadable PDF cohort listing for InternalExam.
+    Uses /api/reports/internal/combined-data as the data source.
+    """
+
+    filters = filters or {}
+
+    query_string = urlencode(filters)
+
+    base_url = request.host_url.rstrip("/")
+    api_url = f"{base_url}/api/reports/internal/combined-data"
+
+    if query_string:
+        api_url = f"{api_url}?{query_string}"
+
+    response = requests.get(api_url, timeout=20)
+
+    if response.status_code != 200:
+        return None
+
+    students = response.json()
+
+    output_path = os.path.join(
+        tempfile.gettempdir(),
+        "examinsight_internal_cohort_listing.pdf"
+    )
+
+    doc = SimpleDocTemplate(
+        output_path,
+        pagesize=landscape(A4),
+        leftMargin=1.2 * cm,
+        rightMargin=1.2 * cm,
+        topMargin=2.0 * cm,
+        bottomMargin=1.5 * cm
+    )
+
+    styles = get_listing_styles()
+
+    story = []
+
+    generated_date = datetime.now().strftime("%a, %d-%b-%Y")    
+    story.append(
+        Paragraph(
+            f"<b>Date Generated:</b> {generated_date}",
+            styles["SmallText"]
+        )
+    )
+    story.append(Spacer(1, 4))
+
+    story.append(Paragraph(
+        "Combined English, Mathematics, and Science internal assessment records showing previous attainment, current attainment, and progress category.",
+        ParagraphStyle(
+            name="ReportSubtitle",
+            fontName="Helvetica",
+            fontSize=8,
+            leading=10,
+            textColor=EI_MUTED,
+            alignment=TA_LEFT,
+            spaceAfter=8
+        )
+    ))
+
+    story.append(Spacer(1, 6))
+
+    table_rows = [
+        [
+            Paragraph("STUDENT INFORMATION", styles["header"]),
+            Paragraph("ENGLISH", styles["header"]),
+            Paragraph("MATHEMATICS", styles["header"]),
+            Paragraph("SCIENCE", styles["header"]),
+        ]
+    ]
+
+    for student in students:
+        internal = student.get("internal_assessment", {})
+
+        table_rows.append([
+            make_student_listing_cell(student, styles),
+            make_subject_listing_cell(internal.get("english"), styles),
+            make_subject_listing_cell(internal.get("mathematics"), styles),
+            make_subject_listing_cell(internal.get("science"), styles),
+        ])
+
+    if len(table_rows) == 1:
+        table_rows.append([
+            Paragraph("No matching internal assessment records found.", styles["student"]),
+            "",
+            "",
+            ""
+        ])
+
+    table = Table(
+        table_rows,
+        colWidths=[
+            10.5 * cm,
+            6.0 * cm,
+            6.0 * cm,
+            6.0 * cm,
+        ],
+        repeatRows=1
+    )
+
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F8FAFC")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), EI_DARK),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#E5E7EB")),
+        ("LINEBELOW", (0, 0), (-1, 0), 0.5, EI_BORDER),
+
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [
+            colors.white,
+            colors.HexColor("#F8FAFC")
+        ]),
+
+        ("LEFTPADDING", (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(table)
+
+    try:
+        selected_logo_path = logo_path
+    except NameError:
+        selected_logo_path = None
+
+    doc.build(
+        story,
+        onFirstPage=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title="ExamInsight: Internal Assessment Cohort Listing Report",
+            logo_path=selected_logo_path
+        ),
+        onLaterPages=lambda canvas, doc: add_header_footer(
+            canvas,
+            doc,
+            report_title="ExamInsight: Internal Assessment Cohort Listing Report",
+            logo_path=selected_logo_path
+        )
+    )
+
+    return output_path
+

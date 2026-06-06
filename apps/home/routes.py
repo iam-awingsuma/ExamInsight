@@ -31,6 +31,7 @@ from apps.reports import (
     build_ngrt_listing_pdf, 
     generate_ngrt_indv_extl_rpt, 
     generate_intl_indv_rpt,
+    generate_internal_cohort_listing_pdf,
 )
 
 from urllib.parse import urlencode
@@ -1942,6 +1943,34 @@ def download_internal_individual_report(student_id):
         mimetype="application/pdf"
     )
 
+
+# Route for internal assessment cohort listing
+@blueprint.route("/reports/internal/cohort-listing/pdf")
+def download_internal_cohort_listing_pdf():
+    """
+    Downloads a cohort listing PDF for InternalExam using the same filters
+    as /api/reports/internal/combined-data.
+    """
+
+    filters = {
+        "q": request.args.get("q", "").strip(),
+        "gender": request.args.get("gender", "").strip(),
+        "yrgrp": request.args.get("yrgrp", "").strip(),
+        "status": request.args.get("status", "").strip(),
+        "sen": request.args.get("sen", "").strip(),
+    }
+
+    output_path = generate_internal_cohort_listing_pdf(filters)
+
+    if not output_path or not os.path.exists(output_path):
+        abort(404)
+
+    return send_file(
+        output_path,
+        as_attachment=True,
+        download_name="examinsight_internal_cohort_listing.pdf",
+        mimetype="application/pdf"
+    )
 
 #************************
 #*** Data Management ***#
@@ -4317,27 +4346,27 @@ def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, 
 
     # Build summary
     summary = f"""
-External Reading Assessment Analysis for {context} (n={num_records})
-Dataset: {dataset.upper() if dataset else "NGRT"}
+    External Reading Assessment Analysis for {context} (n={num_records})
+    Dataset: {dataset.upper() if dataset else "NGRT"}
 
-Attainment Metrics:
-- Average Stanine: {avg_stanine}
-- Average Age Standardised Score: {avg_sas}
-- Average Reading Age: {avg_reading_age}
+    Attainment Metrics:
+    - Average Stanine: {avg_stanine}
+    - Average Age Standardised Score: {avg_sas}
+    - Average Reading Age: {avg_reading_age}
 
-Stanine Performance Bands:
-- Below Average (1–3): {performance_bands['Below Average']}
-- Average (4–6): {performance_bands['Average']}
-- Above Average (7–9): {performance_bands['Above Average']}
+    Stanine Performance Bands:
+    - Below Average (1–3): {performance_bands['Below Average']}
+    - Average (4–6): {performance_bands['Average']}
+    - Above Average (7–9): {performance_bands['Above Average']}
 
-Progress Categories:
-- Lower than Expected: {prog_categories['Lower than Expected']}
-- Expected: {prog_categories['Expected']}
-- Better than Expected: {prog_categories['Better than Expected']}
+    Progress Categories:
+    - Lower than Expected: {prog_categories['Lower than Expected']}
+    - Expected: {prog_categories['Expected']}
+    - Better than Expected: {prog_categories['Better than Expected']}
 
-Key Indicators:
-- Dominant attainment band: {strongest_band}
-- Dominant progress category: {dominant_progress}
-"""
+    Key Indicators:
+    - Dominant attainment band: {strongest_band}
+    - Dominant progress category: {dominant_progress}
+    """
 
     return summary
