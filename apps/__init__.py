@@ -6,6 +6,9 @@ from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from importlib import import_module
 
+# added to configure the Docker container / images
+from pathlib import Path
+
 db = SQLAlchemy()
 login_manager = LoginManager()
 
@@ -38,26 +41,50 @@ def register_blueprints(app):
             print(f"Error registering blueprint: { module_name }: {e}")
 
 
+# def create_app(config):
+
+#     # Contextual
+#     static_prefix = '/static'
+#     # templates_dir = os.path.dirname(config.BASE_DIR)
+
+#     # TEMPLATES_FOLDER = os.path.join(templates_dir,'templates')
+#     # STATIC_FOLDER = os.path.join(templates_dir,'static')
+
+#     templates_dir = config.BASE_DIR.parent  # Path
+#     TEMPLATES_FOLDER = templates_dir / "templates"
+#     STATIC_FOLDER = templates_dir / "static"
+
+#     app = Flask(
+#         __name__,
+#         static_url_path=static_prefix,
+#         template_folder=TEMPLATES_FOLDER,
+#         static_folder=STATIC_FOLDER
+#     )
+#     app.secret_key = "your_secret_key"  # Required for session management
+
+#     app.config.from_object(config)
+#     register_extensions(app)
+#     register_blueprints(app)
+
+#     return app
+
 def create_app(config):
-
-    # Contextual
     static_prefix = '/static'
-    # templates_dir = os.path.dirname(config.BASE_DIR)
 
-    # TEMPLATES_FOLDER = os.path.join(templates_dir,'templates')
-    # STATIC_FOLDER = os.path.join(templates_dir,'static')
+    # Get the project root directory (/ExamInsight inside the container)
+    # Using Path(__file__).resolve().parent.parent reliably points to the project root
+    project_root = Path(__file__).resolve().parent.parent
 
-    templates_dir = config.BASE_DIR.parent  # Path
-    TEMPLATES_FOLDER = templates_dir / "templates"
-    STATIC_FOLDER = templates_dir / "static"
+    TEMPLATES_FOLDER = project_root / "templates"
+    STATIC_FOLDER = project_root / "static"
 
     app = Flask(
         __name__,
         static_url_path=static_prefix,
-        template_folder=TEMPLATES_FOLDER,
-        static_folder=STATIC_FOLDER
+        template_folder=str(TEMPLATES_FOLDER),
+        static_folder=str(STATIC_FOLDER)
     )
-    app.secret_key = "your_secret_key"  # Required for session management
+    app.secret_key = "your_secret_key"
 
     app.config.from_object(config)
     register_extensions(app)
