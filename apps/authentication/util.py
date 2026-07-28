@@ -1,9 +1,10 @@
-import os
-import hashlib
-import binascii
+import os # Standard library for operating system related functions
+import hashlib # Standard library for secure hash and message digest algorithms
+import binascii # Standard library for converting between binary and ASCII
 
 # Inspiration -> https://www.vitoshacademy.com/hashing-passwords-in-python/
 
+# Function to hash a password for secure storage
 def hash_pass(password):
     """Hash a password for storing."""
 
@@ -13,7 +14,7 @@ def hash_pass(password):
     pwdhash = binascii.hexlify(pwdhash)
     return (salt + pwdhash)  # return bytes
 
-
+# Function to verify a stored password against one provided by user
 def verify_pass(provided_password, stored_password):
     """Verify a stored password against one provided by user"""
 
