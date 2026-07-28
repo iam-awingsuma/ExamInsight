@@ -1,32 +1,33 @@
-import os
-import pandas as pd
-import requests
-import json
-from openai import OpenAI
-from apps.home import blueprint
+import os  # System file and OS utilities
+import pandas as pd  # Data processing and tabular data analysis
+import requests  # HTTP library for requesting external APIs
+import json  # Parsing and formatting JSON data
+from openai import OpenAI  # OpenAI API client instance
+from apps.home import blueprint  # Home module blueprint instance
 
+# Flask request, response, and rendering utilities
 from flask import current_app, Flask, render_template, request, redirect, url_for, flash, get_flashed_messages, session, jsonify, abort, send_file
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.utils import secure_filename
-from jinja2 import TemplateNotFound
-from flask_login import login_required, current_user
+from flask_sqlalchemy import SQLAlchemy  # ORM database integration wrapper
+from werkzeug.utils import secure_filename  # Sanitize user-uploaded filenames
+from jinja2 import TemplateNotFound  # Template error handling exception
+from flask_login import login_required, current_user  # Route access control and session state
 
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select, case, func, String, and_, or_
+from sqlalchemy.exc import IntegrityError  # Database unique constraint error handler
+from sqlalchemy import select, case, func, String, and_, or_  # SQL query builders and logic operators
 
-from apps import db
+from apps import db # Central database instance
 
-from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students
-from apps.authentication.util import verify_pass, hash_pass
+from apps.authentication.models import NGRTA, NGRTB, NGRTC, InternalExam, Students  # Student and assessment models
+from apps.authentication.util import verify_pass, hash_pass  # Password hashing and validation utilities
 
-from apps.home import make_list_context, _build_predicates
+from apps.home import make_list_context, _build_predicates  # View context and query predicate builders
 
-from apps.helpers import fetch_extl_asst_payload
-from apps.helpers import per_class_metrics, cohort_progress, class_progress
+from apps.helpers import fetch_extl_asst_payload  # Utility for fetching external assessment payloads
+from apps.helpers import per_class_metrics, cohort_progress, class_progress  # Metrics and progress tracking calculators
 
 # Reports-related imports
-from apps.helpers import get_filtered_ngrt_combined_data
-from apps.reports import (
+from apps.helpers import get_filtered_ngrt_combined_data  # Filtered NGRT report data loader
+from apps.reports import (  # PDF report generators and assessment constants
     build_ngrt_summary_pdf, 
     build_ngrt_listing_pdf, 
     generate_ngrt_indv_extl_rpt, 
@@ -40,8 +41,8 @@ from apps.reports import (
     build_internal_science_summary_pdf,
 )
 
-from urllib.parse import urlencode
-
+from urllib.parse import urlencode # Converts dictionaries to URL query parameters
+# Session management functions
 from flask_login import (
     current_user,
     login_user,
@@ -49,11 +50,11 @@ from flask_login import (
     login_required
 )
 
-from functools import wraps
+from functools import wraps # Function wrapper decorator helper
 
-from apps.authentication.forms import CreateAccountForm
-from apps.authentication.models import Users
-from apps.authentication.routes import admin_required
+from apps.authentication.forms import CreateAccountForm  # User account registration form
+from apps.authentication.models import Users  # Registered user database model
+from apps.authentication.routes import admin_required  # Decorator enforcing administrator role access
 
 # Normalize year-group/class codes for consistent matching (e.g., '2-a' -> '2-A')
 def _normalize_class_code(value):
@@ -89,7 +90,9 @@ def _restrict_to_allowed_year_groups(query, class_col=Students.yrgrp):
     lowered = [code.lower() for code in allowed]
     return query.filter(func.lower(func.trim(class_col)).in_(lowered))
 
+# Return attainment data for English, Maths, Science based on current percentages
 def get_attainment_bundle():
+    # Helper function to compute counts and percentages of students meeting thresholds (≥60, ≥70)
     def ge60_ge70_for(col): 
         n, ge60, ge70 = db.session.query(
             func.count(col),
@@ -98,14 +101,15 @@ def get_attainment_bundle():
         ).one()
 
         n = int(n or 0)
-        ge60 = int(ge60 or 0)
-        ge70 = int(ge70 or 0)
+        ge60 = int(ge60 or 0) # count of students with current percentage ≥60
+        ge70 = int(ge70 or 0) # count of students with current percentage ≥70
 
-        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0
-        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0
+        pct60 = round((ge60 / n * 100.0), 1) if n else 0.0 # percentage of students with current percentage ≥60
+        pct70 = round((ge70 / n * 100.0), 1) if n else 0.0 # percentage of students with current percentage ≥70
 
         return n, ge60, ge70, pct60, pct70
 
+    # Compute attainment metrics for each subject
     eng_n, eng60, eng70, eng_pct60, eng_pct70 = ge60_ge70_for(InternalExam.eng_currPct)
     math_n, math60, math70, math_pct60, math_pct70 = ge60_ge70_for(InternalExam.maths_currPct)
     sci_n, sci60, sci70, sci_pct60, sci_pct70 = ge60_ge70_for(InternalExam.sci_currPct)
@@ -191,8 +195,9 @@ def get_curr_average():
     curr_avg_sci = round(db.session.query(func.avg(InternalExam.sci_currPct)).scalar() or 0, 1) # round to ensure it doesn’t return None
     return curr_avg_eng, curr_avg_maths, curr_avg_sci
 
-# Fetch data for the internal assessment scatter plot
+# Fetch data for the internal assessment scatter plot visualization
 def get_internal_scatter_data():
+    # Fetch student data along with their current grades in English, Maths, and Science
     rows = (
         db.session.query(
             Students.student_id,
@@ -207,7 +212,9 @@ def get_internal_scatter_data():
         .all()
     )
 
-    data = []
+    data = [] # List to store scatter plot data
+
+    # Prepare data for scatter plot visualization
     for r in rows:
         data.append({
             "student_id": r.student_id,
@@ -219,11 +226,12 @@ def get_internal_scatter_data():
             "sci_currGr": r.sci_currGr,
         })
 
-    return data
+    return data # Return the list of student data for scatter plot visualization
 
 # Fetch average attainment by year-group/class for English, Maths, Science
 # ... used for attainment by year-group table and chart
 def get_avg_attainment_by_year():
+    # Fetch average attainment percentages for English, Maths, and Science grouped by year-group/class
     rows = (
         db.session.query(
             Students.yrgrp,
@@ -236,8 +244,9 @@ def get_avg_attainment_by_year():
         .all()
     )
 
-    data = []
+    data = [] # List to store average attainment data by year-group/class
 
+    # Prepare data for average attainment by year-group/class
     for r in rows:
         data.append({
             "yrgrp": (r[0] or "").upper(),
@@ -250,7 +259,7 @@ def get_avg_attainment_by_year():
     order = ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F"]
     data.sort(key=lambda x: order.index(x["yrgrp"]) if x["yrgrp"] in order else 999)
 
-    return data
+    return data # Return the list of average attainment data by year-group/class
 
 # Dashboard AI Performance Insights
 # fetch insights from external API endpoint
@@ -258,9 +267,10 @@ def generate_internal_insights():
     # from openai import OpenAI
     client = OpenAI()
 
-    avg_eng, avg_maths, avg_sci = get_curr_average()
-    total_students = db.session.query(InternalExam).count()
+    avg_eng, avg_maths, avg_sci = get_curr_average() # fetch average attainment for English, Maths, Science
+    total_students = db.session.query(InternalExam).count() # fetch total number of students in the internal assessment dataset
 
+    # Generate a prompt for the AI model to analyze cohort performance data and return insights in JSON format
     prompt = f"""
     You are an educational data analyst.
 
@@ -287,21 +297,22 @@ def generate_internal_insights():
     - No extra text, no explanation, JSON only
     """
 
+    # Call the OpenAI API to generate insights based on the prompt
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
+        model="gpt-4o-mini", # Use GPT-4o-mini for cost-effective and fast responses
+        messages=[ # Provide the prompt to the model with system and user roles
             {"role": "system", "content": "You are an expert in school performance analysis."},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.4
+        temperature=0.4 # Set temperature for controlled creativity in responses
     )
 
-    import json
+    import json # Import JSON module for parsing the response content
 
-    content = response.choices[0].message.content.strip()
+    content = response.choices[0].message.content.strip() # Extract the content from the API response
 
     try:
-        parsed = json.loads(content)
+        parsed = json.loads(content) # Parse the JSON content from the API response
     except:
         # fallback (important for stability)
         parsed = {
@@ -314,7 +325,7 @@ def generate_internal_insights():
             ]
         }
 
-    return parsed
+    return parsed # Return the parsed insights as a dictionary containing strengths, concerns, and recommendations
 
 #-------------------------------------------
 # NGRT Assessments for Dashboard Analytics
@@ -323,43 +334,43 @@ def generate_internal_insights():
 # return count of students present based on given NGRT dataset availability
 # with priority order: NGRT-A -> NGRT-B -> NGRT-C
 def get_matched_students():
-    has_ngrtb_data = db.session.query(NGRTB.student_id).first() is not None
-    has_ngrtc_data = db.session.query(NGRTC.student_id).first() is not None
+    has_ngrtb_data = db.session.query(NGRTB.student_id).first() is not None # Check if NGRT-B dataset has any student records
+    has_ngrtc_data = db.session.query(NGRTC.student_id).first() is not None # Check if NGRT-C dataset has any student records
 
-    query = db.session.query(func.count(func.distinct(NGRTA.student_id)))
-    label = "[ NGRT-A ]"
+    query = db.session.query(func.count(func.distinct(NGRTA.student_id))) # Start with counting distinct students in NGRT-A dataset
+    label = "[ NGRT-A ]" # Default label for NGRT-A dataset
 
-    if has_ngrtb_data:
-        query = query.join(NGRTB, NGRTA.student_id == NGRTB.student_id)
-        label = "[ NGRT-A & NGRT-B ]"
+    if has_ngrtb_data: # If NGRT-B dataset has data, join it with NGRT-A to count students present in both datasets
+        query = query.join(NGRTB, NGRTA.student_id == NGRTB.student_id) # Join NGRT-B dataset with NGRT-A on student_id to count students present in both datasets
+        label = "[ NGRT-A & NGRT-B ]" # Update label to indicate both datasets are considered
 
-        if has_ngrtc_data:
-            query = query.join(NGRTC, NGRTA.student_id == NGRTC.student_id)
-            label = "[ All NGRT Exams ]"
+        if has_ngrtc_data: # If NGRT-C dataset has data, join it with NGRT-A and NGRT-B to count students present in all three datasets
+            query = query.join(NGRTC, NGRTA.student_id == NGRTC.student_id) # Join NGRT-C dataset with NGRT-A and NGRT-B on student_id to count students present in all three datasets
+            label = "[ All NGRT Exams ]" # Update label to indicate all three datasets are considered
 
-    return (query.scalar() or 0), label
+    return (query.scalar() or 0), label # Return the count of matched students and the corresponding label indicating which datasets were considered
 
 # return average stanine by class based on all available NGRT datasets
 # with priority order: NGRT-C->NGRT-B->NGRT-A
 def get_classwise_avg_ngrt_stanine():
-    datasets = [("NGRT-A", NGRTA),("NGRT-B", NGRTB),("NGRT-C", NGRTC)]
+    datasets = [("NGRT-A", NGRTA),("NGRT-B", NGRTB),("NGRT-C", NGRTC)] # List of NGRT datasets with their corresponding labels and models in priority order
 
-    year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
+    year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"] # List of year-groups/classes to consider for the average stanine calculation
 
-    result = {
-        "year_groups": [yg.upper() for yg in year_groups],
-        "series": []
+    result = { # Initialize the result dictionary to store the average stanine data for each NGRT dataset
+        "year_groups": [yg.upper() for yg in year_groups], # Convert year-groups to uppercase for display
+        "series": [] # List to store the average stanine data for each NGRT dataset
     }
 
-    for exam_label, model in datasets:
-        has_data = db.session.query(model.id).filter(model.stanine.isnot(None)).first()
-        if not has_data:
+    for exam_label, model in datasets: # Iterate through each NGRT dataset in priority order
+        has_data = db.session.query(model.id).filter(model.stanine.isnot(None)).first() # Check if the current NGRT dataset has any records with non-null stanine values
+        if not has_data: # If the current NGRT dataset has no records with non-null stanine values, skip to the next dataset
             continue
 
-        rows = (
-            db.session.query(
-                func.lower(Students.yrgrp).label("yrgrp"),
-                func.avg(model.stanine).label("avg_stanine")
+        rows = ( # Query the database to calculate the average stanine for each year-group/class in the current NGRT dataset
+            db.session.query( # Select the year-group/class and the average stanine value for each group
+                func.lower(Students.yrgrp).label("yrgrp"), # Select the year-group/class and convert it to lowercase for consistent grouping
+                func.avg(model.stanine).label("avg_stanine") # Calculate the average stanine value for each year-group/class
             )
             .join(Students, model.student_id == Students.student_id)
             .filter(
@@ -370,19 +381,19 @@ def get_classwise_avg_ngrt_stanine():
             .all()
         )
 
-        row_map = {row.yrgrp: row.avg_stanine for row in rows}
+        row_map = {row.yrgrp: row.avg_stanine for row in rows} # Create a mapping of year-group/class to the average stanine value for easy lookup
 
-        values = []
-        for yg in year_groups:
-            avg_value = row_map.get(yg)
-            values.append(round(float(avg_value), 2) if avg_value is not None else None)
+        values = [] # List to store the average stanine values for each year-group/class in the current NGRT dataset
+        for yg in year_groups: # Iterate through each year-group/class in the predefined order
+            avg_value = row_map.get(yg) # Get the average stanine value for the current year-group/class from the row_map
+            values.append(round(float(avg_value), 2) if avg_value is not None else None) # Append the rounded average stanine value to the values list, or None if there is no data for that year-group/class
 
-        result["series"].append({
+        result["series"].append({ # Append the average stanine data for the current NGRT dataset to the result series
             "name": exam_label,
             "data": values
         })
 
-    return result
+    return result # Return the final result dictionary containing the year-groups/classes and the average stanine data for each NGRT dataset
 
 # return average stanine based on latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
 def get_latest_avg_ngrt_stanine():
@@ -390,6 +401,8 @@ def get_latest_avg_ngrt_stanine():
     avg_stanine_b = db.session.query(func.avg(NGRTB.stanine)).filter(NGRTB.stanine.isnot(None)).scalar()
     avg_stanine_a = db.session.query(func.avg(NGRTA.stanine)).filter(NGRTA.stanine.isnot(None)).scalar()
 
+    # Return the average stanine and corresponding NGRT dataset label based on availability, 
+    # prioritizing NGRT-C, then NGRT-B, and finally NGRT-A. If no data is available, return 0 and a message indicating no data is available.
     if avg_stanine_c is not None:
         return round(avg_stanine_c, 0), "NGRT-C"
     elif avg_stanine_b is not None:
@@ -405,6 +418,7 @@ def get_latest_avg_ngrt_sas():
     avg_sas_b = db.session.query(func.avg(NGRTB.sas)).filter(NGRTB.sas.isnot(None)).scalar()
     avg_sas_a = db.session.query(func.avg(NGRTA.sas)).filter(NGRTA.sas.isnot(None)).scalar()
 
+    # Return the average SAS and corresponding NGRT dataset label based on availability,
     if avg_sas_c is not None:
         return round(avg_sas_c, 0), "NGRT-C"
     elif avg_sas_b is not None:
@@ -421,9 +435,11 @@ def get_sas_90_stats():
         ("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA),
     ]
 
+    # Iterate through the datasets in priority order to find the first dataset with available SAS data
     for label, model in datasets:
         total = db.session.query(func.count(model.id)).filter(model.sas.isnot(None)).scalar() or 0
-
+        # If there are students with SAS data in the current dataset, 
+        # calculate the count and percentage of students with SAS ≥90
         if total > 0:
             count = db.session.query(func.count(model.id)) \
                 .filter(model.sas.isnot(None), model.sas >= 90) \
@@ -432,7 +448,7 @@ def get_sas_90_stats():
             percentage = round((count / total) * 100, 1)
             return count, percentage, label
 
-    return 0, 0, None
+    return 0, 0, None # Return 0 count, 0 percentage, and None label if no datasets have available SAS data
 
 # return count and percentage of students with SAS ≥110 based on
 # latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
@@ -441,9 +457,11 @@ def get_sas_110_stats():
         ("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA),
     ]
 
+    # Iterate through the datasets in priority order to find the first dataset with available SAS data
     for label, model in datasets:
         total = db.session.query(func.count(model.id)).filter(model.sas.isnot(None)).scalar() or 0
-
+        # If there are students with SAS data in the current dataset,
+        # calculate the count and percentage of students with SAS ≥110
         if total > 0:
             count = db.session.query(func.count(model.id)) \
                 .filter(model.sas.isnot(None), model.sas >= 110) \
@@ -452,7 +470,7 @@ def get_sas_110_stats():
             percentage = round((count / total) * 100, 1)
             return count, percentage, label
 
-    return 0, 0, None
+    return 0, 0, None # Return 0 count, 0 percentage, and None label if no datasets have available SAS data
 
 # return count and percentage of students with SAS ≥120 based on
 # latest available NGRT dataset with priority order: NGRT-C->NGRT-B->NGRT-A
@@ -461,9 +479,11 @@ def get_sas_120_stats():
         ("NGRT-C", NGRTC), ("NGRT-B", NGRTB), ("NGRT-A", NGRTA),
     ]
 
+    # Iterate through the datasets in priority order to find the first dataset with available SAS data
     for label, model in datasets:
         total = db.session.query(func.count(model.id)).filter(model.sas.isnot(None)).scalar() or 0
-
+        # If there are students with SAS data in the current dataset,
+        # calculate the count and percentage of students with SAS ≥120
         if total > 0:
             count = db.session.query(func.count(model.id)) \
                 .filter(model.sas.isnot(None), model.sas >= 120) \
@@ -472,7 +492,7 @@ def get_sas_120_stats():
             percentage = round((count / total) * 100, 1)
             return count, percentage, label
 
-    return 0, 0, None
+    return 0, 0, None # Return 0 count, 0 percentage, and None label if no datasets have available SAS data
 
 # column stacked to show attainment distribution by class based on latest available NGRT dataset
 # with priority order: NGRT-C->NGRT-B->NGRT-A
@@ -483,6 +503,7 @@ def get_latest_ngrt_classwise_stanine():
 
     year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
 
+    # Iterate through the datasets in priority order to find the first dataset with available stanine data
     for exam_label, model in datasets:
         has_data = (
             db.session.query(model.id)
@@ -491,22 +512,23 @@ def get_latest_ngrt_classwise_stanine():
         )
         if not has_data:
             continue
-
+        # Query the database to calculate the count of students in each stanine category (below average, average, above average) 
+        #  for each year-group/class in the current NGRT dataset
         rows = (
             db.session.query(
                 func.lower(Students.yrgrp).label("yrgrp"),
                 func.count(model.id).label("total"),
                 func.sum(
-                    case((model.stanine.between(1, 3), 1), else_=0)
+                    case((model.stanine.between(1, 3), 1), else_=0) # Count of students with stanine between 1 and 3 (below average)
                 ).label("below_count"),
                 func.sum(
-                    case((model.stanine.between(4, 6), 1), else_=0)
+                    case((model.stanine.between(4, 6), 1), else_=0) # Count of students with stanine between 4 and 6 (average)
                 ).label("average_count"),
                 func.sum(
-                    case((model.stanine.between(7, 9), 1), else_=0)
+                    case((model.stanine.between(7, 9), 1), else_=0) # Count of students with stanine between 7 and 9 (above average)
                 ).label("above_count"),
             )
-            .join(Students, model.student_id == Students.student_id)
+            .join(Students, model.student_id == Students.student_id) # Join the NGRT dataset with the Students table on student_id to group by year-group/class
             .filter(
                 model.stanine.isnot(None),
                 Students.yrgrp.isnot(None)
@@ -515,8 +537,10 @@ def get_latest_ngrt_classwise_stanine():
             .all()
         )
 
-        row_map = {row.yrgrp: row for row in rows}
+        row_map = {row.yrgrp: row for row in rows} # Create a mapping of year-group/class to the corresponding row data for easy lookup
 
+        # Prepare the result dictionary to store the attainment distribution data 
+        # for each year-group/class in the current NGRT dataset
         result = {
             "exam_label": exam_label,
             "year_groups": [yg.upper() for yg in year_groups],
@@ -529,22 +553,25 @@ def get_latest_ngrt_classwise_stanine():
             "totals": [],
         }
 
+        # Iterate through each year-group/class in the predefined order 
+        # to calculate the counts and percentages of students in each stanine category
         for yg in year_groups:
             row = row_map.get(yg)
 
-            total = int(row.total) if row and row.total is not None else 0
-            below = int(row.below_count) if row and row.below_count is not None else 0
-            average = int(row.average_count) if row and row.average_count is not None else 0
-            above = int(row.above_count) if row and row.above_count is not None else 0
+            total = int(row.total) if row and row.total is not None else 0 # Get the total count of students for the current year-group/class, defaulting to 0 if no data is available
+            below = int(row.below_count) if row and row.below_count is not None else 0 # Get the count of students in the below average stanine category for the current year-group/class, defaulting to 0 if no data is available
+            average = int(row.average_count) if row and row.average_count is not None else 0 # Get the count of students in the average stanine category for the current year-group/class, defaulting to 0 if no data is available
+            above = int(row.above_count) if row and row.above_count is not None else 0 # Get the count of students in the above average stanine category for the current year-group/class, defaulting to 0 if no data is available
 
-            below_pct = round((below / total) * 100, 1) if total > 0 else 0
-            average_pct = round((average / total) * 100, 1) if total > 0 else 0
-            above_pct = round((above / total) * 100, 1) if total > 0 else 0
+            below_pct = round((below / total) * 100, 1) if total > 0 else 0 # Calculate the percentage of students in the below average stanine category for the current year-group/class, protecting against divide-by-zero
+            average_pct = round((average / total) * 100, 1) if total > 0 else 0 # Calculate the percentage of students in the average stanine category for the current year-group/class, protecting against divide-by-zero
+            above_pct = round((above / total) * 100, 1) if total > 0 else 0 # Calculate the percentage of students in the above average stanine category for the current year-group/class, protecting against divide-by-zero
 
+            # Append the calculated percentages and counts for each stanine category to the corresponding lists in the result dictionary
             result["below_average_pct"].append(below_pct)
             result["average_pct"].append(average_pct)
             result["above_average_pct"].append(above_pct)
-
+            # Append the counts for each stanine category to the corresponding lists in the result dictionary
             result["below_average_count"].append(below)
             result["average_count"].append(average)
             result["above_average_count"].append(above)
@@ -552,6 +579,7 @@ def get_latest_ngrt_classwise_stanine():
 
         return result
 
+    # If no datasets have available stanine data, return a default result with zero counts and percentages for each year-group/class
     return {
         "exam_label": None,
         "year_groups": ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F"],
@@ -569,8 +597,9 @@ def get_latest_ngrt_classwise_stanine():
 def get_latest_ngrt_classwise_progress():
     datasets = [("NGRT-C", NGRTC), ("NGRT-B", NGRTB)]
 
-    year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
+    year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"] # List of year-groups/classes to consider for the progress distribution calculation
 
+    # Iterate through the datasets in priority order to find the first dataset with available progress category data
     for exam_label, model in datasets:
         has_data = (
             db.session.query(model.id)
@@ -578,35 +607,36 @@ def get_latest_ngrt_classwise_progress():
             .first()
         )
 
-        if not has_data:
+        if not has_data: # If the current NGRT dataset has no records with non-null progress category values, skip to the next dataset
             continue
-
+        # Query the database to calculate the count of students in each progress category (lower than expected, expected, better than expected)
+        # for each year-group/class in the current NGRT dataset
         rows = (
             db.session.query(
-                func.lower(Students.yrgrp).label("yrgrp"),
-                func.count(model.id).label("total"),
+                func.lower(Students.yrgrp).label("yrgrp"), # Select the year-group/class and convert it to lowercase for consistent grouping
+                func.count(model.id).label("total"), # Count of students in the current year-group/class
                 func.sum(
-                    case ((func.lower(func.trim(model.progress_category)) == "lower than expected", 1), else_=0)
+                    case ((func.lower(func.trim(model.progress_category)) == "lower than expected", 1), else_=0) # Count of students with progress category "lower than expected" for the current year-group/class
                 ).label("lower_count"),
                 func.sum(
-                    case((func.lower(func.trim(model.progress_category)) == "expected",1), else_=0)
+                    case((func.lower(func.trim(model.progress_category)) == "expected",1), else_=0) # Count of students with progress category "expected" for the current year-group/class
                 ).label("expected_count"),
                 func.sum(
-                    case((func.lower(func.trim(model.progress_category)) == "better than expected",1), else_=0)
+                    case((func.lower(func.trim(model.progress_category)) == "better than expected",1), else_=0) # Count of students with progress category "better than expected" for the current year-group/class
                 ).label("better_count"),
             )
-            .join(Students, model.student_id == Students.student_id)
+            .join(Students, model.student_id == Students.student_id) # Join the NGRT dataset with the Students table on student_id to group by year-group/class
             .filter(
-                model.progress_category.isnot(None),
-                Students.yrgrp.isnot(None),
-                func.trim(model.progress_category) != ""
+                model.progress_category.isnot(None), # Filter to include only records with non-null progress category values
+                Students.yrgrp.isnot(None), # Filter to include only records with non-null year-group/class values
+                func.trim(model.progress_category) != "" # Filter to exclude records with empty progress category values
             )
             .group_by(func.lower(Students.yrgrp))
             .all()
         )
 
-        row_map = {row.yrgrp: row for row in rows}
-
+        row_map = {row.yrgrp: row for row in rows} # Create a mapping of year-group/class to the corresponding row data for easy lookup
+        # Prepare the result dictionary to store the progress distribution data for each year-group/class in the current NGRT dataset
         result = {
             "exam_label": exam_label,
             "year_groups": [yg.upper() for yg in year_groups],
@@ -618,23 +648,25 @@ def get_latest_ngrt_classwise_progress():
             "better_count": [],
             "totals": [],
         }
-
+        # Iterate through each year-group/class in the predefined order to calculate the counts and percentages of students in each progress category
         for yg in year_groups:
             row = row_map.get(yg)
 
-            total = int(row.total) if row and row.total is not None else 0
-            lower = int(row.lower_count) if row and row.lower_count is not None else 0
-            expected = int(row.expected_count) if row and row.expected_count is not None else 0
-            better = int(row.better_count) if row and row.better_count is not None else 0
+            total = int(row.total) if row and row.total is not None else 0 # Get the total count of students for the current year-group/class, defaulting to 0 if no data is available
+            lower = int(row.lower_count) if row and row.lower_count is not None else 0 # Get the count of students in the "lower than expected" progress category for the current year-group/class, defaulting to 0 if no data is available
+            expected = int(row.expected_count) if row and row.expected_count is not None else 0 # Get the count of students in the "expected" progress category for the current year-group/class, defaulting to 0 if no data is available
+            better = int(row.better_count) if row and row.better_count is not None else 0 # Get the count of students in the "better than expected" progress category for the current year-group/class, defaulting to 0 if no data is available
 
-            lower_pct = round((lower / total) * 100, 1) if total > 0 else 0
-            expected_pct = round((expected / total) * 100, 1) if total > 0 else 0
-            better_pct = round((better / total) * 100, 1) if total > 0 else 0
+            lower_pct = round((lower / total) * 100, 1) if total > 0 else 0 # Calculate the percentage of students in the "lower than expected" progress category for the current year-group/class, protecting against divide-by-zero
+            expected_pct = round((expected / total) * 100, 1) if total > 0 else 0 # Calculate the percentage of students in the "expected" progress category for the current year-group/class, protecting against divide-by-zero
+            better_pct = round((better / total) * 100, 1) if total > 0 else 0 # Calculate the percentage of students in the "better than expected" progress category for the current year-group/class, protecting against divide-by-zero
 
+            # Append the calculated percentages and counts for each progress category to the corresponding lists in the result dictionary
             result["lower_pct"].append(lower_pct)
             result["expected_pct"].append(expected_pct)
             result["better_pct"].append(better_pct)
 
+            # Append the counts for each progress category to the corresponding lists in the result dictionary
             result["lower_count"].append(lower)
             result["expected_count"].append(expected)
             result["better_count"].append(better)
@@ -642,6 +674,7 @@ def get_latest_ngrt_classwise_progress():
 
         return result
 
+    # If no datasets have available progress category data, return a default result with zero counts and percentages for each year-group/class
     return {
         "exam_label": None,
         "year_groups": ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F"],
@@ -662,6 +695,7 @@ def get_latest_ngrt_classwise_reading_thresholds():
 
     year_groups = ["2-a", "2-b", "2-c", "2-d", "2-e", "2-f"]
 
+    # Iterate through the datasets in priority order to find the first dataset with available SAS data
     for exam_label, model in datasets:
         has_data = (
             db.session.query(model.id)
@@ -672,6 +706,7 @@ def get_latest_ngrt_classwise_reading_thresholds():
         if not has_data:
             continue
 
+        # Query the database to calculate the count of students meeting various SAS thresholds (≥90, ≥110, ≥120) for each year-group/class in the current NGRT dataset
         rows = (
             db.session.query(
                 func.lower(Students.yrgrp).label("yrgrp"),
@@ -689,8 +724,9 @@ def get_latest_ngrt_classwise_reading_thresholds():
             .all()
         )
 
-        row_map = {row.yrgrp: row for row in rows}
+        row_map = {row.yrgrp: row for row in rows} # Create a mapping of year-group/class to the corresponding row data for easy lookup
 
+        # Prepare the result dictionary to store the SAS threshold data for each year-group/class in the current NGRT dataset
         result = {
             "exam_label": exam_label,
             "year_groups": [yg.upper() for yg in year_groups],
@@ -703,14 +739,17 @@ def get_latest_ngrt_classwise_reading_thresholds():
             "totals": [],
         }
 
+        # Iterate through each year-group/class in the predefined order to calculate the counts and percentages of students meeting each SAS threshold
         for yg in year_groups:
             row = row_map.get(yg)
 
+            # Extract the total count of students and the counts of students meeting each SAS threshold for the current year-group/class, defaulting to 0 if no data is available
             total = int(row.total) if row and row.total is not None else 0
             c90 = int(row.sas_90_count) if row and row.sas_90_count is not None else 0
             c110 = int(row.sas_110_count) if row and row.sas_110_count is not None else 0
             c120 = int(row.sas_120_count) if row and row.sas_120_count is not None else 0
 
+            # Calculate the percentages of students meeting each SAS threshold for the current year-group/class, protecting against divide-by-zero
             p90 = round((c90 / total) * 100, 1) if total > 0 else 0
             p110 = round((c110 / total) * 100, 1) if total > 0 else 0
             p120 = round((c120 / total) * 100, 1) if total > 0 else 0
@@ -725,7 +764,7 @@ def get_latest_ngrt_classwise_reading_thresholds():
             result["totals"].append(total)
 
         return result
-
+    # If no datasets have available SAS data, return a default result with zero counts and percentages for each year-group/class
     return {
         "exam_label": "No Data",
         "year_groups": ["2-A", "2-B", "2-C", "2-D", "2-E", "2-F"],
@@ -747,7 +786,7 @@ def _safe_pct(part, whole):
     # Return percentage safely, avoiding division by zero
     return round((part / whole) * 100.0, 1) if whole else 0.0
 
-
+# Return the latest available NGRT model and label
 def _latest_ngrt_model_and_label():
     """
     Return the latest available NGRT model and label
@@ -773,7 +812,7 @@ def _latest_ngrt_model_and_label():
     # No dataset available
     return None, None
 
-
+# Return basic cohort-level metadata from the latest available NGRT dataset
 def _get_latest_ngrt_cohort_totals():
     """
     Return basic cohort-level metadata from the latest
@@ -807,6 +846,7 @@ def _get_latest_ngrt_cohort_totals():
         .scalar() or 0
     )
 
+    # Return the metadata as a dictionary
     return {
         "exam_label": label,
         "total": int(total),
@@ -819,16 +859,12 @@ def _get_latest_ngrt_cohort_totals():
 # =============================================================================
 
 # Trends in Attainment statement for AI Insight Lens (NGRT)
-def _build_trend_statement_from_existing_series():
+def _build_trend_statement_from_existing_series(): # use as fallback if AI call fails
     """
     Reuse get_classwise_avg_ngrt_stanine() to build one
     short interpretation statement about attainment trends.
     """
-    # Existing helper returns:
-    # {
-    #   "year_groups": [...],
-    #   "series": [{"name": "NGRT-A", "data": [...]}, ...]
-    # }
+    # Get the classwise average stanine data across NGRT-A, NGRT-B, and NGRT-C
     data = get_classwise_avg_ngrt_stanine()
     year_groups = data.get("year_groups", [])
     series = data.get("series", [])
@@ -844,6 +880,7 @@ def _build_trend_statement_from_existing_series():
         if "name" in s and "data" in s
     }
 
+    # Initialize counters for improving, declining, and stable classes
     improving = 0
     declining = 0
     stable = 0
@@ -864,8 +901,8 @@ def _build_trend_statement_from_existing_series():
         if len(points) < 2:
             continue
 
-        first = points[0]
-        last = points[-1]
+        first = points[0] # Get the first available class average stanine for the current year-group/class
+        last = points[-1] # Get the last available class average stanine for the current year-group/class
 
         # Small buffer of 0.15 to avoid treating tiny changes as trends
         if last > first + 0.15:
@@ -875,7 +912,7 @@ def _build_trend_statement_from_existing_series():
         else:
             stable += 1
 
-    compared_classes = improving + declining + stable
+    compared_classes = improving + declining + stable # Total number of classes that were compared for trends
 
     # No usable comparison found
     if compared_classes == 0:
@@ -913,6 +950,7 @@ def generate_ai_attainment_trends_interpretation():
         if "name" in s and "data" in s
     }
 
+    # Initialize counters for improving, declining, and stable classes
     improving = 0
     declining = 0
     stable = 0
@@ -933,8 +971,8 @@ def generate_ai_attainment_trends_interpretation():
         if len(points) < 2:
             continue
 
-        first = points[0]
-        last = points[-1]
+        first = points[0] # Get the first available class average stanine for the current year-group/class
+        last = points[-1] # Get the last available class average stanine for the current year-group/class
 
         # Small buffer of 0.15 to avoid treating tiny changes as trends
         if last > first + 0.15:
@@ -1003,7 +1041,7 @@ def generate_ai_attainment_trends_interpretation():
 
         return response.choices[0].message.content.strip()
 
-    except Exception:
+    except Exception: # Fallback to rule-based interpretation if AI call fails
         return _build_trend_statement_from_existing_series()
 
 # API endpoint to regenerate AI interpretation for NGRT trends in attainment
@@ -1013,7 +1051,7 @@ def regenerate_ngrt_trends_insight():
     Regenerates the AI interpretation for NGRT trends in attainment.
     """
 
-    statement = generate_ai_attainment_trends_interpretation()
+    statement = generate_ai_attainment_trends_interpretation() # Generate the AI interpretation for NGRT trends in attainment
 
     return jsonify({
         "success": True,
@@ -1025,7 +1063,7 @@ def regenerate_ngrt_trends_insight():
 # =============================================================================
 
 # Reading threshold summary for AI Insight Lens (NGRT)
-def _get_latest_reading_threshold_summary():
+def _get_latest_reading_threshold_summary(): # use as fallback if AI call fails
     """
     Reuse existing classwise reading-threshold helper and roll up
     all class values into one cohort-level threshold summary.
@@ -1033,6 +1071,7 @@ def _get_latest_reading_threshold_summary():
     # Existing helper already computes SAS >= 90, 110, 120 by class
     data = get_latest_ngrt_classwise_reading_thresholds()
 
+    # Roll up class values into cohort totals
     totals = data.get("totals", [])
     c90 = data.get("sas_90_count", [])
     c110 = data.get("sas_110_count", [])
@@ -1147,7 +1186,7 @@ def generate_ai_reading_threshold_interpretation():
 
         return response.choices[0].message.content.strip()
 
-    except Exception:
+    except Exception: # Fallback to rule-based interpretation if AI call fails
         thr = _get_latest_reading_threshold_summary()
         return _build_threshold_statement(thr)
 
@@ -1158,7 +1197,7 @@ def regenerate_ngrt_threshold_insight():
     Regenerates the AI interpretation for NGRT reading literacy thresholds.
     """
 
-    statement = generate_ai_reading_threshold_interpretation()
+    statement = generate_ai_reading_threshold_interpretation() # Generate the AI interpretation for NGRT reading literacy thresholds
 
     return jsonify({
         "success": True,
@@ -1201,7 +1240,7 @@ def _get_latest_progress_distribution_summary():
     }
 
 # Progress distribution statement for AI Insight Lens (NGRT)
-def _build_progress_statement(prog):
+def _build_progress_statement(prog): # use as fallback if AI call fails
     """
     Convert progress summary numbers into one interpretation sentence.
     """
@@ -1289,7 +1328,7 @@ def generate_ai_progress_interpretation(prog):
 
         return response.choices[0].message.content.strip()
 
-    except Exception:
+    except Exception: # Fallback to rule-based interpretation if AI call fails
         prog = _get_latest_progress_distribution_summary()
         return _build_progress_statement(prog)
 
@@ -1344,7 +1383,7 @@ def _get_latest_attainment_distribution_summary():
     }
 
 # Attainment distribution statement for AI Insight Lens (NGRT)
-def _build_attainment_statement(att):
+def _build_attainment_statement(att): # use as fallback if AI call fails
     """
     Convert attainment summary numbers into one interpretation sentence.
     """
@@ -1433,7 +1472,7 @@ def generate_ai_attainment_interpretation(att):
 
         return response.choices[0].message.content.strip()
 
-    except Exception:
+    except Exception: # Fallback to rule-based interpretation if AI call fails
         att = _get_latest_attainment_distribution_summary()
         return _build_attainment_statement(att)
 
@@ -1526,6 +1565,7 @@ def index():
     # NEW: build NGRT AI interpretation bundle for the dashboard
     ngrt_ai_interpretation = build_ngrt_dashboard_ai_interpretation()
 
+    # Render the dashboard template with all the data and insights
     return render_template(
         'pages/index.html',
         segment='dashboard',
@@ -1558,22 +1598,29 @@ def index():
         ngrt_ai_interpretation = ngrt_ai_interpretation,
     )
 
+# ********************************************
+# *** NGRT External Assessment API Routes ***#
+# ********************************************
+# API endpoint to fetch classwise NGRT stanine data
 @blueprint.route("/api/ngrt_classwise_stanine")
 @login_required
 def ngrt_classwise_stanine():
     data = get_latest_ngrt_classwise_stanine()
     return jsonify(data)
 
+# API endpoint to fetch classwise NGRT progress distribution data
 @blueprint.route("/api/ngrt_classwise_progress")
 def ngrt_classwise_progress_distribution():
     data = get_latest_ngrt_classwise_progress()
     return jsonify(data)
 
+# API endpoint to fetch classwise average NGRT stanine data
 @blueprint.route("/api/classwise_avg_ngrt_stanine")
 def classwise_avg_ngrt_stanine():
     data = get_classwise_avg_ngrt_stanine()
     return jsonify(data)
 
+# API endpoint to fetch classwise NGRT reading threshold data
 @blueprint.route("/api/ngrt_classwise_reading_thresholds")
 def ngrt_classwise_reading_thresholds():
     data = get_latest_ngrt_classwise_reading_thresholds()
@@ -1589,16 +1636,17 @@ def ngrt_classwise_reading_thresholds():
 @blueprint.route('/reports', methods=['GET'])
 @login_required
 @admin_required
-def display_reports():
+def display_reports(): # Render the reports page for external assessments
     return render_template(
         "pages/reports.html",
         segment="reports",
         parent="reports",
     )
 
+# Route for NGRT summary report download
 @blueprint.route("/reports/ngrt-summary/<exam>")
 @login_required
-def download_ngrt_summary_report(exam):
+def download_ngrt_summary_report(exam): # Generate and download the NGRT summary report PDF for the specified exam
     allowed_exams = {
         "ngrta": "NGRT-A",
         "ngrtb": "NGRT-B",
@@ -1673,14 +1721,14 @@ def api_ngrt_combined_data():
                 query = query.filter(Students.sped != "No")
             elif sen == "No SEN/SPED Support":
                 query = query.filter(Students.sped == "No")
-
-    students = (
+   
+    students = ( # Get the filtered students and order by year group, forename, and surname.
         query
         .order_by(Students.yrgrp.asc(), Students.forename.asc(), Students.surname.asc())
         .all()
     )
 
-    results = []
+    results = [] # Build the results list with student data and NGRT results.
 
     for student in students:
         # Get NGRT-A result for this student.
@@ -1704,8 +1752,10 @@ def api_ngrt_combined_data():
             .first()
         )
 
-        full_name = f"{student.forename or ''} {student.surname or ''}".strip()
+        # Construct the full name of the student.
+        full_name = f"{student.forename or ''} {student.surname or ''}".strip() 
 
+        # Append the student data and NGRT results to the results list.
         results.append({
             "student_id": student.student_id,
             "name": full_name,
@@ -1720,15 +1770,14 @@ def api_ngrt_combined_data():
             "ngrtc": serialize_ngrt_result(ngrtc),
         })
 
-    return jsonify(results)
+    return jsonify(results) # Return the results as a JSON response.
 
-
+# Helper function to serialize NGRT model results into a JSON-safe dictionary
 def serialize_ngrt_result(result):
     """
     Converts one NGRT model result into a JSON-safe dictionary.
     """
-
-    if not result:
+    if not result: # If the result is None, return a dictionary with default values indicating no data.
         return {
             "has_data": False,
             "sas": "-",
@@ -1742,7 +1791,7 @@ def serialize_ngrt_result(result):
     # Some projects use SAS uppercase, some use sas lowercase.
     sas_value = getattr(result, "SAS", None) or getattr(result, "sas", None)
 
-    return {
+    return { # Return a dictionary with the serialized NGRT result data, using default values if attributes are missing.
         "has_data": True,
         "sas": sas_value if sas_value is not None else "-",
         "stanine": getattr(result, "stanine", "-") or "-",
@@ -1762,12 +1811,12 @@ def download_ngrt_indv_extl_rpt(student_id):
     Example:
     /reports/external/individual/Y2-048
     """
-
     pdf_path = generate_ngrt_indv_extl_rpt(student_id)
 
-    if not pdf_path:
+    if not pdf_path: # If the PDF path is None or empty, abort with a 404 error indicating the report was not found.
         abort(404)
 
+    # Send the generated PDF file as a response for download, with appropriate headers and filename.
     return send_file(
         pdf_path,
         as_attachment=True,
@@ -1793,14 +1842,14 @@ def api_internal_combined_data():
     - status
     - sen/sped
     """
-
+    # Get filter parameters from the request query string, with default values as empty strings.
     q = request.args.get("q", "").strip()
     gender = request.args.get("gender", "").strip()
     yrgrp = request.args.get("yrgrp", "").strip()
     status = request.args.get("status", "").strip()
     sen = request.args.get("sen", "").strip()
 
-    query = Students.query
+    query = Students.query # Start with a base query for the Students model.
 
     # Search by student name or student ID.
     if q:
@@ -1835,15 +1884,15 @@ def api_internal_combined_data():
             elif sen == "No SEN/SPED Support":
                 query = query.filter(func.lower(Students.sped) == "no")
 
-    students = (
+    students = ( # Get the filtered students and order by year group, forename, and surname.
         query
         .order_by(Students.yrgrp.asc(), Students.forename.asc(), Students.surname.asc())
         .all()
     )
 
-    results = []
+    results = [] # Build the results list with student data and internal assessment results.
 
-    for student in students:
+    for student in students: # Iterate through each student in the filtered list to retrieve their internal assessment results.
         # Get internal assessment result for this student.
         internal_exam = (
             InternalExam.query
@@ -1852,7 +1901,7 @@ def api_internal_combined_data():
         )
 
         full_name = f"{student.forename or ''} {student.surname or ''}".strip()
-
+        # Append the student data and internal assessment results to the results list.
         results.append({
             "student_id": student.student_id,
             "name": full_name,
@@ -1862,18 +1911,18 @@ def api_internal_combined_data():
             "nationality": student.nationality or "",
             "sped": student.sped if hasattr(student, "sped") else "",
 
-            "internal_assessment": serialize_internal_exam_result(internal_exam)
+            "internal_assessment": serialize_internal_exam_result(internal_exam) # Serialize the internal assessment result for this student into a JSON-safe dictionary.
         })
 
-    return jsonify(results)
+    return jsonify(results) # Return the results as a JSON response containing the filtered student data and their internal assessment results.
 
-
+# Helper function to serialize InternalExam model results into a JSON-safe dictionary
 def serialize_internal_exam_result(result):
     """
     Converts one InternalExam result into a JSON-safe dictionary.
     """
 
-    if not result:
+    if not result: # If the result is None, return a dictionary with default values indicating no data.
         return {
             "has_data": False,
 
@@ -1902,10 +1951,10 @@ def serialize_internal_exam_result(result):
             }
         }
 
-    return {
-        "has_data": True,
+    return { # Return a dictionary with the serialized InternalExam result data, using default values if attributes are missing.
+        "has_data": True, # Indicates that the student has internal assessment data available.
 
-        "english": {
+        "english": { # Serialize English internal assessment results.
             "previous_percentage": getattr(result, "eng_prevPct", "-") or "-",
             "previous_grade": getattr(result, "eng_prevGr", "-") or "-",
             "current_percentage": getattr(result, "eng_currPct", "-") or "-",
@@ -1913,7 +1962,7 @@ def serialize_internal_exam_result(result):
             "progress_category": getattr(result, "eng_progcat", "-") or "-"
         },
 
-        "mathematics": {
+        "mathematics": { # Serialize Mathematics internal assessment results.
             "previous_percentage": getattr(result, "maths_prevPct", "-") or "-",
             "previous_grade": getattr(result, "maths_prevGr", "-") or "-",
             "current_percentage": getattr(result, "maths_currPct", "-") or "-",
@@ -1921,7 +1970,7 @@ def serialize_internal_exam_result(result):
             "progress_category": getattr(result, "maths_progcat", "-") or "-"
         },
 
-        "science": {
+        "science": { # Serialize Science internal assessment results.
             "previous_percentage": getattr(result, "sci_prevPct", "-") or "-",
             "previous_grade": getattr(result, "sci_prevGr", "-") or "-",
             "current_percentage": getattr(result, "sci_currPct", "-") or "-",
@@ -1936,12 +1985,12 @@ def download_internal_individual_report(student_id):
     """
     Downloads one student's Internal Assessment individual PDF report.
     """
-
+    # Generate the individual internal assessment report PDF for the specified student ID.
     output_path = generate_intl_indv_rpt(student_id)
-
+    # Check if the output path is valid and the file exists; if not, abort with a 404 error.
     if not output_path or not os.path.exists(output_path):
         abort(404)
-
+    # Send the generated PDF file as a response for download, with appropriate headers and filename.
     return send_file(
         output_path,
         as_attachment=True,
@@ -1950,14 +1999,14 @@ def download_internal_individual_report(student_id):
     )
 
 
-# Route for internal assessment cohort listing
+# Route for internal assessment cohort listing report
 @blueprint.route("/reports/internal/cohort-listing/pdf")
 def download_internal_cohort_listing_pdf():
     """
     Downloads a cohort listing PDF for InternalExam using the same filters
     as /api/reports/internal/combined-data.
     """
-
+    # Get filter parameters from the request query string, with default values as empty strings.
     filters = {
         "q": request.args.get("q", "").strip(),
         "gender": request.args.get("gender", "").strip(),
@@ -1965,12 +2014,12 @@ def download_internal_cohort_listing_pdf():
         "status": request.args.get("status", "").strip(),
         "sen": request.args.get("sen", "").strip(),
     }
-
+    # Generate the internal cohort listing PDF based on the provided filters.
     output_path = generate_internal_cohort_listing_pdf(filters)
-
+    # Check if the output path is valid and the file exists; if not, abort with a 404 error.
     if not output_path or not os.path.exists(output_path):
         abort(404)
-
+    # Send the generated PDF file as a response for download, with appropriate headers and filename.
     return send_file(
         output_path,
         as_attachment=True,
@@ -1986,9 +2035,9 @@ def download_internal_cohort_listing_by_yrgrp_pdf():
     Downloads the Internal Assessment cohort listing PDF
     for the selected year group only.
     """
-
+    # Get the year group parameter from the request query string, defaulting to an empty string.
     yrgrp = request.args.get("yrgrp", "").strip().lower()
-
+    # Validate the year group against the allowed internal year groups; if invalid, abort with a 400 error.
     if yrgrp not in ALLOWED_INTERNAL_YRGRPS:
         abort(400, description="Please select a valid year group: 2-A to 2-F.")
 
@@ -1997,8 +2046,8 @@ def download_internal_cohort_listing_by_yrgrp_pdf():
     if not output_path or not os.path.exists(output_path):
         abort(404)
 
-    yrgrp_display = yrgrp.upper()
-
+    yrgrp_display = yrgrp.upper() # Format the year group for display in the filename.
+    # Send the generated PDF file as a response for download, with appropriate headers and filename.
     return send_file(
         output_path,
         as_attachment=True,
@@ -2013,7 +2062,7 @@ def download_internal_english_summary_pdf():
     """
     Downloads the English Internal Assessment Summary Report.
     """
-
+    # Get filter parameters from the request query string, with default values as empty strings.
     filters = {
         "q": request.args.get("q", "").strip(),
         "gender": request.args.get("gender", "").strip(),
@@ -2021,12 +2070,12 @@ def download_internal_english_summary_pdf():
         "status": request.args.get("status", "").strip(),
         "sen": request.args.get("sen", "").strip(),
     }
-
+    # Generate the internal English summary PDF based on the provided filters.
     pdf_buffer = build_internal_english_summary_pdf(filters)
 
     if not pdf_buffer:
         abort(404)
-
+    # Send the generated PDF file as a response for download, with appropriate headers and filename.
     return send_file(
         pdf_buffer,
         as_attachment=True,
@@ -2040,7 +2089,7 @@ def download_internal_mathematics_summary_pdf():
     """
     Downloads the Mathematics Internal Assessment Summary Report.
     """
-
+    # Get filter parameters from the request query string, with default values as empty strings.
     filters = {
         "q": request.args.get("q", "").strip(),
         "gender": request.args.get("gender", "").strip(),
@@ -2048,12 +2097,12 @@ def download_internal_mathematics_summary_pdf():
         "status": request.args.get("status", "").strip(),
         "sen": request.args.get("sen", "").strip(),
     }
-
+    # Generate the internal Mathematics summary PDF based on the provided filters.
     pdf_buffer = build_internal_mathematics_summary_pdf(filters)
 
     if not pdf_buffer:
         abort(404)
-
+    # Send the generated PDF file as a response for download, with appropriate headers and filename.
     return send_file(
         pdf_buffer,
         as_attachment=True,
@@ -2067,7 +2116,7 @@ def download_internal_science_summary_pdf():
     """
     Downloads the Science Internal Assessment Summary Report.
     """
-
+    # Get filter parameters from the request query string, with default values as empty strings.
     filters = {
         "q": request.args.get("q", "").strip(),
         "gender": request.args.get("gender", "").strip(),
@@ -2075,12 +2124,12 @@ def download_internal_science_summary_pdf():
         "status": request.args.get("status", "").strip(),
         "sen": request.args.get("sen", "").strip(),
     }
-
+    # Generate the internal Science summary PDF based on the provided filters.
     pdf_buffer = build_internal_science_summary_pdf(filters)
 
     if not pdf_buffer:
         abort(404)
-
+    # Send the generated PDF file as a response for download, with appropriate headers and filename.
     return send_file(
         pdf_buffer,
         as_attachment=True,
