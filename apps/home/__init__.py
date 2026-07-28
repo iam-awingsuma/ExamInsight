@@ -1,9 +1,10 @@
-from flask import Blueprint, request
-from urllib.parse import urlencode
-from sqlalchemy import or_, String
+from flask import Blueprint, request  # Core Flask routing module and global request context object
+from urllib.parse import urlencode  # Utility to convert query parameters into URL-encoded strings
+from sqlalchemy import or_, String  # SQLAlchemy logical OR condition and string data type for queries
 
-from apps.helpers import _active_filters, _apply_filters, _apply_search, _dropdown_values
+from apps.helpers import _active_filters, _apply_filters, _apply_search, _dropdown_values  # Internal helper functions for data filtering, search, and dropdown population
 
+# Define a Flask Blueprint for the 'home' application
 blueprint = Blueprint(
     # blueprint for apps/home
     'home_blueprint',
@@ -11,6 +12,8 @@ blueprint = Blueprint(
     url_prefix=''
 )
 
+# Define a helper function to build SQLAlchemy filter predicates
+# based on the provided model, configuration, and request arguments
 def _build_predicates(*, model, config, args):
     clauses = []
 
@@ -34,8 +37,10 @@ def _build_predicates(*, model, config, args):
         else:
             clauses.append(f["column"] == val)
 
-    return clauses
+    return clauses # Return the list of filter predicates
 
+# Define a function to create the context for rendering a list view 
+# based on the model, database session, configuration, and endpoint
 def make_list_context(*, model, db, config, endpoint):
     args = request.args
     # 1) build predicates once
@@ -62,6 +67,7 @@ def make_list_context(*, model, db, config, endpoint):
     # current selections (keep selects selected)
     current = {k: (args.get(k, "") or "").strip() for k in config.get("labels", {}).keys()}
 
+    # expose predicates for reuse in templates
     return {
         "rows": rows,
         "no_data": table_is_empty,
