@@ -1,14 +1,14 @@
-from flask_login import UserMixin
+from flask_login import UserMixin  # Provides default implementations for Flask-Login user properties
 
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
-from flask_dance.consumer.storage.sqla import OAuthConsumerMixin
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError  # Database exception handlers for query/constraint errors
+from flask_dance.consumer.storage.sqla import OAuthConsumerMixin  # SQLAlchemy model mixin for OAuth tokens
 
-from apps import db, login_manager
+from apps import db, login_manager  # Imports core database instance and login manager extension
+from apps.authentication.util import hash_pass  # Helper function for hashing user passwords
 
-from apps.authentication.util import hash_pass
-
+# Define the Users data model (table in database)
 class Users(db.Model, UserMixin):
-
+    # Define the Users model with fields for authentication and user profile information
     __tablename__ = 'users'
 
     id            = db.Column(db.Integer, primary_key=True)
@@ -22,6 +22,7 @@ class Users(db.Model, UserMixin):
     profile_image = db.Column(db.String(255), default='profile.png')
     is_admin      = db.Column(db.Boolean, nullable=False, default=False)
 
+    # Initialize the Users model with keyword arguments for dynamic attribute assignment
     def __init__(self, **kwargs):
         for property, value in kwargs.items():
             # depending on whether value is an iterable or not, we must
@@ -36,21 +37,23 @@ class Users(db.Model, UserMixin):
 
             setattr(self, property, value)
 
+    # Representation method for debugging and logging purposes
     def __repr__(self):
         return str(self.username)
 
+    # Class method to find a user by email in the database
     @classmethod
     def find_by_email(cls, email: str) -> "Users":
         return cls.query.filter_by(email=email).first()
-
+    # Class method to find a user by username in the database
     @classmethod
     def find_by_username(cls, username: str) -> "Users":
         return cls.query.filter_by(username=username).first()
-    
+    # Class method to find a user by ID in the database
     @classmethod
     def find_by_id(cls, _id: int) -> "Users":
         return cls.query.filter_by(id=_id).first()
-   
+    # Method to save the user instance to the database with error handling for integrity issues
     def save(self) -> None:
         try:
             db.session.add(self)
@@ -61,7 +64,7 @@ class Users(db.Model, UserMixin):
             db.session.close()
             error = str(e.__dict__['orig'])
             raise IntegrityError(error, 422)
-    
+    # Method to delete the user instance from the database with error handling for integrity issues
     def delete_from_db(self) -> None:
         try:
             db.session.delete(self)
@@ -72,26 +75,22 @@ class Users(db.Model, UserMixin):
             error = str(e.__dict__['orig'])
             raise IntegrityError(error, 422)
         return
-
+    
+# Define the OAuth model for storing OAuth tokens in the database
 @login_manager.user_loader
 def user_loader(id):
     return Users.query.filter_by(id=id).first()
 
+# Define the request loader for Flask-Login to load a user from the request form data
 @login_manager.request_loader
 def request_loader(request):
     username = request.form.get('username')
     user = Users.query.filter_by(username=username).first()
     return user if user else None
 
-# students_ngrtb = db.Table(
-#     'students_ngrtb',
-#     db.Column('student_id', db.Integer, db.ForeignKey('students.student_id')),
-#     db.Column('ngrtb_id', db.Integer, db.ForeignKey('ngrtb_id'))
-# )
-
 # Define the Students data model (table in database)
 class Students(db.Model, UserMixin):
-
+    # Define the Students model with fields for student information and academic details
     __tablename__ = 'students'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -104,14 +103,14 @@ class Students(db.Model, UserMixin):
     sped = db.Column(db.String(64), nullable=True)
     nationality = db.Column(db.String(64), nullable=False)
     status = db.Column(db.String(64), nullable=True)
-    # ngrtb = db.relationship('NGRTB', secondary=students_ngrtb, backref='students')
 
+    # Method to convert the Students object to a dictionary for easier data handling
     def __repr__(self):
         return str(self.student_id)
 
 # Define the data model (table in database) for NGRT-A
 class NGRTA(db.Model, UserMixin):
-
+    # Define the NGRTA model with fields for student assessment data and academic performance
     __tablename__ = 'ngrta'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -122,7 +121,7 @@ class NGRTA(db.Model, UserMixin):
     reading_age = db.Column(db.String(64), nullable=True)
     profile_desc = db.Column(db.String(150), nullable=True)
 
-    # Clean architecture method to convert the NGRTA object to a dictionary for easier data handling
+    # Method to convert the NGRTA object to a dictionary for easier data handling
     def to_dict(self):
         return {
             'id': self.id,
@@ -133,13 +132,13 @@ class NGRTA(db.Model, UserMixin):
             'reading_age': self.reading_age,
             'profile_desc': self.profile_desc
         }
-
+    # Representation method for debugging and logging purposes
     def __repr__(self):
         return str(self.student_id)
     
 # Define the data model (table in database) for NGRT-B
 class NGRTB(db.Model, UserMixin):
-
+    # Define the NGRTB model with fields for student assessment data and academic performance
     __tablename__ = 'ngrtb'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -155,7 +154,7 @@ class NGRTB(db.Model, UserMixin):
     reader_profile = db.Column(db.String(100), nullable=True)
     profile_desc = db.Column(db.String(150), nullable=True)
 
-    # Clean architectural approach: method to convert NGRTB object to dictionary for easier data handling in views/templates
+    # Method to convert NGRTB object to dictionary for easier data handling in views/templates
     def to_dict(self):
         return {
             'id': self.id,
@@ -171,13 +170,13 @@ class NGRTB(db.Model, UserMixin):
             'reader_profile': self.reader_profile,
             'profile_desc': self.profile_desc
         }
-
+    # Representation method for debugging and logging purposes
     def __repr__(self):
         return str(self.student_id)
     
 # Define the data model (table in database) for NGRT-C
 class NGRTC(db.Model, UserMixin):
-
+    # Define the NGRTC model with fields for student assessment data and academic performance
     __tablename__ = 'ngrtc'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -193,7 +192,7 @@ class NGRTC(db.Model, UserMixin):
     reader_profile = db.Column(db.String(100), nullable=True)
     profile_desc = db.Column(db.String(150), nullable=True)
 
-    # Clean architecture for serialization of NGRT-C data to dictionary format for API responses or other uses
+    # Serialization of NGRT-C data to dictionary format for API responses or other uses
     def to_dict(self):
         return {
             'id': self.id,
@@ -209,13 +208,13 @@ class NGRTC(db.Model, UserMixin):
             'reader_profile': self.reader_profile,
             'profile_desc': self.profile_desc
         }
-
+    # Representation method for debugging and logging purposes
     def __repr__(self):
         return str(self.student_id)
     
 # Define the Internal Exam data model (table in database)
 class InternalExam(db.Model, UserMixin):
-
+    # Define the InternalExam model with fields for student internal exam scores and grades
     __tablename__ = 'internalexam'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -241,6 +240,6 @@ class InternalExam(db.Model, UserMixin):
     sci_currPct = db.Column(db.Integer, nullable=True)
     sci_currGr = db.Column(db.String(3), nullable=True)
     sci_progcat = db.Column(db.String(20), nullable=True)
-
+    
     def __repr__(self):
         return str(self.student_id)
