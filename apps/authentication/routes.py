@@ -9,7 +9,7 @@ from functools import wraps
 
 from apps import db, login_manager
 from apps.authentication import blueprint
-from apps.authentication.forms import LoginForm, CreateAccountForm
+from apps.authentication.forms import LoginForm
 from apps.authentication.models import Users
 from apps.config import Config
 
