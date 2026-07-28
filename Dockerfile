@@ -48,7 +48,7 @@ USER appuser
 COPY . .
 
 # Expose the port that the application listens on.
-EXPOSE 8008
+EXPOSE 6959
 
 # Run the application.
-CMD ["flask", "run", "--host=0.0.0.0", "--port=8008"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=6959"]

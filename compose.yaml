@@ -14,7 +14,9 @@ services:
     image: examinsight:latest
     container_name: ExamInsight
     ports:
-      - "8008:8008"
+      - "6959:6959"
+    env_file:
+      - .env
     volumes:
       - .:/ExamInsight  # <--- Mounts the local folder into the container (updates the container when changes are made)
     environment:
@@ -22,8 +24,6 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-    env_file:
-      - .env
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
 # start the database before your application. The `db-data` volume persists the
