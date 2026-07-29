@@ -3554,13 +3554,13 @@ def analytics_internal():
 #*************************************************
 @blueprint.route("/api/analytics_extl_ngrt", methods=["GET"])
 @login_required
-def api_analytics_external():
+def api_analytics_external(): # Route to fetch external analytics data for NGRTA, NGRTB, and NGRTC assessments.
     ngrt_payload = fetch_extl_asst_payload(db, Students, NGRTA, NGRTB, NGRTC)
     return jsonify(ngrt_payload)
 
 @blueprint.route("/analytics_extl_ngrt_a", methods=["GET"])
 @login_required
-def analytics_extl_ngrt_a():
+def analytics_extl_ngrt_a(): # Route to render the external analytics page for NGRTA assessment.
     return render_template(
         "pages/extl_analytics_a.html",
         segment="analytics - external (NGRT-A)",
@@ -3569,7 +3569,7 @@ def analytics_extl_ngrt_a():
 
 @blueprint.route("/analytics_extl_ngrt_b", methods=["GET"])
 @login_required
-def analytics_extl_ngrt_b():
+def analytics_extl_ngrt_b(): # Route to render the external analytics page for NGRTB assessment.
     return render_template(
         "pages/extl_analytics_b.html",
         segment="analytics - external (NGRT-B)",
@@ -3578,7 +3578,7 @@ def analytics_extl_ngrt_b():
 
 @blueprint.route("/analytics_extl_ngrt_c", methods=["GET"])
 @login_required
-def analytics_extl_ngrt_c():
+def analytics_extl_ngrt_c(): # Route to render the external analytics page for NGRTC assessment.
     return render_template(
         "pages/extl_analytics_c.html",
         segment="analytics - external (NGRT-C)",
@@ -3591,7 +3591,7 @@ def analytics_extl_ngrt_c():
 # --- Student dropdown for analytics page :: Student Insights page ---
 @blueprint.route("/api/students_by_year", methods=["GET"])
 @login_required
-def api_students_by_year():
+def api_students_by_year(): # Route to fetch students by year group for the analytics page.
     yrgrp = request.args.get("yrgrp", "").strip()
     allowed = _allowed_year_groups_for_user()
     if allowed is not None and _normalize_class_code(yrgrp) not in allowed:
