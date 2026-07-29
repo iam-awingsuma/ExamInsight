@@ -4286,13 +4286,13 @@ def api_interpret_external_performance():
         "ngrtb": NGRTB,
         "ngrtc": NGRTC,
     }
-
+    # Validate the dataset parameter to ensure it is one of the allowed values (ngrta, ngrtb, ngrtc). If not, return a 400 error with an appropriate message.
     if dataset not in dataset_map:
         return jsonify({
             "error": "Invalid dataset. Must be ngrta, ngrtb, or ngrtc."
         }), 400
 
-    Model = dataset_map[dataset]
+    Model = dataset_map[dataset] # Map the dataset parameter to the corresponding SQLAlchemy model class for querying the database based on the selected external exam dataset (ngrta, ngrtb, ngrtc).
 
     # Check OpenAI API key configuration
     api_key = current_app.config.get('OPENAI_API_KEY')
@@ -4307,14 +4307,14 @@ def api_interpret_external_performance():
         Students, Students.student_id == Model.student_id
     )
 
-    if yrgrp:
+    if yrgrp: # Filter by year group if provided
         base_q = base_q.filter(Students.yrgrp == yrgrp)
-    if sid:
+    if sid: # Filter by student ID if provided
         base_q = base_q.filter(Model.student_id == sid)
 
-    rows = base_q.all()
+    rows = base_q.all() # Fetch all the rows from the filtered query, which will be used to generate the AI interpretation of external exam performance data.
 
-    if not rows:
+    if not rows: # If no data is found for the specified criteria, return a 404 error with an appropriate message indicating that no assessment data is available for the selected student or cohort.
         return jsonify({
             "interpretation": "No assessment data is available for the selected student or cohort.",
             "dataset": dataset,
@@ -4379,12 +4379,15 @@ def api_interpret_external_performance():
             max_tokens=250, # enough for 10 sentences
             temperature=0.4 # more consistent analysis
         )
-
+        # Extract the AI-generated interpretation from the OpenAI API response, 
+        # ensuring that it is stripped of any leading or trailing whitespace for clean presentation in the JSON response.
         interpretation = response.choices[0].message.content.strip()
 
         # Reading profile AI analysis/interpretation
         profile_ai_interpretation = None
-
+        # If a student ID and reading profile are available, generate an AI interpretation of the reading profile using ChatGPT. 
+        # This interpretation will explain what the reading profile means for the student's reading development and suggest practical classroom strategies 
+        # for teachers, limited to exactly 3 sentences.
         if sid and reading_profile:
 
             profile_prompt = f"""
@@ -4394,7 +4397,9 @@ def api_interpret_external_performance():
             Explain what this reading profile means for the student's reading development
             and suggest practical classroom strategies for teachers. Write exactly 3 sentences.
             """
-
+            # Call the OpenAI API to generate an interpretation of the reading profile using the GPT-4o-mini model, 
+            # providing a system message that defines the role of the AI as an educational reading specialist 
+            # and a user message containing the reading profile information. The request specifies a maximum token limit and a temperature setting for consistent analysis.
             profile_response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -4412,10 +4417,11 @@ def api_interpret_external_performance():
                         "content": profile_prompt
                     }
                 ],
-                max_tokens=120,
-                temperature=0.4
+                max_tokens=120, # enough for 3 sentences
+                temperature=0.4 # more consistent analysis
             )
-
+            # Extract the AI-generated interpretation of the reading profile from the OpenAI API response, 
+            # ensuring that it is stripped of any leading or trailing whitespace for clean presentation in the JSON response.
             profile_ai_interpretation = profile_response.choices[0].message.content.strip()
 
             # safely extract reader profile fields
@@ -4432,7 +4438,8 @@ def api_interpret_external_performance():
             "profile_description": profile_description,
             "profile_ai_interpretation": profile_ai_interpretation,
         })
-
+    # Handle any exceptions that occur during the OpenAI API call, returning a 500 error with an appropriate message indicating that there was an error 
+    # with the OpenAI API and including the exception message for debugging purposes.
     except Exception as e:
         return jsonify({
             "error": f"OpenAI API error: {str(e)}",
@@ -4446,6 +4453,7 @@ def parse_reading_age(value):
     Example: '6:07' -> 6.58
     """
     try:
+        # Handle cases where the reading age is provided as a string in the format 'Y:MM' (years and months) and convert it into a decimal representation of years.
         if isinstance(value, str) and ":" in value:
             years, months = value.split(":")
             return int(years) + int(months) / 12
@@ -4460,13 +4468,14 @@ def get_student_reading_profile(rows):
     Extract reading profile category and description for a single student.
     Assumes rows belong to one student because student_id filter is applied.
     """
-    reader_profile = None
-    profile_description = None
-
+    reader_profile = None # Initialize the reader_profile variable to None, which will be used to store the extracted reading profile category for the student.
+    profile_description = None # Initialize the profile_description variable to None, which will be used to store the extracted reading profile description for the student.
+    # Loop through the rows of external exam performance data to find the first non-empty reading profile and description for the student. 
+    # If found, return them in a dictionary; otherwise, return None for both fields.
     for r in rows:
-        reader_profile = getattr(r, "reader_profile", None)
-        profile_desc = getattr(r, "profile_desc", None)
-
+        reader_profile = getattr(r, "reader_profile", None) # Safely extract the reader_profile attribute from the row object, defaulting to None if it does not exist.
+        profile_desc = getattr(r, "profile_desc", None) # Safely extract the profile_desc attribute from the row object, defaulting to None if it does not exist.
+        # If either the reader_profile or profile_desc is found, return them in a dictionary with stripped whitespace; otherwise, continue checking the next row.
         if reader_profile or profile_desc:
             return {
                 "reader_profile": reader_profile.strip() if reader_profile else None,
@@ -4477,7 +4486,7 @@ def get_student_reading_profile(rows):
         "reader_profile": reader_profile,
         "profile_description": profile_description
     }
-
+# Format external exam data for ChatGPT
 def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, student_name=None):
     """
     Format NGRT external exam performance data into a readable summary for ChatGPT.
@@ -4491,9 +4500,9 @@ def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, 
 
     # Extract metrics
     stanines = [int(r.stanine) for r in rows if r.stanine is not None]
-
+    # Extract standard age scores (SAS) from the rows, converting them to floats and filtering out any None values.
     standard_age_scores = [float(r.sas) for r in rows if r.sas is not None]
-
+    # Extract reading ages from the rows, parsing them into decimal years using the parse_reading_age function and filtering out any None values.
     reading_ages = [
         parse_reading_age(r.reading_age)
         for r in rows
@@ -4504,7 +4513,8 @@ def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, 
     def safe_avg(lst):
         nums = [x for x in lst if isinstance(x, (int, float))]
         return round(sum(nums) / len(nums), 2) if nums else 0
-
+    # Calculate averages for stanines, standard age scores, and reading ages using the safe_avg helper function 
+    # to ensure that only valid numeric values are considered in the calculations.
     avg_stanine = safe_avg(stanines)
     avg_sas = safe_avg(standard_age_scores)
     avg_reading_age = safe_avg(reading_ages)
@@ -4515,14 +4525,15 @@ def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, 
         "Average": 0,
         "Above Average": 0
     }
-
+    # Count the number of students in each performance band based on their stanine scores, 
+    # incrementing the appropriate count in the performance_bands dictionary for each student.
     for s in stanines:
         if s <= 3:
-            performance_bands["Below Average"] += 1
+            performance_bands["Below Average"] += 1 # Increment the count for "Below Average" if the stanine score is 3 or below.
         elif s <= 6:
-            performance_bands["Average"] += 1
+            performance_bands["Average"] += 1 # Increment the count for "Average" if the stanine score is between 4 and 6 (inclusive).
         else:
-            performance_bands["Above Average"] += 1
+            performance_bands["Above Average"] += 1 # Increment the count for "Above Average" if the stanine score is 7 or above.
 
     # Progress Categories
     prog_categories = {
@@ -4533,32 +4544,35 @@ def _format_external_data_for_chatgpt(rows, dataset=None, yrgrp=None, sid=None, 
         "Better than Expected": 0
     }
 
+    # Count the number of students in each progress category based on their progress categories, 
+    # incrementing the appropriate count in the prog_categories dictionary for each student.
     for r in rows:
         prog = getattr(r, "progress_category", None)
         if prog:
             normalized = prog.strip().title()
             if "Lower" in normalized:
-                prog_categories["Lower than Expected"] += 1
+                prog_categories["Lower than Expected"] += 1 # Increment the count for "Lower than Expected" if the progress category contains "Lower".
 
             elif "Better" in normalized:
-                prog_categories["Better than Expected"] += 1
+                prog_categories["Better than Expected"] += 1 # Increment the count for "Better than Expected" if the progress category contains "Better".
 
             elif "Expected" in normalized:
-                prog_categories["Expected"] += 1
+                prog_categories["Expected"] += 1 # Increment the count for "Expected" if the progress category contains "Expected".
 
     # Context label
     if sid and student_name:
-        context = f"Student: {student_name} (ID: {sid})"
+        context = f"Student: {student_name} (ID: {sid})" # If both student ID and name are provided, set the context to include both the student's name and ID.
     elif sid:
-        context = f"Student ID: {sid}"
+        context = f"Student ID: {sid}" # If only the student ID is provided, set the context to include just the student's ID.
     elif yrgrp:
-        context = f"year group {yrgrp.strip().upper()}"
+        context = f"year group {yrgrp.strip().upper()}" # If only the year group is provided, set the context to include just the year group.
     else:
-        context = "Cohort"
+        context = "Cohort" # If no specific context is provided, set the context to "Cohort".
 
     num_records = len(rows)
 
-    # Key indicators
+    # Determine the strongest attainment band and dominant progress category 
+    # by finding the keys with the maximum values in their respective dictionaries.
     strongest_band = max(performance_bands.items(), key=lambda x: x[1])[0]
     dominant_progress = max(prog_categories.items(), key=lambda x: x[1])[0]
 
