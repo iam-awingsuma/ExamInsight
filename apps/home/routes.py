@@ -3374,8 +3374,8 @@ def analytics_internal():
         .filter(Students.yrgrp.isnot(None))
         .group_by(Students.yrgrp)
     )
-    rc_yrgrp_q = _restrict_to_allowed_year_groups(rc_yrgrp_q)
-    rc_yrgrp = rc_yrgrp_q.order_by(Students.yrgrp).all()
+    rc_yrgrp_q = _restrict_to_allowed_year_groups(rc_yrgrp_q) # apply the same year group restrictions as above
+    rc_yrgrp = rc_yrgrp_q.order_by(Students.yrgrp).all() # fetch all rows as a list of tuples (yrgrp, count)
 
     # if you want a dict {yrgrp: count}
     counts_by_yrgrp = dict(rc_yrgrp)
@@ -3404,8 +3404,6 @@ def analytics_internal():
     threshold_data, attainment_table = get_attainment_bundle() # take from helper function to get threshold data for the chart
 
     progress_simple_data = get_progress_data() # take from helper function to get progress data for the chart
-
-    
 
     #*** Student ATTAINMENT Chart: Gender-specific 
     def _pct(n, d):
@@ -3454,10 +3452,10 @@ def analytics_internal():
         f_n, f_p, f_t = _gender_threshold_for(InternalExam.sci_currPct,   threshold, female_pred)
         sci_row = {"subject":"Science","male_n":m_n,"male_pct":m_p,"male_total": m_t,"female_n":f_n,"female_pct":f_p,"female_total": f_t}
 
-        return [eng_row, maths_row, sci_row]
+        return [eng_row, maths_row, sci_row] # return a list of dictionaries for each subject with the calculated values for male and female
     
-    gender_ge60_data = _build_gender_payload(60)
-    gender_ge70_data = _build_gender_payload(70)
+    gender_ge60_data = _build_gender_payload(60) # build payload for students with marks >= 60
+    gender_ge70_data = _build_gender_payload(70) # build payload for students with marks >= 70
 
     #*** Student PROGRESS Chart: Gender-specific
     def _gender_progress_for(prog_col, gender_pred):
@@ -3481,11 +3479,13 @@ def analytics_internal():
         ).join(Students, InternalExam.student_id == Students.student_id)\
         .filter(gender_pred).scalar() or 0
 
+        # Count of students with "above expected" progress
         above_cnt = db.session.query(
             func.count(func.distinct(case((norm == "above expected", InternalExam.student_id))))
         ).join(Students, InternalExam.student_id == Students.student_id)\
         .filter(gender_pred).scalar() or 0
 
+        # Calculate percentages for expected and above expected progress
         p_expected = _pct(int(exp_cnt), int(denom))
         p_above    = _pct(int(above_cnt), int(denom))
         p_sum      = round(p_expected + p_above, 2)
@@ -3494,8 +3494,7 @@ def analytics_internal():
         c_sum = int(exp_cnt + above_cnt)
         c_above = int(above_cnt)
 
-        # return int(numer), _pct(int(numer), int(denom)), int(denom)
-        # return p_sum, p_above
+        # Return the counts and percentages for expected and above expected progress, along with the denominator for reference.
         return c_sum, p_sum, c_above, p_above, int(denom)
 
     def _build_gender_progress_payload():
@@ -3514,12 +3513,12 @@ def analytics_internal():
         mc_sum_s, m_sum_s, mc_abv_s, m_abv_s, m_total_s = _gender_progress_for(InternalExam.sci_progcat,   male_pred)
         fc_sum_s, f_sum_s, fc_abv_s, f_abv_s, f_total_s = _gender_progress_for(InternalExam.sci_progcat,   female_pred)
 
-        sum_data = [
+        sum_data = [ # return a list of dictionaries for each subject with the calculated values for Expected OR Above Expected progress
             {"subject": "English", "male_n": mc_sum_e, "male_pct": m_sum_e, "male_total": m_total_e, "female_n": fc_sum_e, "female_pct": f_sum_e, "female_total": f_total_e},
             {"subject": "Maths", "male_n": mc_sum_m, "male_pct": m_sum_m, "male_total": m_total_m, "female_n": fc_sum_m, "female_pct": f_sum_m, "female_total": f_total_m},
             {"subject": "Science", "male_n": mc_sum_s, "male_pct": m_sum_s, "male_total": m_total_s, "female_n": fc_sum_s, "female_pct": f_sum_s, "female_total": f_total_s},
         ]
-        above_data = [
+        above_data = [ # return a list of dictionaries for each subject with the calculated values for Above Expected progress only
             {"subject": "English", "male_n": mc_abv_e, "male_pct": m_abv_e, "male_total": m_total_e, "female_n": fc_abv_e, "female_pct": f_abv_e, "female_total": f_total_e},
             {"subject": "Maths", "male_n": mc_abv_m, "male_pct": m_abv_m, "male_total": m_total_e, "female_n": fc_abv_m, "female_pct": f_abv_m, "female_total": f_total_e},
             {"subject": "Science", "male_n": mc_abv_s, "male_pct": m_abv_s, "male_total": m_total_e, "female_n": fc_abv_s, "female_pct": f_abv_s, "female_total": f_total_e},
@@ -3527,7 +3526,7 @@ def analytics_internal():
         
         return sum_data, above_data
     
-    gender_prog_exp_above, gender_prog_above_data = _build_gender_progress_payload()
+    gender_prog_exp_above, gender_prog_above_data = _build_gender_progress_payload() # build payload for students with Expected OR Above Expected progress and Above Expected only progress
 
     # Year Group Analytics payload from API endpoint - /api/yrgrp_analytics
     resp = requests.get(request.url_root.rstrip("/") + "/api/yrgrp_analytics")
