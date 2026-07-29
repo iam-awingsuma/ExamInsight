@@ -2871,23 +2871,29 @@ def display_ngrtc():
             combined_data=combined_data
         )
 
+#*****************************
+#*** NGRT Listing Reports ***#
+#*****************************
 # Route to download NGRT listing reports as PDF
 @blueprint.route("/reports/external/ngrt-listing/<exam>", methods=["GET"])
 @login_required
+# Download NGRT listing report as PDF for the specified exam (NGRT-A, NGRT-B, or NGRT-C).
 def download_ngrt_listing_report(exam):
+    # Define a dictionary mapping the allowed exam keys to their corresponding labels for display in the report.
     allowed_exams = { "ngrta": "NGRT-A", "ngrtb": "NGRT-B", "ngrtc": "NGRT-C", }
-    exam_key = (exam or "").strip().lower()
-
+    exam_key = (exam or "").strip().lower() # Normalize the exam key by stripping whitespace and converting to lowercase.
+    # Check if the provided exam key is in the allowed exams; if not, return a 404 error.
     if exam_key not in allowed_exams:
         abort(404)
-
+    # Get the combined data for the specified exam, 
+    # which includes student information and their corresponding NGRT results.
     combined_data = get_filtered_ngrt_combined_data(exam_key)
-
+    # Build the PDF report for the specified exam using the combined data and the corresponding exam label.
     pdf_buffer = build_ngrt_listing_pdf(
         combined_data=combined_data,
         exam_label=allowed_exams[exam_key],
     )
-
+    # Return the generated PDF report as a downloadable file with the appropriate filename and MIME type.
     return send_file(
         pdf_buffer,
         as_attachment=True,
@@ -2899,14 +2905,16 @@ def download_ngrt_listing_report(exam):
 @blueprint.route("/reports/external/ngrt-listing/<exam>/<yrgrp>", methods=["GET"])
 @login_required
 def download_ngrt_listing_report_by_year_group(exam, yrgrp):
+    # Define a dictionary mapping the allowed exam keys to their corresponding labels for display in the report.
     allowed_exams = { "ngrta": "NGRT-A", "ngrtb": "NGRT-B", "ngrtc": "NGRT-C", }
-
+    # Normalize the exam key and year group by stripping whitespace and converting to lowercase.
     exam_key = (exam or "").strip().lower()
     selected_yrgrp = (yrgrp or "").strip().lower()
-
+    # Check if the provided exam key is in the allowed exams; if not, return a 404 error.
     if exam_key not in allowed_exams:
         abort(404)
-
+    # Get the combined data for the specified exam, 
+    # which includes student information and their corresponding NGRT results.
     combined_data = get_filtered_ngrt_combined_data(exam_key)
 
     # Filter based on the year group from the button URL
@@ -2915,13 +2923,13 @@ def download_ngrt_listing_report_by_year_group(exam, yrgrp):
         for student, ngrt_result in combined_data
         if (student.yrgrp or "").strip().lower() == selected_yrgrp
     ]
-
+    # If no data is found for the specified year group, return a 404 error.
     pdf_buffer = build_ngrt_listing_pdf(
         combined_data=filtered_data,
         exam_label=allowed_exams[exam_key],
         selected_yrgrp=selected_yrgrp,
     )
-
+    # Return the generated PDF report as a downloadable file with the appropriate filename and MIME type.
     return send_file(
         pdf_buffer,
         as_attachment=True,
