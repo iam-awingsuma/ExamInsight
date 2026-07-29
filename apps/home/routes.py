@@ -3239,6 +3239,7 @@ def edit_student(student_id): # Route to edit a student's information based on t
     # If the request method is GET (i.e., the user is accessing the edit form), render the student edit form template with the current student information pre-filled.
     return render_template('pages/student-edit.html', student=student, segment='student management', parent='studentMgt')
 
+
 #*******************************
 #*** User Management Routes ***#
 #*******************************
@@ -3246,47 +3247,47 @@ def edit_student(student_id): # Route to edit a student's information based on t
 @blueprint.route('/make_admin/<int:user_id>', methods=['POST'])
 @login_required
 @admin_required
-def make_admin(user_id):
-    user = Users.query.get_or_404(user_id)
-    user.is_admin = True
-    db.session.commit()
-    flash(f'User {user.first_name} {user.last_name} is granted admin rights.', 'success')
+def make_admin(user_id): # Route to grant admin rights to a user based on their user ID.
+    user = Users.query.get_or_404(user_id) # Get the user record from the database based on the provided user ID; if not found, return a 404 error.
+    user.is_admin = True # Set the is_admin attribute of the user to True, granting them admin rights.
+    db.session.commit() # Commit the changes to the database to save the updated user record with admin rights.
+    flash(f'User {user.first_name} {user.last_name} is granted admin rights.', 'success') # Flash a success message indicating that the user has been granted admin rights.
     return redirect(url_for('home_blueprint.allusers'))
 
 # Remove admin rights route for users
 @blueprint.route('/remove_admin/<int:user_id>', methods=['POST'])
 @login_required
 @admin_required
-def remove_admin(user_id):
-    user = Users.query.get_or_404(user_id)
+def remove_admin(user_id): # Route to remove admin rights from a user based on their user ID.
+    user = Users.query.get_or_404(user_id) # Get the user record from the database based on the provided user ID; if not found, return a 404 error.
 
     # Prevent removing the last admin
     admin_count = Users.query.filter_by(is_admin=True).count()
     if admin_count <= 1 and user.is_admin:
-        flash('Sorry, last admin account cannot be removed.', 'error')
+        flash('Sorry, last admin account cannot be removed.', 'error') # Flash an error message if the user is the last admin.
     else:
         if user.id == current_user.id:
-            flash('Sorry, cannot revoke admin rights for own account while logged in.', 'error')
+            flash('Sorry, cannot revoke admin rights for own account while logged in.', 'error') # Flash an error message if the user is trying to remove their own admin rights while logged in.
         else:
-            user.is_admin = False
-            db.session.commit()
+            user.is_admin = False # Set the is_admin attribute of the user to False, revoking their admin rights.
+            db.session.commit() # Commit the changes to the database to save the updated user record without admin rights.
             flash(f'Admin rights removed from {user.first_name} {user.last_name}.', 'success')
     return redirect(url_for('home_blueprint.allusers'))
 
 @blueprint.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def edit_user(user_id):
-    user = Users.query.get_or_404(user_id)
+def edit_user(user_id): # Route to edit a user's information based on their user ID.
+    user = Users.query.get_or_404(user_id) # Get the user record from the database based on the provided user ID; if not found, return a 404 error.
 
-    if request.method == 'POST':
+    if request.method == 'POST': # If the request method is POST, it means the form has been submitted to update the user's information.
         username = (request.form.get('username') or '').strip()
         first_name = (request.form.get('first_name') or '').strip()
         last_name = (request.form.get('last_name') or '').strip()
         address = (request.form.get('address') or '').strip()
         designation = (request.form.get('designation') or '').strip()
         email = (request.form.get('email') or '').strip()
-
+        # Validate that all required fields are provided; if any are missing, flash an error message and re-render the edit form.
         if not all([first_name, last_name, address, designation, email]):
             flash('Please complete all required fields.', 'error')
             return render_template('pages/user-edit.html', user=user, segment='all users', parent='userMgt')
@@ -3298,13 +3299,13 @@ def edit_user(user_id):
         user.email = email
         
         try:
-            db.session.commit()
+            db.session.commit() # Commit the changes to the database; if successful, flash a success message and redirect to the all users page.
             flash('User information updated successfully.', 'success')
             return redirect(url_for('home_blueprint.allusers'))
         except Exception:
-            db.session.rollback()
+            db.session.rollback() # If an error occurs during the database commit (e.g., due to a database constraint violation),
             flash('Unable to update user information right now.', 'error')
-
+    # If the request method is GET (i.e., the user is accessing the edit form), render the user edit form template with the current user information pre-filled.
     return render_template('pages/user-edit.html', user=user, segment='all users', parent='userMgt')
 
 # Delete User Route for Admins
@@ -3312,10 +3313,10 @@ def edit_user(user_id):
 @login_required
 @admin_required
 def delete_user(user_id):
-    user = Users.query.get_or_404(user_id)
+    user = Users.query.get_or_404(user_id) # Get the user record from the database based on the provided user ID; if not found, return a 404 error.
     
     # Don't allow deleting yourself
-    if user.id == current_user.id:
+    if user.id == current_user.id: # Check if the user being deleted is the same as the currently logged-in user; if so, flash an error message and redirect to the all users page.
         flash('You cannot delete your own account while logged in.', 'error')
         return redirect(url_for('home_blueprint.allusers'))
     
@@ -3338,13 +3339,12 @@ def delete_user(user_id):
     # print(messages)  # Check if messages exist in the backend
     return redirect(url_for('home_blueprint.allusers'))
 
-
 # Helper - Extract current page name from request
 @blueprint.app_template_filter('replace_value')
-def replace_value(value, args):
+def replace_value(value, args): # Custom Jinja2 filter to replace a specified substring in a string with a space and convert the result to title case.
   return value.replace(args, " ").title()
 
-def get_segment(request):
+def get_segment(request): # Helper function to extract the last segment of the request path, which can be used to determine the current page or route being accessed.
     try:
         segment = request.path.split('/')[-1]
         if segment == '':
