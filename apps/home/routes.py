@@ -2941,15 +2941,16 @@ def download_ngrt_listing_report_by_year_group(exam, yrgrp):
 #*** Internal Assessment Routes ***#
 #***********************************
 @blueprint.route('/display_intlexam', methods=['POST'])
-def upload_intlexam():
+def upload_intlexam(): # Route to upload internal exam CSV data and store it in the database
+    # Check if the 'file' key is present in the request files; if not, redirect back to the same page.
     if 'file' not in request.files:
         return redirect(request.url)
-    
+    # Get the uploaded file from the request files.
     file = request.files['file']
-    
+    # Check if the filename is empty; if so, redirect back to the same page.
     if file.filename == '':
         return redirect(request.url)
-    
+    # Check if the uploaded file is a CSV file based on its filename extension.
     if file and file.filename.endswith('.csv'):
         # Save the file temporarily
         filepath = os.path.join(CSV_UPLOAD, file.filename)
@@ -2958,7 +2959,7 @@ def upload_intlexam():
         # Read CSV and store in database
         df = pd.read_csv(filepath)
         
-        for index, row in df.iterrows():
+        for index, row in df.iterrows(): # Iterate through each row in the DataFrame and upsert student records and internal exam data into the database.
             # Insert data into table - students
             student_id = _upsert_student_from_row(row)
 
@@ -3001,10 +3002,13 @@ def upload_intlexam():
                     sci_currGr = str(row['sci_currGr']),
                     sci_progcat = str(row['sci_progcat'])
                 )
-                db.session.add(internalexam)
+                db.session.add(internalexam) # Add the new Internal Exam record to the database session for insertion.
         try:
+            # Commit all changes to the database after processing all rows in the CSV file.
             db.session.commit()
         except IntegrityError:
+            # If an IntegrityError occurs (e.g., due to duplicate entries),
+            # rollback the session to undo any changes and flash a warning message to the user.
             db.session.rollback()
             flash("Some records were skipped due to duplicates.", "warning")  # Duplicate message
 
@@ -3012,7 +3016,7 @@ def upload_intlexam():
         os.remove(filepath)
         return redirect(url_for('home_blueprint.display_intlexam'))
     
-    return redirect(request.url)
+    return redirect(request.url) # If the uploaded file is not a CSV, redirect back to the same page.
 
 # define a new route for templates/pages/intlexam.html
 @blueprint.route('/display_intlexam', methods=['GET'])
@@ -3027,18 +3031,18 @@ def display_intlexam():
     
     # modularized search filters for internal exam students view
     config = {
-        "search": {
+        "search": { # Configure the search functionality for the internal exam students view, specifying the query parameter and the columns to search against.
             "param": "q",
             "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
         },
-        "filters": [
+        "filters": [ # Configure the filters for the internal exam students view, specifying the query parameters and the corresponding columns or custom predicates for filtering.
             {"param": "gender", "column": Students.gender},
             {"param": "yrgrp", "column": Students.yrgrp},
             {"param": "status", "column": Students.status},
             {"param": "sped", "custom_pred": lambda v: (Students.sped != "No") if v == "Any SEN Support" else (Students.sped == "No")},
         ],
         "order_by": [Students.yrgrp, Students.forename],
-        "dropdowns": {
+        "dropdowns": { # Configure the dropdown options for filtering in the internal exam students view, specifying the query to retrieve distinct values for each filter.
             "genders": lambda s: [g[0] for g in s.query(Students.gender).distinct().order_by(Students.gender)],
             "yrgrps":  lambda s: [y[0] for y in s.query(Students.yrgrp).distinct().order_by(Students.yrgrp)],
             "statuses":  lambda s: [t[0] for t in s.query(Students.status).distinct().order_by(Students.status)],
@@ -3098,7 +3102,7 @@ def display_intlexam():
         )
     # If both tables have data
     else:
-        preds = ctx["predicates"]
+        preds = ctx["predicates"] # Get the reusable predicates for filtering based on the current search and filter criteria.
         combined_data = (
             db.session.query(Students, InternalExam)
             .join(Students, InternalExam.student_id == Students.student_id)
@@ -3106,6 +3110,7 @@ def display_intlexam():
             .order_by(Students.yrgrp, Students.forename)
             .all()
         )
+        # Render the internal exam students view template with the combined data and other context variables for display.
         return render_template(
             'pages/intlexam.html',
             segment='internal assessment (final term)',
