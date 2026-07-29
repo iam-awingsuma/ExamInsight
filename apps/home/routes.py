@@ -2152,10 +2152,10 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# function to upsert student record from CSV row (used by external exams upload)
+# function to upsert （update/insert）student record from CSV row (used by external exams upload)
 def _upsert_student_from_row(row):
-    student_id = int(row["student_id"])
-    student_attrs = {
+    student_id = int(row["student_id"]) # Convert the student_id from the CSV row to an integer for database operations.
+    student_attrs = { # Prepare a dictionary of student attributes from the CSV row, converting values to strings.
         "forename": str(row["forename"]),
         "surname": str(row["surname"]),
         "gender": str(row["gender"]),
@@ -2165,48 +2165,54 @@ def _upsert_student_from_row(row):
         "nationality": str(row["nationality"]),
         "status": str(row["status"]),
     }
-    student = Students.query.filter_by(student_id=student_id).first()
-    if student:
+    student = Students.query.filter_by(student_id=student_id).first() # Check if a student with the given student_id already exists in the database.
+    if student: # If the student exists, update their attributes with the new values from the CSV row.
         for key, value in student_attrs.items():
             setattr(student, key, value)
-    else:
+    else: # If the student does not exist, create a new Students object with the provided attributes and add it to the session.
         student = Students(student_id=student_id, **student_attrs)
         db.session.add(student)
-    return student_id
+    return student_id # Return the student_id for logging or further processing after the upsert operation.
 
 #*******************************
 #*** User Management Routes ***#
 #*******************************
+# Route to display all users in the system
 @blueprint.route('/all-users')
 def allusers():
     users = Users.query.all()  # Fetch all users from the database
     return render_template('pages/users-all.html', users=users, segment='all users', parent='userMgt')
 
+# Route to add new users to the system
 @blueprint.route('/add-users', methods=['GET', 'POST'])
 def addusers():
-    create_account_form = CreateAccountForm(request.form)
-    if 'addusers' in request.form:
+    create_account_form = CreateAccountForm(request.form) # Initialize the form for creating a new user account with data from the request.
+    if 'addusers' in request.form: # Check if the form submission is for adding a new user.
 
         username = request.form['username']
         email = request.form['email']
 
         # Check if username already exists
         user = Users.query.filter_by(username=username).first()
+        # If a user with the same username is found, 
+        # render the add user template with an error message indicating that the username is already registered.
         if user:
             return render_template('pages/users-add.html',
                                    segment='add users',
                                    parent='userMgt',
-                                   msg='Username already registered.',
+                                   msg='Username already registered.', # Error message displayed to the user if the username is already taken.
                                    success=False,
                                    form=create_account_form)
 
         # Check email exists
         user = Users.query.filter_by(email=email).first()
+        # If a user with the same email is found,
+        # render the add user template with an error message indicating that the email is already registered.
         if user:
             return render_template('pages/users-add.html',
                                    segment='add users',
                                    parent='userMgt',
-                                   msg='E-mail already registered.',
+                                   msg='E-mail already registered.', # Error message displayed to the user if the email is already taken.
                                    success=False,
                                    form=create_account_form)
 
@@ -2218,16 +2224,20 @@ def addusers():
         user = Users(**request.form)
 
         try:
+            # Add the new user to the database session and commit the changes to persist the new user in the database.
             db.session.add(user)
             db.session.commit()
             flash("New user added successfully!", "success")
         except Exception as e:
+            # If an error occurs during the database operation, rollback the session to undo any changes and flash an error message to the user.
             db.session.rollback()
             flash("Error adding new user!", "danger")
-
+        # After successfully adding the new user, redirect the user to the all users page to view the updated list of users.
         return redirect(url_for('home_blueprint.allusers'))
 
     else:
+        # If the request method is GET (i.e., the user is accessing the add user page), 
+        # render the add user template with the form for creating a new user account.
         return render_template('pages/users-add.html', segment='add users', parent='userMgt', form=create_account_form)
 
 
