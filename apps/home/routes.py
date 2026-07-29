@@ -2350,17 +2350,20 @@ if not os.path.exists(CSV_UPLOAD):
 #************************************
 #*** External Assessments Routes ***#
 #************************************
+# Route to upload NGRT-A CSV data and store it in the database
 @blueprint.route('/display_ngrta', methods=['POST'])
 def upload_ngrta():
+    # Check if the 'file' key is present in the request files; 
+    # if not, redirect back to the same page.
     if 'file' not in request.files:
         return redirect(request.url)
     
-    file = request.files['file']
+    file = request.files['file'] # Get the uploaded file from the request files.
     
     if file.filename == '':
-        return redirect(request.url)
+        return redirect(request.url) # If the filename is empty, redirect back to the same page.
     
-    if file and file.filename.endswith('.csv'):
+    if file and file.filename.endswith('.csv'): # Check if the uploaded file is a CSV file based on its filename extension.
         # Save the file temporarily
         filepath = os.path.join(CSV_UPLOAD, file.filename)
         file.save(filepath)
@@ -2375,7 +2378,7 @@ def upload_ngrta():
             # Handle NGRTA table
             ngrta = NGRTA.query.filter_by(student_id=student_id).first()
             if ngrta:
-                # Update existing NGRTB record
+                # Update existing NGRTA record
                 ngrta.ngrt_level = str(row['ngrt_level'])
                 ngrta.sas = int(row['sas'])
                 ngrta.stanine = int(row['stanine'])
@@ -2394,8 +2397,11 @@ def upload_ngrta():
                 db.session.add(ngrta)
         
         try:
+            # Commit all changes to the database after processing all rows in the CSV file.
             db.session.commit()
         except IntegrityError:
+            # If an IntegrityError occurs (e.g., due to duplicate entries), 
+            # rollback the session to undo any changes and flash a warning message to the user.
             db.session.rollback()
             flash("Some records were skipped due to duplicates.", "warning")  # Duplicate message
 
@@ -2418,18 +2424,18 @@ def display_ngrta():
     
     # modularized search filters for NGRT-A students view
     config = {
-        "search": {
+        "search": { # Configure the search functionality for the NGRT-A students view, specifying the query parameter and the columns to search against.
             "param": "q",
             "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
         },
-        "filters": [
+        "filters": [ # Configure the filters for the NGRT-A students view, specifying the query parameters and the corresponding columns or custom predicates for filtering.
             {"param": "gender", "column": Students.gender},
             {"param": "yrgrp", "column": Students.yrgrp},
             {"param": "status", "column": Students.status},
             {"param": "sped", "custom_pred": lambda v: (Students.sped != "No") if v == "Any SEN Support" else (Students.sped == "No")},
         ],
         "order_by": [Students.yrgrp, Students.forename],
-        "dropdowns": {
+        "dropdowns": { # Configure the dropdown options for the NGRT-A students view, specifying how to retrieve distinct values for each filter from the database.
             "genders": lambda s: [g[0] for g in s.query(Students.gender).distinct().order_by(Students.gender)],
             "yrgrps":  lambda s: [y[0] for y in s.query(Students.yrgrp).distinct().order_by(Students.yrgrp)],
             "statuses":  lambda s: [t[0] for t in s.query(Students.status).distinct().order_by(Students.status)],
@@ -2438,7 +2444,7 @@ def display_ngrta():
         # labels for the filter chips
         "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED",},
     }
-
+    # Generate the context for rendering the NGRT-A students view, including the filtered rows, dropdown options, current filter values, and active filters.
     ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.display_ngrta")
     
     # If both tables are empty
