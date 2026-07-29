@@ -4107,14 +4107,14 @@ def api_interpret_performance():
         Students, Students.student_id == InternalExam.student_id
     )
     
-    if yrgrp:
+    if yrgrp: # Filter by year group if provided
         base_q = base_q.filter(Students.yrgrp == yrgrp)
-    if sid:
+    if sid: # Filter by student ID if provided
         base_q = base_q.filter(InternalExam.student_id == sid)
     
-    rows = base_q.all()
+    rows = base_q.all() # Fetch all the rows from the filtered query, which will be used to generate the AI interpretation of student performance data.
     
-    if not rows:
+    if not rows: # If no data is found for the specified criteria, return a 404 error with an appropriate message.
         return jsonify({
             "error": "No data found for the specified criteria.",
             "interpretation": None
@@ -4122,7 +4122,7 @@ def api_interpret_performance():
     
     # Fetch student name if student_id is provided
     student_name = None
-    if sid:
+    if sid: # If student ID is provided, fetch the student's name
         student = db.session.query(Students).filter(
             Students.student_id == sid
         ).first()
@@ -4134,11 +4134,11 @@ def api_interpret_performance():
     
     # Call OpenAI API
     try:
-        client = OpenAI(api_key=api_key)
-        
+        client = OpenAI(api_key=api_key) # Initialize the OpenAI client with the provided API key to interact with the OpenAI API for generating AI interpretations of student performance data.
+        # Create a chat completion request to the OpenAI API using the GPT-4o-mini model, providing a system message that defines the role of the AI as an educational data analyst and a user message containing the formatted student performance data summary. The request specifies a maximum token limit and a temperature setting for consistent analysis.
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
+            messages=[ # Define the messages for the chat completion request, including a system message that sets the context for the AI as an educational data analyst and a user message that provides the formatted student performance data summary for interpretation.
                 {
                     "role": "system",
                     "content": (
@@ -4164,8 +4164,8 @@ def api_interpret_performance():
             temperature=0.4 # more consistent analysis
         )
         
-        interpretation = response.choices[0].message.content.strip()
-        
+        interpretation = response.choices[0].message.content.strip() # Extract the AI-generated interpretation from the OpenAI API response, ensuring that it is stripped of any leading or trailing whitespace for clean presentation in the JSON response.
+        # Return the AI-generated interpretation along with the data summary and relevant student information in a JSON response.
         return jsonify({
             "interpretation": interpretation,
             "data_summary": data_summary,
@@ -4180,7 +4180,7 @@ def api_interpret_performance():
             "interpretation": None
         }), 500
 
-
+# Format data for ChatGPT
 def _format_data_for_chatgpt(rows, yrgrp=None, sid=None, student_name=None):
     """
     Format student performance data into a readable summary for ChatGPT.
@@ -4202,11 +4202,12 @@ def _format_data_for_chatgpt(rows, yrgrp=None, sid=None, student_name=None):
     # Calculate averages
     def safe_avg(lst):
         return round(sum(lst) / len(lst), 1) if lst else 0
-    
+    # Calculate average scores
     eng_avg = safe_avg(eng_curr)
     maths_avg = safe_avg(maths_curr)
     sci_avg = safe_avg(sci_curr)
-    
+
+    # Calculate previous averages
     eng_prev_avg = safe_avg(eng_prev)
     maths_prev_avg = safe_avg(maths_prev)
     sci_prev_avg = safe_avg(sci_prev)
@@ -4222,7 +4223,7 @@ def _format_data_for_chatgpt(rows, yrgrp=None, sid=None, student_name=None):
         "Expected": 0,
         "Above Expected": 0
     }
-    
+    # Count progress categories across all subjects
     for r in rows:
         for prog_col in [r.eng_progcat, r.maths_progcat, r.sci_progcat]:
             if prog_col:
@@ -4244,7 +4245,7 @@ def _format_data_for_chatgpt(rows, yrgrp=None, sid=None, student_name=None):
     else:
         context = "Cohort"
     
-    num_records = len(rows)
+    num_records = len(rows) # Number of records analyzed for the summary
     
     summary = f"""Performance Analysis for {context} (n={num_records}):
 
