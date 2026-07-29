@@ -3163,14 +3163,14 @@ def student_management():
     # Build rows + chips + reusable predicates
     ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.student_management")
 
-    preds = ctx["predicates"]
-    combined_data = (
+    preds = ctx["predicates"] # Get the reusable predicates for filtering based on the current search and filter criteria.
+    combined_data = ( # Get the combined data for students based on the current filters applied in the view.
         db.session.query(Students)
         .filter(*preds) # same filters/search applied
         .order_by(Students.yrgrp, Students.forename)
         .all()
     )
-
+    # Render the student management view template with the combined data and other context variables for display.
     return render_template(
         "pages/students-all.html",
         segment="student management",
@@ -3189,10 +3189,10 @@ def student_management():
 @blueprint.route('/student_management/<int:student_id>/edit', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def edit_student(student_id):
-    student = Students.query.filter_by(student_id=student_id).first_or_404()
+def edit_student(student_id): # Route to edit a student's information based on their student ID.
+    student = Students.query.filter_by(student_id=student_id).first_or_404() # Get the student record from the database based on the provided student ID; if not found, return a 404 error.
 
-    if request.method == 'POST':
+    if request.method == 'POST': # If the request method is POST, it means the form has been submitted to update the student's information.
         updated_student_id = request.form.get('student_id', type=int)
         forename = (request.form.get('forename') or '').strip()
         surname = (request.form.get('surname') or '').strip()
@@ -3202,17 +3202,19 @@ def edit_student(student_id):
         sped = (request.form.get('sped') or '').strip() or 'No'
         nationality = (request.form.get('nationality') or '').strip()
         status = (request.form.get('status') or '').strip() or 'Active'
-
+        # Validate that all required fields are provided; if any are missing, flash an error message and re-render the edit form.
         if not all([updated_student_id, forename, surname, gender, date_of_birth, yrgrp, nationality]):
             flash('Please complete all required student fields.', 'error')
             return render_template('pages/student-edit.html', student=student, segment='student management', parent='studentMgt')
-
+        # Check if the updated student ID is different from the current one; if so, check for duplicates in the database. 
+        # If a duplicate exists, flash an error message and re-render the edit form.
         if updated_student_id != student.student_id:
             existing = Students.query.filter_by(student_id=updated_student_id).first()
-            if existing:
+            if existing: # If a student with the updated student ID already exists in the database, flash an error message and re-render the edit form.
                 flash(f'Student ID {updated_student_id} already exists.', 'error')
                 return render_template('pages/student-edit.html', student=student, segment='student management', parent='studentMgt')
 
+        # Update the student record with the new values from the form.
         student.student_id = updated_student_id
         student.forename = forename
         student.surname = surname
@@ -3224,13 +3226,17 @@ def edit_student(student_id):
         student.status = status
 
         try:
+            # Commit the changes to the database; if successful, flash a success message and redirect to the student management page.
             db.session.commit()
             flash('Student record updated successfully.', 'success')
             return redirect(url_for('home_blueprint.student_management'))
         except Exception:
+            # If an error occurs during the database commit (e.g., due to a database constraint violation), 
+            # rollback the session to undo any changes and flash an error message to the user.
             db.session.rollback()
             flash('Unable to update student information right now.', 'error')
 
+    # If the request method is GET (i.e., the user is accessing the edit form), render the student edit form template with the current student information pre-filled.
     return render_template('pages/student-edit.html', student=student, segment='student management', parent='studentMgt')
 
 #*******************************
