@@ -3593,23 +3593,23 @@ def analytics_extl_ngrt_c(): # Route to render the external analytics page for N
 @login_required
 def api_students_by_year(): # Route to fetch students by year group for the analytics page.
     yrgrp = request.args.get("yrgrp", "").strip()
-    allowed = _allowed_year_groups_for_user()
-    if allowed is not None and _normalize_class_code(yrgrp) not in allowed:
+    allowed = _allowed_year_groups_for_user() # Get the list of year groups that the current user is allowed to access based on their permissions.
+    if allowed is not None and _normalize_class_code(yrgrp) not in allowed: # If the user has restrictions and the requested year group is not in their allowed list, return an empty list of students.
         return jsonify({"students": []})
     
-    if not yrgrp:
+    if not yrgrp: # If no year group is provided in the request, return an empty list of students.
         return jsonify({"students": []})
 
     # Only students who have InternalExam rows (so analytics won’t be empty)
     q = (
-        db.session.query(Students.student_id, Students.forename, Students.surname)
-        .join(InternalExam, InternalExam.student_id == Students.student_id)
-        .filter(Students.yrgrp == yrgrp)
-        .distinct()
+        db.session.query(Students.student_id, Students.forename, Students.surname) # Query the database to select student IDs, forenames, and surnames from the Students table.
+        .join(InternalExam, InternalExam.student_id == Students.student_id) # Join the InternalExam table to ensure that only students who have associated internal exam records are included in the results.
+        .filter(Students.yrgrp == yrgrp) # Filter the results to only include students who belong to the specified year group provided in the request.
+        .distinct() # Ensure that each student appears only once in the results, even if they have multiple internal exam records.
         .order_by(Students.forename, Students.surname)
     )
-    data = [{"id": sid, "name": f"{fn} {sn}"} for (sid, fn, sn) in q.all()]
-    return jsonify({"students": data})
+    data = [{"id": sid, "name": f"{fn} {sn}"} for (sid, fn, sn) in q.all()] # Build a list of dictionaries containing student IDs and names for the specified year group.
+    return jsonify({"students": data}) # Return the list of students as a JSON response to the client.
     
 # --- Main analytics payload (cards + charts + tables) :: Year Group & Student Insights (Internal Assessment Analytics) ---
 @blueprint.route("/api/analytics", methods=["GET"])
@@ -3632,7 +3632,7 @@ def api_analytics():
     if sid:
         base_q = base_q.filter(InternalExam.student_id == int(sid))
 
-    rows = base_q.all()
+    rows = base_q.all() # Fetch all the rows from the filtered query, which will be used to generate the analytics payload for the specified year group and/or student.
 
     # ---- If no data, return empty but valid payload ----
     if not rows:
@@ -3644,7 +3644,7 @@ def api_analytics():
                 "maths": [0, 0],
                 "science": [0, 0],
             },
-            "bands": {
+            "bands": { # distribution bands for attainment
                 "labels": [
                     "E/D",  # <60
                     "C",    # 60-69
@@ -3654,14 +3654,14 @@ def api_analytics():
                 ],
                 "counts": [0, 0, 0, 0, 0]
             }, 
-            "progcats": {
+            "progcats": { # progress categories for attainment
                 "labels": prog_order,
                 "counts": [0, 0, 0],
                 "english": [0, 0, 0],
                 "maths":   [0, 0, 0],
                 "science": [0, 0, 0],
             },
-            "kpi_total": {
+            "kpi_total": { # total counts for attainment and progress
                 "title": "All Year Groups (Total Cohort)",
                 "count": 0
             }
@@ -3674,18 +3674,18 @@ def api_analytics():
     # ---------- progress categories per subject ----------
     # Normalize to 3 buckets and keep a locked order for the x-axis
     prog_order = ["Below Expected", "Expected", "Above Expected"]
-
+    # Helper function to normalize progress category strings to one of the three defined buckets.
     def norm_progcat(s: str) -> str:
         """Map any spelling to one of the 3 buckets."""
-        if not s:
+        if not s: # If the input string is None or empty, return an empty string.
             return ""
         t = s.strip().lower()
         # common variants
-        if t.startswith("below"):
+        if t.startswith("below"): # If the input string starts with "below", it is categorized as "Below Expected".
             return "Below Expected"
-        if t.startswith("expected") or t == "at expected":
+        if t.startswith("expected") or t == "at expected": # If the input string starts with "expected" or is exactly "at expected", it is categorized as "Expected".
             return "Expected"
-        if t.startswith("above") or "better" in t:
+        if t.startswith("above") or "better" in t: # If the input string starts with "above" or contains the word "better", it is categorized as "Above Expected".
             return "Above Expected"
         # fallback: title-case, but only keep if in our order
         u = s.strip().title()
@@ -3693,7 +3693,7 @@ def api_analytics():
 
     # Totals (all subjects pooled) and per-subject dicts
     prog_counts_total = {k: 0 for k in prog_order}
-    prog_counts_by_subj = {
+    prog_counts_by_subj = { # Initialize a dictionary to keep track of progress category counts for each subject (English, Maths, Science)
         "english": {k: 0 for k in prog_order},
         "maths":   {k: 0 for k in prog_order},
         "science": {k: 0 for k in prog_order},
@@ -3779,7 +3779,7 @@ def api_analytics():
     m_curr_list   = [r.maths_currPct for r in rows if r.maths_currPct is not None]
     s_curr_list   = [r.sci_currPct for r in rows if r.sci_currPct is not None]
 
-    def avg_num(lst):
+    def avg_num(lst): # Helper function to calculate the average of a list of numbers, returning 0.0 if the list is empty.
         return round(sum(lst) / len(lst), 1) if lst else 0.0
 
     eng_avg = round(avg_num(eng_curr_list), 1)
@@ -3803,7 +3803,8 @@ def api_analytics():
     else:
         total_label = "Year 2 Cohort"
         total_value = len({r.student_id for r in rows})
-
+    # Build the payload dictionary to be returned as a JSON response, containing data for line charts, distribution bands, progress categories, 
+    # and key performance indicators (KPIs) for English, Maths, and Science subjects.
     payload = {
         "line": {
             "labels": ["Previous", "Current"],
@@ -3846,7 +3847,7 @@ def api_yeargroup_attainment_by_class():
     target_year = 2
     class_labels = sorted([c[0] for c in db.session.query(Students.yrgrp).distinct().filter(Students.yrgrp.ilike(f"{target_year}-%")).all()])
 
-    CLASS_COL = Students.yrgrp
+    CLASS_COL = Students.yrgrp # Column to group by (year group/class)
 
     def _r(v, dp=1):  # safe round
         try:
@@ -3871,10 +3872,10 @@ def api_yeargroup_attainment_by_class():
 
     # put into dict keyed by class for easy lookup
     by_class = {c: {"eng": 0.0, "maths": 0.0, "sci": 0.0} for c in class_labels}
-
+    # Fill in the averages from the query results
     for r in rows:
         cls = r._mapping["class"]
-        if cls in by_class:
+        if cls in by_class: # only fill in if the class is in the expected list (to avoid any unexpected classes)
             by_class[cls] = {
                 "eng":   _r(r._mapping["eng"]),
                 "maths": _r(r._mapping["maths"]),
@@ -3895,7 +3896,7 @@ def api_yeargroup_attainment_by_class():
     thr60, thr70 = 60, 70
     classes = class_labels  # use all classes found for target year group
     yrgrp_norm = func.lower(func.trim(Students.yrgrp))
-
+    # Per-class or year group average attainment (E/M/S) ≥60 & ≥70
     per_class = (
         db.session.query(
             Students.yrgrp.label("class"),
@@ -3911,15 +3912,15 @@ def api_yeargroup_attainment_by_class():
     # Turn into a tidy list of dicts
     subjects = ("eng", "maths", "sci")
 
-    def _rfloat(m, k, dp=1):
+    def _rfloat(m, k, dp=1): # safe round float from mapping
         v = m.get(k)
         return round(float(v), dp) if v is not None else 0.0
 
-    def _rint(m, k):
+    def _rint(m, k): # safe int from mapping
         v = m.get(k)
         return int(v) if v is not None else 0
 
-    def _row_to_dict(m):
+    def _row_to_dict(m): # Convert a SQLAlchemy row mapping to a dictionary with the desired keys and values for each subject.
         out = {"class": (m.get("class") or "").upper()}
         n_values = []
         for s in subjects:
@@ -3955,14 +3956,14 @@ def api_yeargroup_attainment_by_class():
             pct70 = ((ge70 * 100.0) / func.nullif(n, 0)).label(f"{pfx}70_pct")
             return [avg, n, ge60, ge70, pct60, pct70]
 
-        return [
+        return [ # return a list of labeled expressions for all subjects (English, Maths, Science) to be used in the cohort statistics query.
             *cols(InternalExam.eng_currPct,   "eng"),
             *cols(InternalExam.maths_currPct, "maths"),
             *cols(InternalExam.sci_currPct,   "sci"),
         ]
-
+    # Cohort statistics for the entire year group (all classes combined)
     def build_cohort_stats(classes, thr60=60, thr70=70):
-        row = (
+        row = ( # Query the database to calculate cohort statistics for the specified year group and thresholds (≥60 and ≥70) for English, Maths, and Science subjects.
             db.session.query(*_cohort_exprs(thr60, thr70))
             .join(Students, Students.student_id == InternalExam.student_id)
             .filter(yrgrp_norm.in_([c.lower() for c in classes]))
@@ -3970,18 +3971,18 @@ def api_yeargroup_attainment_by_class():
         )
         m = row._mapping
 
-        def rfloat(k, dp=1): 
+        def rfloat(k, dp=1): # safe round float from mapping
             v = m.get(k)
             return round(float(v), dp) if v is not None else 0.0
 
-        def rint(k): 
+        def rint(k): # safe int from mapping
             v = m.get(k)
             return int(v) if v is not None else 0
 
         # Fill using a single loop; keys match your existing schema exactly
         cohort_stats = {"class": "Cohort"}
 
-        for s in subjects:
+        for s in subjects: # Loop through each subject (English, Maths, Science) to populate the cohort statistics dictionary with average attainment, counts, and percentages for each subject.
             n = rint(f"{s}_n")  # read once
             cohort_stats[f"{s}Co_avg"]   = rfloat(f"{s}_avg")
             cohort_stats[f"{s}Co_n"]     = n
@@ -3993,7 +3994,7 @@ def api_yeargroup_attainment_by_class():
         cohort_stats["cohort_n"] = n # all subjects have the same n
         return cohort_stats
  
-    cohort_stats = build_cohort_stats(classes, thr60, thr70)
+    cohort_stats = build_cohort_stats(classes, thr60, thr70) # Build the cohort statistics for the specified year group and thresholds (≥60 and ≥70) for English, Maths, and Science subjects.
 
     # Cohort Progress (Expected + Above Expected, Above Expected only)
     cohort_progress_list = [
@@ -4001,14 +4002,21 @@ def api_yeargroup_attainment_by_class():
         for subj in subjects
     ]
 
+    # Unpack the cohort progress data for each subject (English, Maths, Science) into separate variables for easier access and use in the payload.
     engCo, mathsCo, sciCo = cohort_progress_list
 
+    # Unpack the cohort progress data for English, Maths, and Science into individual variables for total counts, counts of expected and above expected progress, 
+    # counts of above expected only, and percentages of expected and above expected progress.
     (eng_total, eng_cnt_exp_above, eng_cnt_above_only,
     eng_pct_exp_above, eng_pct_above_only) = engCo
 
+    # Unpack the cohort progress data for Maths into individual variables for total counts, counts of expected and above expected progress,
+    # counts of above expected only, and percentages of expected and above expected progress.
     (maths_total, maths_cnt_exp_above, maths_cnt_above_only,
     maths_pct_exp_above, maths_pct_above_only) = mathsCo
 
+    # Unpack the cohort progress data for Science into individual variables for total counts, counts of expected and above expected progress,
+    # counts of above expected only, and percentages of expected and above expected progress.
     (sci_total, sci_cnt_exp_above, sci_cnt_above_only,
     sci_pct_exp_above, sci_pct_above_only) = sciCo
 
@@ -4025,7 +4033,7 @@ def api_yeargroup_attainment_by_class():
 
     # --- Single-chart payload ---
     yrgrp_payload = {
-        "cohort_progress": [
+        "cohort_progress": [ # return a list of dictionaries for each subject with the calculated values for Expected OR Above Expected progress and Above Expected only progress for the entire cohort.
             {"subject": "English", "class": "Cohort", "cohort_n": eng_total,
              "engCnt_exp_above": eng_cnt_exp_above, "engCnt_above_only": eng_cnt_above_only,
              "engPct_exp_above": eng_pct_exp_above, "engPct_above_only": eng_pct_above_only},
@@ -4036,7 +4044,7 @@ def api_yeargroup_attainment_by_class():
              "sciCnt_exp_above": sci_cnt_exp_above, "sciCnt_above_only": sci_cnt_above_only, 
              "sciPct_exp_above": sci_pct_exp_above, "sciPct_above_only": sci_pct_above_only},
         ],
-        "class_progress": [
+        "class_progress": [ # return a list of dictionaries for each class with the calculated values for Expected OR Above Expected progress and Above Expected only progress for each subject (English, Maths, Science) within that class.
             {
                 "class": cls.upper(),
                 "class_n": per_class[subjects[0]].get(cls, default_tuple)[0],  # total students (same for all subjects)
@@ -4048,22 +4056,22 @@ def api_yeargroup_attainment_by_class():
             }
             for cls in class_labels
         ],
-        "thr60": thr60, "thr70": thr70,
-        "subjects": ["English", "Maths", "Science"],
-        "by_class": class_stats + [cohort_stats],
+        "thr60": thr60, "thr70": thr70, # thresholds for attainment
+        "subjects": ["English", "Maths", "Science"], # subjects for charts
+        "by_class": class_stats + [cohort_stats], # list of dictionaries containing statistics for each class and the overall cohort, including average attainment, counts, and percentages for each subject (English, Maths, Science).
         # traces: one per class + cohort
         "traces": [
-            {"name": cls.upper(),
+            {"name": cls.upper(), # trace for each class, showing average attainment for English, Maths, and Science.
              "y": [by_class[cls]["eng"], by_class[cls]["maths"], by_class[cls]["sci"]],
              "type": "bar"
             } for cls in class_labels
         ] + [{
-            "name": "Cohort",
+            "name": "Cohort", # trace for the overall cohort, showing average attainment for English, Maths, and Science.
             "y": [cohort["eng"], cohort["maths"], cohort["sci"]],
             "type": "bar",
             "isCohort": True  # hint for styling on the frontend
         }],
-        "meta": {
+        "meta": { # metadata for the payload, including the target year group and notes about the data representation.
             "year": target_year,
             "notes": "Averages (0–100), rounded to 1 dp."
         }
