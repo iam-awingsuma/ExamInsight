@@ -2675,7 +2675,6 @@ def display_ngrtb():
             speds=ctx["dropdowns"]["speds"],
             progress_categories=ctx["dropdowns"]["progress_categories"],
             **ctx["current"],
-            # no_data=ctx["no_data"],
             filtered_is_empty=ctx["filtered_is_empty"],
             active_filters=ctx["active_filters"],
         )
@@ -2695,22 +2694,23 @@ def display_ngrtb():
             progress_categories=ctx["dropdowns"]["progress_categories"],
             **ctx["current"],
             students=ctx["rows"],
-            # no_data=ctx["no_data"],
             filtered_is_empty=ctx["filtered_is_empty"],
             active_filters=ctx["active_filters"],
             combined_data=combined_data,
         )
 
+# Route to upload NGRT-C CSV data and store it in the database
 @blueprint.route('/display_ngrtc', methods=['POST'])
 def upload_ngrtc():
+    # Check if the 'file' key is present in the request files; if not, redirect back to the same page.
     if 'file' not in request.files:
         return redirect(request.url)
-    
+    # Get the uploaded file from the request files.
     file = request.files['file']
-    
+    # Check if the filename is empty; if so, redirect back to the same page.
     if file.filename == '':
         return redirect(request.url)
-    
+    # Check if the uploaded file is a CSV file based on its filename extension.
     if file and file.filename.endswith('.csv'):
         # Save the file temporarily
         filepath = os.path.join(CSV_UPLOAD, file.filename)
@@ -2752,11 +2752,14 @@ def upload_ngrtc():
                     reader_profile=str(row['reader_profile']),
                     profile_desc=str(row['profile_desc'])
                 )
-                db.session.add(ngrtc)
+                db.session.add(ngrtc) # Add the new NGRTC record to the database session for insertion.
         
         try:
+            # Commit all changes to the database after processing all rows in the CSV file.
             db.session.commit()
         except IntegrityError:
+            # If an IntegrityError occurs (e.g., due to duplicate entries), 
+            # rollback the session to undo any changes and flash a warning message to the user.
             db.session.rollback()
             flash("Some records were skipped due to duplicates.", "warning")  # Duplicate message
 
@@ -2779,11 +2782,11 @@ def display_ngrtc():
     
     # modularized search filters for NGRT-C students view
     config = {
-        "search": {
+        "search": { # Configure the search functionality for the NGRT-C students view, specifying the query parameter and the columns to search against.
             "param": "q",
             "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
         },
-        "filters": [
+        "filters": [ # Configure the filters for the NGRT-C students view, specifying the query parameters and the corresponding columns or custom predicates for filtering.
             {"param": "gender", "column": Students.gender},
             {"param": "yrgrp", "column": Students.yrgrp},
             {"param": "status", "column": Students.status},
@@ -2852,16 +2855,9 @@ def display_ngrtc():
         )
     # If both tables have data
     else:
-        # preds = ctx["predicates"]
-        # combined_data = (
-        #     db.session.query(Students, NGRTC)
-        #     .join(Students, NGRTC.student_id == Students.student_id)
-        #     .filter(*preds) # same filters/search applied
-        #     .order_by(Students.yrgrp, Students.forename)
-        #     .all()
-        # )
+        # Get the combined data for NGRT-C students based on the current filters applied in the view.
         combined_data = get_filtered_ngrt_combined_data("ngrtc")
-
+        # Render the NGRT-C students view template with the combined data and other context variables for display.
         return render_template(
             'pages/display_ngrtc.html',
             segment='external data - NGRT (Form-C)', parent='extBTest',
