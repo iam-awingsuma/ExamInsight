@@ -2394,7 +2394,7 @@ def upload_ngrta():
                     reading_age=str(row['reading_age']),
                     profile_desc=str(row['profile_desc'])
                 )
-                db.session.add(ngrta)
+                db.session.add(ngrta) # Add the new NGRTA record to the database session for insertion.
         
         try:
             # Commit all changes to the database after processing all rows in the CSV file.
@@ -2494,8 +2494,8 @@ def display_ngrta():
         )
     # If both tables have data
     else:
-        combined_data = get_filtered_ngrt_combined_data("ngrta")
-
+        combined_data = get_filtered_ngrt_combined_data("ngrta") # Get the combined data for NGRT-A students based on the current filters.
+        # Render the NGRT-A students view template with the combined data, filtered rows, dropdown options, current filter values, and active filters.
         return render_template(
             'pages/display_ngrta.html',
             segment='external data - NGRT (Form-A)',
@@ -2508,17 +2508,19 @@ def display_ngrta():
             filtered_is_empty=ctx["filtered_is_empty"], active_filters=ctx["active_filters"],
             combined_data=combined_data,
         )
-    
+
+# Route to upload NGRT-B CSV data and store it in the database
 @blueprint.route('/display_ngrtb', methods=['POST'])
 def upload_ngrtb():
+    # Check if the 'file' key is present in the request files; if not, redirect back to the same page.
     if 'file' not in request.files:
         return redirect(request.url)
-    
+    # Get the uploaded file from the request files.
     file = request.files['file']
-    
+    # Check if the filename is empty; if so, redirect back to the same page.
     if file.filename == '':
         return redirect(request.url)
-    
+    # Check if the uploaded file is a CSV file based on its filename extension.
     if file and file.filename.endswith('.csv'):
         # Save the file temporarily
         filepath = os.path.join(CSV_UPLOAD, file.filename)
@@ -2526,10 +2528,8 @@ def upload_ngrtb():
         
         # Read CSV and store in database
         df = pd.read_csv(filepath)
-        
-        # Clear existing data (optional)
-        # db.session.query(NGRTB).delete()
-        
+
+        # Iterate through each row in the DataFrame and upsert student records and NGRT-B data into the database.
         for index, row in df.iterrows():
             # Insert data into table - students
             student_id = _upsert_student_from_row(row)
@@ -2563,11 +2563,14 @@ def upload_ngrtb():
                     reader_profile=str(row['reader_profile']),
                     profile_desc=str(row['profile_desc'])
                 )
-                db.session.add(ngrtb)
+                db.session.add(ngrtb) # Add the new NGRTB record to the database session for insertion.
         
         try:
+            # Commit all changes to the database after processing all rows in the CSV file.
             db.session.commit()
         except IntegrityError:
+            # If an IntegrityError occurs (e.g., due to duplicate entries), 
+            # rollback the session to undo any changes and flash a warning message to the user.
             db.session.rollback()
             flash("Some records were skipped due to duplicates.", "warning")  # Duplicate message
 
@@ -2590,11 +2593,11 @@ def display_ngrtb():
 
     # modularized search filters for NGRT-B students view
     config = {
-        "search": {
+        "search": { # Configure the search functionality for the NGRT-B students view, specifying the query parameter and the columns to search against.
             "param": "q",
             "columns": [Students.forename, Students.surname, Students.student_id.cast(String)],
         },
-        "filters": [
+        "filters": [ # Configure the filters for the NGRT-B students view, specifying the query parameters and the corresponding columns or custom predicates for filtering.
             {"param": "gender", "column": Students.gender},
             {"param": "yrgrp", "column": Students.yrgrp},
             {"param": "status", "column": Students.status},
@@ -2612,7 +2615,7 @@ def display_ngrtb():
         # labels for the filter chips
         "labels": {"q": "Search", "gender": "Gender", "yrgrp": "Year", "status": "Status", "sped": "SEN/SPED","progress_category": "Progress",},
     }
-
+    # Generate the context for rendering the NGRT-B students view, including the filtered rows, dropdown options, current filter values, and active filters.
     ctx = make_list_context(model=Students, db=db, config=config, endpoint="home_blueprint.display_ngrtb")
     
     # If both tables are empty
@@ -2678,8 +2681,8 @@ def display_ngrtb():
         )
     # If both tables have data
     else:
-        combined_data = get_filtered_ngrt_combined_data("ngrtb")
-
+        combined_data = get_filtered_ngrt_combined_data("ngrtb") # Get the combined data for NGRT-B students based on the current filters applied in the view.
+        # Render the NGRT-B students view template with the combined data and other context variables for display.
         return render_template(
             'pages/display_ngrtb.html',
             segment='external data - NGRT (Form-B)',
