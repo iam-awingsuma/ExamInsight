@@ -2244,6 +2244,7 @@ def addusers():
 #*******************************
 #*** Profile Mgt/Page Route ***#
 #*******************************
+# Route to display and update the user's profile information
 @blueprint.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
@@ -2277,16 +2278,21 @@ def profile():
                 current_user.profile_image = filename  # Assuming 'profile_image' is a column in Users table
 
         try:
+            # Commit the changes to the database
             db.session.commit()
             flash("Profile updated successfully!", "success")
         except Exception as e:
+            # If an error occurs during the database operation, 
+            # rollback the session to undo any changes and flash an error message to the user.
             db.session.rollback()
             flash("Error updating profile!", "danger")
-
+        # After successfully updating the profile, redirect the user back to the profile page to view the updated information.
         return redirect(url_for('home_blueprint.profile'))
-
+    # If the request method is GET (i.e., the user is accessing the profile page),
+    # render the profile template with the current user's information.
     return render_template('pages/profile.html', segment='profile')
 
+# Route to change the user's password
 @blueprint.route('/change_password', methods=['GET', 'POST'])
 @login_required
 def change_password():
@@ -2300,33 +2306,38 @@ def change_password():
         if not (current_password and new_password and confirm_password):
                 flash("Please fill in all password fields to change your password.", "warning")
                 return redirect(url_for('home_blueprint.change_password'))
-        
-        if current_password or new_password or confirm_password:           
+        # Check if the current password is correct, if the new password matches the confirmation, 
+        # and if the new password is different from the current password.
+        if current_password or new_password or confirm_password:
+            # Verify the current password
             if not verify_pass(current_password, current_user.password):
                     flash("Current password is incorrect!", "danger")
                     return redirect(url_for('home_blueprint.change_password'))
-
+            # Check if the new password matches the confirmation password
             if new_password != confirm_password:
                 flash("New password and confirmation do not match!", "danger")
                 return redirect(url_for('home_blueprint.change_password'))
-
+            # Check if the new password is different from the current password
             if verify_pass(new_password, current_user.password):
                 flash("New password must be different from current password.", "warning")
                 return redirect(url_for('home_blueprint.change_password'))
-
+            # If all checks pass, hash the new password and update the user's password in the database.
             current_user.password = hash_pass(new_password)
 
         try:
+            # Commit the changes to the database to save the new password.
             db.session.commit()
             flash("Password changed successfully!", "success")
         except Exception as e:
+            # If an error occurs during the database operation,
             db.session.rollback()
             flash("Error updating password!", "danger")
-
+        # After successfully changing the password, 
+        # redirect the user back to the change password page to view the success message.
         return redirect(url_for('home_blueprint.change_password'))
-
+    # If the request method is GET (i.e., the user is accessing the change password page),
+    # render the change password template.
     return render_template('pages/profile.html', segment='profile')
-
 
 # define the CSV upload folder for temporary storage
 CSV_UPLOAD = 'static/assets/csv'
