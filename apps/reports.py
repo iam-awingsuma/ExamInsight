@@ -1116,7 +1116,7 @@ def get_student_ngrt(student_id, exam_key):
     """
     model = NGRT_MODELS[exam_key]["model"]
 
-    return model.query.filter(model.student_id == student_id).first()
+    return model.query.filter(model.student_id == student_id).first()  # Query database for first matching student record by ID
 
 # helper function to get the latest NGRT result for a student based on priority order (NGRT-C > NGRT-B > NGRT-A)
 def get_latest_ngrt_result(student_id):
@@ -1125,7 +1125,7 @@ def get_latest_ngrt_result(student_id):
     Priority:
     NGRT-C -> NGRT-B -> NGRT-A
     """
-    for exam_key in LATEST_PRIORITY:
+    for exam_key in LATEST_PRIORITY: # Iterate through the priority order of NGRT exams to find the latest available result for the student
         result = get_student_ngrt(student_id, exam_key)
 
         if result:
@@ -1140,9 +1140,10 @@ def get_ngrt_history(student_id):
     """
     history = []
 
-    for exam_key in ["ngrta", "ngrtb", "ngrtc"]:
+    for exam_key in ["ngrta", "ngrtb", "ngrtc"]: # Iterate through all NGRT exam types to retrieve the student's history of results
         result = get_student_ngrt(student_id, exam_key)
-
+        # If a result is found for the current exam type, append the relevant information to the history list, including exam key, 
+        # label, SAS score, stanine score, reading age, and progress category
         if result:
             history.append({
                 "exam_key": exam_key,
@@ -1164,22 +1165,27 @@ def get_class_and_cohort_average(student, latest_exam_key):
 
     student_yrgrp = safe_text(student.yrgrp, "").lower()
 
+    # Query the Students table to retrieve all students in the same year group as the given student, and extract their student IDs
     class_students = Students.query.filter(db.func.lower(Students.yrgrp) == student_yrgrp).all()
     class_ids = [s.student_id for s in class_students]
 
+    # Query the appropriate NGRT model to retrieve all results for students in the same class (year group) and all results for the entire cohort
     class_results = model.query.filter(model.student_id.in_(class_ids)).all()
     cohort_results = model.query.all()
 
+    # Helper functions to compute average SAS and average stanine for a given list of NGRT results
     def average_sas(rows):
         values = [safe_float(get_sas(row), None) for row in rows]
         values = [value for value in values if value is not None]
         return sum(values) / len(values) if values else 0
 
+    # Helper function to compute average stanine for a given list of NGRT results
     def average_stanine(rows):
         values = [safe_float(getattr(row, "stanine", None), None) for row in rows]
         values = [value for value in values if value is not None]
         return sum(values) / len(values) if values else 0
 
+    # Return a dictionary containing the computed class average SAS, cohort average SAS, class average stanine, and cohort average stanine
     return {
         "class_avg_sas": average_sas(class_results),
         "cohort_avg_sas": average_sas(cohort_results),
@@ -1195,23 +1201,27 @@ def build_individual_report_data(student_id):
     """
     student = get_student(student_id)
 
-    if not student:
+    if not student: # If the student record is not found in the database, return None to indicate that no data is available for the given student ID
         return None
 
     latest_exam_key, latest_result = get_latest_ngrt_result(student_id)
 
-    if not latest_result:
+    if not latest_result: # If no latest NGRT result is found for the student, return None to indicate that no data is available for the given student ID
         return None
 
+    # Extract the latest SAS score and stanine score from the latest NGRT result, using safe_float to handle potential None values
     latest_sas = safe_float(get_sas(latest_result))
     latest_stanine = safe_float(getattr(latest_result, "stanine", None))
 
+    # Determine the appropriate reader profile description to display in the individual PDF report 
+    # based on the availability of profile_desc and reader_profile fields in the latest NGRT result
     profile = (
         getattr(latest_result, "profile_desc", None)
         or getattr(latest_result, "reader_profile", None)
         or "Reader profile is not available for this student."
     )
 
+    # Build a dictionary containing all relevant student information and latest NGRT result data for use in the individual PDF report
     data = {
         "student_id": student.student_id,
         "name": full_name(student),
@@ -1233,6 +1243,7 @@ def build_individual_report_data(student_id):
         "date_generated": datetime.now().strftime("%a, %d-%b-%Y"),
     }
 
+    # Compute class and cohort averages for the student based on the latest NGRT exam and add them to the data dictionary
     data["averages"] = get_class_and_cohort_average(student, latest_exam_key)
 
     return data
@@ -1256,7 +1267,6 @@ class KPIBox(Flowable):
         self.height = height
 
     def draw(self):
-
         # KPI title at the top
         self.canv.setFillColor(EI_DARK)
         self.canv.setFont("Helvetica-Bold", 8)
@@ -1272,6 +1282,8 @@ class KPIBox(Flowable):
             alignment=TA_CENTER,
         )
 
+        # Create a Paragraph object for the KPI value with the specified style, 
+        # allowing for text wrapping if the value is too long to fit in a single line
         value_paragraph = Paragraph(str(self.value), value_style)
 
         # Leave padding on left and right
@@ -1280,6 +1292,8 @@ class KPIBox(Flowable):
         # Limit available height so it does not overlap title/subtitle
         available_height = self.height - 32
 
+        # Wrap the value paragraph to fit within the available width and height, 
+        # and get the wrapped width and height for positioning
         wrapped_width, wrapped_height = value_paragraph.wrap(
             available_width,
             available_height
@@ -1308,12 +1322,14 @@ class StanineScale(Flowable):
         self.height = height
         self.student_full_name = student_full_name
 
-    def draw(self):
+    def draw(self): # Draw the stanine scale with the student's stanine marked
         segment = self.width / 9
 
-        for i in range(1, 10):
+        for i in range(1, 10): # Iterate through the stanine values from 1 to 9 to draw each segment of the scale
             x = (i - 1) * segment
 
+            # Determine the fill color for each segment based on the stanine value, 
+            # using different colors for below average, average, and above average segments
             if i <= 3:
                 fill = colors.HexColor("#FEE2E2")
             elif i <= 6:
@@ -1321,29 +1337,36 @@ class StanineScale(Flowable):
             else:
                 fill = colors.HexColor("#DCFCE7")
 
+            # Draw the rectangle for the current stanine segment with the determined fill color and a white stroke
             self.canv.setFillColor(fill)
             self.canv.setStrokeColor(colors.white)
             self.canv.rect(x, 28, segment, 20, stroke=1, fill=1)
 
+            # Draw the stanine number centered within the current segment, using a bold font and dark color for visibility
             self.canv.setFillColor(EI_DARK)
             self.canv.setFont("Helvetica-Bold", 8)
             self.canv.drawCentredString(x + segment / 2, 34, str(i))
 
+        # Mark the student's stanine on the scale if it is within the valid range of 1 to 9
         if 1 <= self.stanine <= 9:
             marker_x = (self.stanine - 0.5) * segment
 
+            # Draw a blue circle to mark the student's stanine on the scale, with a white "S" in the center to indicate the student's position
             self.canv.setFillColor(EI_BLUE)
             self.canv.circle(marker_x, 58, 5, stroke=0, fill=1)
 
+            # Draw the letter "S" in the center of the blue circle to indicate the student's stanine, using a bold font and white color for visibility
             self.canv.setFillColor(colors.white)
             self.canv.setFont("Helvetica-Bold", 6)
             self.canv.drawCentredString(marker_x, 56, "S")
 
+            # Draw the student's full name below the stanine marker, using a muted color and smaller font size for clarity
             self.canv.setFillColor(EI_MUTED)
             self.canv.setFont("Helvetica", 7)
-            # self.canv.drawCentredString(marker_x, 68, "Student Stanine")
             self.canv.drawCentredString(marker_x, 68, f"{self.student_full_name}'s Stanine")
 
+        # Draw the labels for below average, average, and above average segments below the stanine scale, 
+        # using a muted color and smaller font size for clarity
         self.canv.setFillColor(EI_MUTED)
         self.canv.setFont("Helvetica", 7)
         self.canv.drawCentredString(segment * 1.5, 13, "Below Average")
@@ -1361,6 +1384,7 @@ class SimpleSASLineChart(Flowable):
         self.width = width
         self.height = height
 
+    # Draw the SAS progress line chart based on the student's history of NGRT results, including labels, values, and chart elements
     def draw(self):
         if not self.history:
             return
@@ -1406,6 +1430,8 @@ class SimpleSASLineChart(Flowable):
 
         points = []
 
+        # Calculate the x and y coordinates for each SAS value in the student's history, 
+        # and store them as points for drawing the line chart
         for i, value in enumerate(values):
             if len(values) == 1:
                 x = x0 + chart_w / 2
@@ -1418,9 +1444,12 @@ class SimpleSASLineChart(Flowable):
         self.canv.setStrokeColor(EI_BLUE)
         self.canv.setLineWidth(2)
 
+        # Draw lines connecting the points in the line chart to represent the student's SAS progress across NGRT assessments
         for i in range(len(points) - 1):
             self.canv.line(points[i][0], points[i][1], points[i + 1][0], points[i + 1][1])
 
+        # Draw points and labels for each SAS value in the student's history, including the SAS value above each point 
+        # and the corresponding NGRT exam label below each point
         for i, point in enumerate(points):
             x, y = point
 
@@ -1451,6 +1480,7 @@ class SimpleComparisonBarChart(Flowable):
         self.width = width
         self.height = height
 
+    # Draw the comparison bar chart showing the student's latest SAS, class average SAS, and cohort average SAS for the NGRT exam
     def draw(self):
         x0 = 45
         y0 = 35
@@ -1467,6 +1497,8 @@ class SimpleComparisonBarChart(Flowable):
         self.canv.setStrokeColor(EI_BORDER)
         self.canv.rect(x0, y0, chart_w, chart_h, stroke=1, fill=0)
 
+        # Draw horizontal grid lines and y-axis labels for the bar chart, 
+        # with grid lines at SAS values of 80, 90, 100, 110, 120, 130, and 140
         for y_value in [80, 90, 100, 110, 120, 130, 140]:
             y = y0 + ((y_value - y_min) / (y_max - y_min)) * chart_h
             self.canv.setStrokeColor(colors.HexColor("#E5E7EB"))
@@ -1479,6 +1511,8 @@ class SimpleComparisonBarChart(Flowable):
         bar_gap = 35
         bar_w = 45
 
+        # Draw the bars for the student's SAS, class average SAS, and cohort average SAS in the bar chart, 
+        # with different colors for each bar and labels above and below each bar
         for i, value in enumerate(self.values):
             x = x0 + 55 + i * (bar_w + bar_gap)
             bar_h = ((value - y_min) / (y_max - y_min)) * chart_h
@@ -1512,6 +1546,7 @@ def make_student_info_table(data):
 
     table = Table(rows, colWidths=[3.2 * cm, 5.2 * cm, 3.2 * cm, 5.2 * cm])
 
+    # Apply a consistent table style to the student information table for formatting and visual appearance in the PDF report
     table.setStyle(TableStyle([
         ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#F1F5F9")),
@@ -1540,13 +1575,7 @@ def make_kpi_table(data):
 
     table = Table([kpis], colWidths=[4.25 * cm, 4.25 * cm, 4.25 * cm, 4.25 * cm])
 
-    # table.setStyle(TableStyle([
-    #     ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-    #     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-    #     ("LEFTPADDING", (0, 0), (-1, -1), 2),
-    #     ("RIGHTPADDING", (0, 0), (-1, -1), 2),
-    # ]))
-
+    # Apply a consistent table style to the KPI table for formatting and visual appearance in the PDF report
     table.setStyle(TableStyle([
         ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
@@ -1575,14 +1604,11 @@ def make_threshold_table(data):
     for row_index, row in enumerate(data["thresholds"], start=1):
         status = str(row[2]).strip().lower()
 
+        # Determine the background color and text color based on the status of the threshold achievement
         if status == "achieved":
-            # bg_color = colors.HexColor("#DCFCE7")    # light green
-            # text_color = colors.HexColor("#166534")  # green text
             bg_color = EI_GREEN_BG    # light green
             text_color = EI_GREEN  # green text
         else:
-            # bg_color = colors.HexColor("#FEF3C7")    # light yellow
-            # text_color = colors.HexColor("#92400E")  # yellow/brown text
             bg_color = EI_YELLOW_BG    # light yellow
             text_color = EI_YELLOW  # yellow/brown text
 
@@ -1594,6 +1620,7 @@ def make_threshold_table(data):
 
     table = Table(rows, colWidths=[5.0 * cm, 8.2 * cm, 4.0 * cm])
 
+    # Apply a consistent table style to the threshold table for formatting and visual appearance in the PDF report
     base_styles = [
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -1611,49 +1638,19 @@ def make_threshold_table(data):
 
     return table
 
-# Table to display the student's NGRT history with exam label, SAS, Stanine,
+# History table displaying the student's NGRT history with exam label, SAS, Stanine,
 # Reading Age, and Progress Category for each assessment taken
-# def make_history_table(data):
-#     rows = [["External Benchmark Test", "SAS", "Stanine", "Reading Age", "Progress Category"]]
-
-#     for item in data["history"]:
-#         progress_value = str(item.get("progress", "-")).strip()
-
-#         rows.append([
-#             item["exam_label"],
-#             f"{item['sas']:.0f}",
-#             f"{item['stanine']:.0f}",
-#             item["reading_age"],
-#             "No Progress Available" if progress_value == "-" else progress_value
-#         ])
-
-#     table = Table(rows, colWidths=[4.8 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 4.8 * cm])
-
-#     table.setStyle(TableStyle([
-#         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
-#         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-#         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-#         ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-#         ("FONTSIZE", (0, 0), (-1, -1), 8),
-#         ("GRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
-#         ("ALIGN", (1, 1), (2, -1), "CENTER"),
-#         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F8FAFC")]),
-#         ("TOPPADDING", (0, 0), (-1, -1), 5),
-#         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-#     ]))
-
-#     return table
-
 def make_history_table(data):
     rows = [["External Benchmark Test", "SAS", "Stanine", "Reading Age", "Progress Category"]]
 
     progress_styles = []
 
-    for row_index, item in enumerate(data["history"], start=1):
+    for row_index, item in enumerate(data["history"], start=1): # Start at row 1 because row 0 is the header
         progress_value = str(item.get("progress", "-")).strip()
 
         display_progress = "No Progress Available" if progress_value == "-" else progress_value
 
+        # Add the current row of data to the rows list, including the exam label, SAS score, stanine score, reading age, and progress category
         rows.append([
             item["exam_label"],
             f"{item['sas']:.0f}",
@@ -1664,40 +1661,39 @@ def make_history_table(data):
 
         progress_lower = display_progress.lower()
 
+        # Determine the background color, text color, and font name for the progress category cell based on the value of the progress category
         if progress_lower == "no progress available":
             bg_color = EI_BLUE_BG
             text_color = EI_BLUE
             font_name = "Helvetica"
-
         elif progress_lower == "lower than expected":
             bg_color = EI_RED_BG    # light red
             text_color = EI_RED  # red text
             font_name = "Helvetica"
-
         elif progress_lower == "expected":
             bg_color = EI_YELLOW_BG    # light yellow
             text_color = EI_YELLOW  # yellow text
             font_name = "Helvetica"
-
         elif progress_lower == "better than expected":
             bg_color = EI_GREEN_BG    # light green
             text_color = EI_GREEN  # green text
             font_name = "Helvetica"
-
         else:
             bg_color = colors.white
             text_color = colors.black
             font_name = "Helvetica"
 
+        # Add the style for the progress category cell to the progress_styles list, including background color, text color, font name, and alignment
         progress_styles.extend([
             ("BACKGROUND", (4, row_index), (4, row_index), bg_color),
             ("TEXTCOLOR", (4, row_index), (4, row_index), text_color),
             ("FONTNAME", (4, row_index), (4, row_index), font_name),
             ("ALIGN", (4, row_index), (4, row_index), "CENTER"),
         ])
-
+    # Create the history table with the specified column widths for each column, 
+    # including exam label, SAS score, stanine score, reading age, and progress category
     table = Table(rows, colWidths=[4.8 * cm, 2.2 * cm, 2.2 * cm, 2.8 * cm, 4.8 * cm])
-
+    # Apply a consistent table style to the history table for formatting and visual appearance in the PDF report
     base_styles = [
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -1711,7 +1707,7 @@ def make_history_table(data):
         ("TOPPADDING", (0, 0), (-1, -1), 5),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
     ]
-
+    # Apply the combined base styles and progress styles to the history table for formatting and visual appearance in the PDF report
     table.setStyle(TableStyle(base_styles + progress_styles))
 
     return table
@@ -1739,21 +1735,22 @@ def get_sas_description(sas):
     Returns a friendly SAS interpretation based on the student's score.
     """
     sas = safe_float(sas)
-
+    # Interpret the SAS score and provide a friendly description of the student's reading performance,
+    # along with practical next steps for support and enrichment based on the score range
     if sas >= 120:
         return (
             "The SAS result indicates exceptionally high reading performance. "
             "This suggests that the student is working well above the typical age-related range. "
             "The student may benefit from enrichment activities, challenging texts, and higher-order comprehension tasks."
         )
-
+    
     if sas >= 110:
         return (
             "The SAS result indicates strong reading performance above the expected range. "
             "This suggests that the student is likely showing secure reading accuracy, fluency, vocabulary understanding, and comprehension. "
             "The student should continue to be challenged with texts that extend thinking and deepen understanding."
         )
-
+    
     if sas >= 90:
         return (
             "The SAS result indicates a secure foundation for age-related reading. "
@@ -1775,9 +1772,10 @@ def generate_ai_sas_interpretation(data):
     Uses OpenAI to generate a friendly SAS description/interpretation.
     Falls back to the rule-based interpretation if the AI call fails.
     """
-    
+    # Check if the OPENAI_API_KEY environment variable is set and not empty
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+    # Prepare a prompt for the AI model to generate a friendly and teacher-useful interpretation of the student's performance based on the provided data
     prompt = f"""
     Write a friendly and teacher-useful interpretation of the student's performance based on the provided data.
 
@@ -1801,7 +1799,8 @@ def generate_ai_sas_interpretation(data):
     - Include practical next-step support.
     - Do not use bullet points.
     """
-
+    # Make a request to the OpenAI API to generate a response based on the prompt, using the GPT-4o-mini model 
+    # with a low temperature for more deterministic output and a maximum token limit of 380
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -1822,10 +1821,10 @@ def generate_ai_sas_interpretation(data):
 
 # Main interpretation function for the student's score
 def score_interpretation(data):
-    try:
+    try: # Try to generate an AI-based interpretation of the student's SAS score and profile using the OpenAI API
         sas_interpretation = generate_ai_sas_interpretation(data)
         return sas_interpretation
-    except Exception:
+    except Exception: # If the AI call fails, fall back to the rule-based interpretation of the student's SAS score and profile
         sas_description = get_sas_description(data["sas"])
         return (
             f"{data['name']} achieved a SAS of {data['sas']:.0f} and a stanine of "
@@ -1844,6 +1843,8 @@ def progress_interpretation(data):
     first = data["history"][0]["sas"]
     latest = data["history"][-1]["sas"]
 
+    # Compare the student's first and latest SAS scores to determine whether there has been improvement, stability, 
+    # or decline in reading performance over time, and provide an interpretation accordingly
     if latest > first:
         return (
             f"<b>Interpretation:</b> {data['name']} has improved from {data['history'][0]['exam_label']} "
@@ -1885,7 +1886,7 @@ def generate_ai_profile_support(data):
     Falls back to rule-based functions if the AI call fails or parsing is incomplete.
     """
 
-    try:
+    try: # Try to generate AI-based support statements for the student's NGRT profile using the OpenAI API
         api_key = os.getenv("OPENAI_API_KEY")
 
         if not api_key:
@@ -1965,15 +1966,14 @@ def generate_ai_profile_support(data):
 
         return parse_ai_support_sections(ai_text, data)
 
-    except Exception as e:
-
+    except Exception as e: # If the AI call fails, fall back to rule-based support statements for the student's NGRT profile
         return {
             "strengths": strengths(data),
             "development_areas": development_points(data),
             "next_steps": next_steps(data)
         }
 
-
+# Helper function to parse the AI-generated text into structured sections for strengths, development areas, and next steps
 def parse_ai_support_sections(ai_text, data):
     """
     Parses AI response into three separate lists:
@@ -1995,6 +1995,8 @@ def parse_ai_support_sections(ai_text, data):
 
     current_section = None
 
+    # Iterate through each line of the AI-generated text, cleaning and categorizing statements 
+    # into the appropriate sections based on detected headings and bullet points
     for line in ai_text.splitlines():
         clean_line = line.strip()
 
@@ -2009,14 +2011,17 @@ def parse_ai_support_sections(ai_text, data):
             current_section = "strengths"
             continue
 
+        # Detect headings flexibly.
         if heading_line.startswith("areas for development"):
             current_section = "development_areas"
             continue
 
+        # Detect headings flexibly.
         if heading_line.startswith("recommended next steps"):
             current_section = "next_steps"
             continue
 
+        # If no section is currently being processed, skip the line.
         if not current_section:
             continue
 
@@ -2058,14 +2063,16 @@ def parse_ai_support_sections(ai_text, data):
 def strengths(data):
     items = []
 
+    # Provide a positive statement about the student's stanine score, indicating whether they are within the average range or if support needs are identified
     if data["stanine"] >= 4:
         items.append("Working within the average stanine range.")
     else:
         items.append("Assessment data clearly identifies reading support needs.")
-
+    # Provide a positive statement about the student's SAS progress over time, indicating whether they have shown steady improvement across the assessment cycle
     if len(data["history"]) >= 2 and data["history"][-1]["sas"] >= data["history"][0]["sas"]:
         items.append("Shows steady improvement across the assessment cycle.")
-
+    # Provide a positive statement about the student's progress category, indicating whether they have maintained expected progress 
+    # or achieved better than expected progress in the latest NGRT assessment
     if data["progress"].lower() == "expected":
         items.append("Maintained expected progress in the latest NGRT assessment.")
     elif "better" in data["progress"].lower():
@@ -2108,7 +2115,7 @@ def generate_ai_considerations_support(data):
     Falls back to rule-based functions if the AI call fails or parsing is incomplete.
     """
 
-    try:
+    try: # Try to generate AI-based considerations for the class teacher and reading specialist using the OpenAI API
         api_key = os.getenv("OPENAI_API_KEY")
 
         if not api_key:
@@ -2190,8 +2197,7 @@ def generate_ai_considerations_support(data):
 
         return parse_ai_considerations_sections(ai_text, data)
 
-    except Exception as e:
-
+    except Exception as e: # If the AI call fails, fall back to rule-based considerations for the class teacher and reading specialist
         return {
             "class_teacher": class_teacher_considerations(data),
             "reading_specialist": reading_specialist_considerations(data),
