@@ -1,17 +1,17 @@
-import json, time
-from datetime import datetime
+import json, time  # Standard library modules for JSON handling and time delays
+from datetime import datetime  # Date and time manipulation utilities
 
-from apps.config import *
+from apps.config import * # Imports all environment and application configuration settings
 
-from celery import Celery
-from celery.utils.log import get_task_logger
-from celery.schedules import crontab
+from celery import Celery  # Core Celery class for distributed task queue management
+from celery.utils.log import get_task_logger  # Provides task-aware logging facilities
+from celery.schedules import crontab  # Schedule helper for defining cron-like periodic tasks
 
-logger = get_task_logger(__name__)
+logger = get_task_logger(__name__) # Initializes a logger for the current module
 
 celery_app = Celery(Config.CELERY_HOSTMACHINE, backend=Config.CELERY_RESULT_BACKEND, broker=Config.CELERY_BROKER_URL)
 
-
+# Configure Celery beat schedule for periodic task execution
 celery_app.conf.beat_schedule = {
     'run_celery_beat_test_every_minute': {
         'task': 'celery_beat_test',
@@ -89,7 +89,7 @@ def celery_test( self, task_input ):
     return task_json
 
 
-
+# task used for tests
 @celery_app.task(name="celery_beat_test", bind=True)
 def celery_beat_test( self, task_input ):
     task_json = {'info': 'Beat is running'}
