@@ -1,19 +1,19 @@
 # apps/reports.py
 
-import os
-import re
-from openai import OpenAI
+import os  # Standard operating system and environment utilities
+import re  # Regular expressions for string pattern matching
+from openai import OpenAI  # OpenAI API client instance
 
-from io import BytesIO
-import tempfile
-from datetime import datetime
-from xml.sax.saxutils import escape
+from io import BytesIO  # In-memory byte stream processing
+import tempfile  # Temporary files and directories generator
+from datetime import datetime  # Date and time parsing and formatting
+from xml.sax.saxutils import escape  # Escapes special characters for XML/HTML string safety
 
-from reportlab.lib import colors
-from reportlab.lib.units import inch, mm, cm
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import (
+from reportlab.lib import colors  # Color definitions for PDF styling
+from reportlab.lib.units import inch, mm, cm  # Unit conversion constants for page layout
+from reportlab.lib.pagesizes import A4, landscape  # Page dimensions and orientation settings
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # Document text and paragraph styling classes
+from reportlab.platypus import (  # Document elements for structured PDF generation
     SimpleDocTemplate,
     Paragraph,
     Spacer,
@@ -24,17 +24,18 @@ from reportlab.platypus import (
     PageBreak,
     Flowable,
 )
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
-from urllib.parse import urlencode
-import requests
+from reportlab.lib.enums import TA_CENTER, TA_LEFT  # Text alignment constants for ReportLab styles
+from urllib.parse import urlencode  # Encodes dictionary parameters into URL query strings
+import requests  # HTTP client library for sending API requests
 
-from flask import request
+from flask import request  # Global Flask request object context
 
-from sqlalchemy import func
+from sqlalchemy import func  # SQL aggregate and scalar functions wrapper
 
-from apps import db
-from apps.authentication.models import NGRTA, NGRTB, NGRTC, Students, InternalExam
+from apps import db  # Core database application instance
+from apps.authentication.models import NGRTA, NGRTB, NGRTC, Students, InternalExam  # Database ORM models
 
+# Global constants
 logo_path = os.path.abspath(
         os.path.join(
             "static",
@@ -48,15 +49,18 @@ logo_path = os.path.abspath(
 # Small formatting helpers
 # --------------------------------------------------
 
+# Safely converts a value to a float and formats it to the specified number of decimal places.
 def safe_number(value, decimal_places=0, default="N/A"):
     try:
         return f"{float(value):.{decimal_places}f}"
     except (TypeError, ValueError):
         return default
 
+# Calculates the percentage of 'part' relative to 'whole', rounded to one decimal place.
 def safe_pct(part, whole):
     return round((part / whole) * 100.0, 1) if whole else 0.0
 
+# Returns the appropriate NGRT model based on the exam type.
 def get_ngrt_model_by_exam(exam):
     """
     Return the NGRT model based on the selected report option.
@@ -92,6 +96,7 @@ def clean_value(value, default="-"):
 
     return value
 
+# Formats year group values for consistent display
 def format_year_group(yrgrp):
     """
     Converts values like 2-a or 2-A into 2-A.
@@ -103,6 +108,7 @@ def format_year_group(yrgrp):
 
     return yrgrp.upper()
 
+# Returns a key for sorting year groups naturally
 def sort_year_group_key(yrgrp):
     """
     Sorts year groups naturally: 2-A, 2-B, 2-C, etc.
@@ -110,9 +116,11 @@ def sort_year_group_key(yrgrp):
     label = format_year_group(yrgrp)
 
     try:
+        # Split the label into year and section, e.g., "2-A" -> (2, "A")
         year, section = label.split("-")
         return int(year), section
     except Exception:
+        # If the format is unexpected, return a tuple that will sort it to the end
         return 999, label
     
 # --------------------------------------------------
@@ -122,9 +130,11 @@ def build_ngrt_report_data(exam):
     """
     Builds all summary values needed for the selected NGRT PDF report.
     """
-
+    # Get the appropriate NGRT model based on the selected exam type
     selected = get_ngrt_model_by_exam(exam)
 
+    # If the selected exam is invalid, return a default report structure 
+    # with zeroed values and an error message.
     if not selected:
         return {
             "latest_exam": "Invalid NGRT Option",
@@ -162,8 +172,10 @@ def build_ngrt_report_data(exam):
             },
         }
 
-    exam_label, model = selected
+    exam_label, model = selected # Unpack the label and model for the selected NGRT exam type
 
+    # Query the database to count the total number of students 
+    # with a non-null SAS score for the selected NGRT exam type.
     total_students = (
         db.session.query(func.count(model.id))
         .filter(model.sas.isnot(None))
@@ -171,6 +183,7 @@ def build_ngrt_report_data(exam):
         or 0
     )
 
+    # If there are no students with valid SAS scores, return a default report structure
     if total_students == 0:
         return {
             "latest_exam": exam_label,
@@ -208,6 +221,7 @@ def build_ngrt_report_data(exam):
             },
         }
 
+    # Calculate average SAS and average stanine scores for the selected NGRT exam type,
     avg_sas = (
         db.session.query(func.avg(model.sas))
         .filter(model.sas.isnot(None))
@@ -215,6 +229,7 @@ def build_ngrt_report_data(exam):
         or 0
     )
 
+    # Calculate average stanine score for the selected NGRT exam type,
     avg_stanine = (
         db.session.query(func.avg(model.stanine))
         .filter(model.stanine.isnot(None))
@@ -233,6 +248,7 @@ def build_ngrt_report_data(exam):
         or 0
     )
 
+    # Calculate counts for average and above average stanine bands
     average_count = (
         db.session.query(func.count(model.id))
         .filter(model.stanine.between(4, 6))
@@ -240,6 +256,7 @@ def build_ngrt_report_data(exam):
         or 0
     )
 
+    # Calculate counts for above average stanine band
     above_count = (
         db.session.query(func.count(model.id))
         .filter(model.stanine.between(7, 9))
@@ -259,23 +276,25 @@ def build_ngrt_report_data(exam):
     expected_count = 0
     better_count = 0
 
+    # Check if the model has a progress_category attribute before querying for progress distribution
     if hasattr(model, "progress_category"):
         norm_progress = func.lower(func.trim(model.progress_category))
 
+        # Query the database to count students in each progress category for the selected NGRT exam type
         lower_count = (
             db.session.query(func.count(model.id))
             .filter(norm_progress == "lower than expected")
             .scalar()
             or 0
         )
-
+        # Query the database to count students in the "expected" progress category
         expected_count = (
             db.session.query(func.count(model.id))
             .filter(norm_progress == "expected")
             .scalar()
             or 0
         )
-
+        # Query the database to count students in the "better than expected" progress category
         better_count = (
             db.session.query(func.count(model.id))
             .filter(norm_progress == "better than expected")
@@ -292,6 +311,7 @@ def build_ngrt_report_data(exam):
     # ------------------------------------------
     # Reading literacy thresholds
     # ------------------------------------------
+    # Count the number of students with SAS scores above specific thresholds (90, 110, 120) for the selected NGRT exam type
     sas_90_count = (
         db.session.query(func.count(model.id))
         .filter(model.sas.isnot(None), model.sas >= 90)
@@ -320,6 +340,7 @@ def build_ngrt_report_data(exam):
     # ------------------------------------------
     # AI-style interpretation statements
     # ------------------------------------------
+    # Determine the dominant attainment band based on the highest count of students in each stanine category
     attainment_bands = [
         ("below average", below_count, below_pct),
         ("average", average_count, average_pct),
@@ -333,6 +354,7 @@ def build_ngrt_report_data(exam):
         f"with {dominant_attainment[1]} students ({dominant_attainment[2]}%)."
     )
 
+    # Determine the dominant progress category based on the highest count of students in each progress category
     if progress_total > 0:
         progress_bands = [
             ("Lower than Expected", lower_count, lower_pct),
@@ -347,18 +369,22 @@ def build_ngrt_report_data(exam):
             f"'{dominant_progress[0]}' category, representing "
             f"{dominant_progress[1]} students ({dominant_progress[2]}%)."
         )
-    else:
+    else: # If there is no progress data available, provide a default statement indicating the absence of progress-category information
         progress_statement = (
             f"No progress category data is available for {exam_label}. "
             "This is expected if the selected dataset does not contain progress-category information."
         )
 
+    # Generate a statement summarizing the number and percentage of students 
+    # achieving specific SAS thresholds (90, 110, 120) for the selected NGRT exam type
     threshold_statement = (
         f"In {exam_label}, {sas_90_count} students ({sas_90_pct}%) achieved SAS ≥ 90, "
         f"{sas_110_count} students ({sas_110_pct}%) achieved SAS ≥ 110, and "
         f"{sas_120_count} students ({sas_120_pct}%) achieved SAS ≥ 120."
     )
 
+    # Return a dictionary containing all the calculated report data, including summary statistics, attainment 
+    # and progress distributions, threshold counts, and AI-style interpretation statements for the selected NGRT exam type.
     return {
         "latest_exam": exam_label,
         "total_students": int(total_students),
@@ -402,7 +428,7 @@ def add_header_footer(canvas, doc, report_title, logo_path=None):
     Works for both portrait and landscape pages.
     """
 
-    canvas.saveState()
+    canvas.saveState() # Save the current state of the canvas to restore later
 
     # Use the actual page size of the document
     page_width, page_height = doc.pagesize
@@ -507,11 +533,11 @@ def build_ngrt_summary_pdf(exam):
     Builds the downloadable ExamInsight NGRT PDF report for NGRT-A, NGRT-B, or NGRT-C.
     """
 
-    report = build_ngrt_report_data(exam)
+    report = build_ngrt_report_data(exam) # Calculate the report data for the selected NGRT exam type
 
-    buffer = BytesIO()
+    buffer = BytesIO() # Create an in-memory byte stream to hold the generated PDF content
 
-    doc = SimpleDocTemplate(
+    doc = SimpleDocTemplate( # Initialize a ReportLab SimpleDocTemplate for PDF generation with specified page size and margins
         buffer,
         pagesize=A4,
         rightMargin=40,
@@ -520,9 +546,9 @@ def build_ngrt_summary_pdf(exam):
         bottomMargin=60,
     )
 
-    styles = getSampleStyleSheet()
+    styles = getSampleStyleSheet() # Retrieve the default ReportLab stylesheet for consistent text formatting
 
-    styles.add(
+    styles.add( # Add a custom paragraph style for small text used in the report
         ParagraphStyle(
             name="SmallText",
             parent=styles["Normal"],
@@ -531,12 +557,12 @@ def build_ngrt_summary_pdf(exam):
         )
     )
 
-    story = []
+    story = [] # Initialize an empty list to hold the flowable elements (paragraphs, tables, spacers) that will make up the PDF content
 
     # header title and logo path for consistent branding in header/footer function
     report_title = f"ExamInsight: {report['latest_exam']} Summary Report"
 
-    logo_path = os.path.abspath(
+    logo_path = os.path.abspath( # Resolve the absolute path to the logo image for inclusion in the PDF header/footer
         os.path.join(
             "static",
             "assets",
@@ -559,7 +585,7 @@ def build_ngrt_summary_pdf(exam):
         )
     )
 
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 12)) # Add vertical space between the title and the summary table for visual separation
 
     # ------------------------------------------
     # KPI Summary Table
@@ -650,7 +676,7 @@ def build_ngrt_summary_pdf(exam):
     ]
 
     threshold_table = Table(threshold_data, colWidths=[230, 110, 120])
-    threshold_table.setStyle(_default_table_style())
+    threshold_table.setStyle(_default_table_style()) # Apply the default table style to the threshold table for consistent formatting
     story.append(threshold_table)
     story.append(Spacer(1, 6))
 
@@ -687,9 +713,9 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
     - class/year group listing report (2-A, 2-B, etc.)
     """
 
-    buffer = BytesIO()
+    buffer = BytesIO() # Create an in-memory byte stream to hold the generated PDF content
 
-    doc = SimpleDocTemplate(
+    doc = SimpleDocTemplate( # Initialize a ReportLab SimpleDocTemplate for PDF generation with specified page size and margins
         buffer,
         pagesize=landscape(A4),
         rightMargin=28,
@@ -698,9 +724,9 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         bottomMargin=50,
     )
 
-    styles = getSampleStyleSheet()
+    styles = getSampleStyleSheet() # Retrieve the default ReportLab stylesheet for consistent text formatting
 
-    styles.add(
+    styles.add( # Add a custom paragraph style for table headers used in the report
         ParagraphStyle(
             name="TableHeader",
             parent=styles["Normal"],
@@ -711,7 +737,7 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         )
     )
 
-    styles.add(
+    styles.add( # Add a custom paragraph style for table text used in the report
         ParagraphStyle(
             name="TableText",
             parent=styles["Normal"],
@@ -721,7 +747,7 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         )
     )
 
-    styles.add(
+    styles.add( # Add a custom paragraph style for small text used in the report
         ParagraphStyle(
             name="SmallText",
             parent=styles["Normal"],
@@ -731,25 +757,25 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         )
     )
 
-    story = []
+    story = [] # Initialize an empty list to hold the flowable elements (paragraphs, tables, spacers) that will make up the PDF content
 
     """ Header title and logo path """
     # report tile changes depending on selected year group
-    if selected_yrgrp:
+    if selected_yrgrp: # If a specific year group is selected, format the report title and description accordingly
         yrgrp_label = selected_yrgrp.upper()
         report_title = f"ExamInsight: {exam_label} Listing Report for Year {yrgrp_label}"
         report_description = (
             f"This report lists students from <b>Year {yrgrp_label}</b> with "
             f"available data from <b>{exam_label}</b> external benchmark test."
         )
-    else:
+    else: # If no specific year group is selected, format the report title and description for the full cohort
         yrgrp_label = None
         report_title = f"ExamInsight: {exam_label} Cohort Listing Report"
         report_description = (
             f"This report lists students with available data from <b>{exam_label}</b> "
             f"external benchmark test."
         )
-
+    # Resolve the absolute path to the logo image for inclusion in the PDF header/footer
     logo_path = os.path.abspath(
         os.path.join(
             "static",
@@ -762,7 +788,7 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
     # Title not added here, the header already draws it.
     generated_date = datetime.now().strftime("%a, %d-%b-%Y")
 
-    story.append(
+    story.append( # Add a paragraph to the story indicating the date the report was generated, using the "SmallText" style for formatting
         Paragraph(
             f"<b>Date Generated:</b> {generated_date}",
             styles["SmallText"]
@@ -770,9 +796,8 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
     )
     story.append(Spacer(1, 4))
 
-    story.append(
+    story.append( # Add a paragraph to the story indicating the purpose of the report, including the selected NGRT exam type and year group (if applicable)
         Paragraph(
-            # f"This report lists students with available <b>{exam_label}</b> assessment data.",
             report_description,
             styles["SmallText"]
         )
@@ -783,30 +808,30 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
     # Empty result message
     # --------------------------------------------------
     if not combined_data:
-        if selected_yrgrp:
+        if selected_yrgrp: # If a specific year group is selected, include the year group in the empty message
             empty_message = (
                 f"No <b>{exam_label}</b> records found for "
                 f"<b>Year {selected_yrgrp.upper()}</b>."
             )
-        else:
+        else: # If no specific year group is selected, provide a general empty message for the selected NGRT exam type
             empty_message = f"No <b>{exam_label}</b> records found."
 
-        story.append(
+        story.append( # Add a paragraph to the story indicating that no records were found for the selected NGRT exam type and year group (if applicable)
             Paragraph(
                 empty_message,
                 styles["TableText"]
             )
         )
 
-        doc.build(
+        doc.build( # Build the PDF document with the current
             story,
-            onFirstPage=lambda canvas, doc: add_header_footer(
+            onFirstPage=lambda canvas, doc: add_header_footer( # Add header and footer to the first page of the PDF document using the specified report title and logo path
                 canvas,
                 doc,
                 report_title=report_title,
                 logo_path=logo_path,
             ),
-            onLaterPages=lambda canvas, doc: add_header_footer(
+            onLaterPages=lambda canvas, doc: add_header_footer( # Add header and footer to subsequent pages of the PDF document using the specified report title and logo path
                 canvas,
                 doc,
                 report_title=report_title,
@@ -817,14 +842,14 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         buffer.seek(0)
         return buffer
     
-    table_data = [
+    table_data = [ # Initialize the table data list with the header row
         [
             Paragraph("STUDENT INFORMATION", styles["TableHeader"]),
             Paragraph("NGRT EXAM", styles["TableHeader"]),
             Paragraph("PROGRESS CATEGORY / READER PROFILE & DESCRIPTION", styles["TableHeader"]),
         ]
     ]
-
+    # Iterate through the combined data of students and their corresponding NGRT results to populate the table data for the PDF report
     for student, ngrt_result in combined_data:
         student_id = clean_pdf_text(student.student_id)
         forename = clean_pdf_text(student.forename)
@@ -835,10 +860,11 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         yrgrp = clean_pdf_text((student.yrgrp or "").upper())
         sped = clean_pdf_text(getattr(student, "sped", ""))
 
-        sen_line = ""
+        sen_line = "" # Initialize an empty string for SEN details, which will be populated if the student has SEN information available
+        # If the student has SEN information available and it is not "no", format the SEN details for display in the PDF report
         if sped and sped.lower() != "no":
             sen_line = f"<br/><b>SEN Details:</b> {sped}"
-
+        # Create a Paragraph object for the student information, including their ID, name, gender
         student_info = Paragraph(
             f"""
             <b>{student_id}</b>&nbsp;&nbsp;
@@ -849,7 +875,7 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
             """,
             styles["TableText"],
         )
-
+        # Create a Paragraph object for the NGRT exam information, including the exam label, SAS score, and stanine score for the student
         latest_exam = Paragraph(
             f"""
             {exam_label}<br/>
@@ -858,16 +884,16 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
             """,
             styles["TableText"],
         )
-
+        # Create a Paragraph object for the progress category, reader profile, and profile description for the student, if available
         progress_category = clean_pdf_text(getattr(ngrt_result, "progress_category", ""))
         reader_profile = clean_pdf_text(getattr(ngrt_result, "reader_profile", ""))
         profile_desc = clean_pdf_text(getattr(ngrt_result, "profile_desc", ""))
 
-        progcat = (progress_category or "").upper()
-
+        progcat = (progress_category or "").upper() # Convert the progress category to uppercase for display in the PDF report
+        # Determine the appropriate text to display in the profile information column based on the availability of progress category, 
+        # reader profile, and profile description for the student
         if progress_category and reader_profile and profile_desc:
             profile_text = f"<b>{progcat}</b><br/>{reader_profile}<br/>{profile_desc}"
-
         elif progress_category:
             profile_text = f"<b>{progcat}</b>"
         elif profile_desc:
@@ -877,17 +903,20 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         else:
             profile_text = "No progress category, reader profile, or description available."
 
+        # Create a Paragraph object for the profile information, including the progress category, 
+        # reader profile, and profile description for the student
         profile_info = Paragraph(profile_text, styles["TableText"])
 
+        # Append the student information, NGRT exam information, and profile information as a new row in the table data for the PDF report
         table_data.append([student_info, latest_exam, profile_info])
 
-    table = Table(
+    table = Table( # Create a ReportLab Table object using the populated table data for the PDF report
         table_data,
         colWidths=[3.9 * inch, 1.25 * inch, 5.0 * inch],
         repeatRows=1,
     )
 
-    table.setStyle(
+    table.setStyle( # Apply a custom table style to the table for consistent formatting and visual appearance in the PDF report
         TableStyle(
             [
                 # Header row
@@ -916,9 +945,9 @@ def build_ngrt_listing_pdf(combined_data, exam_label, selected_yrgrp=None):
         )
     )
 
-    story.append(table)
+    story.append(table) # Append the formatted table to the story, which will be used to build the PDF report
 
-    doc.build(
+    doc.build( # Build the PDF document with the current
         story,
         onFirstPage=lambda canvas, doc: add_header_footer(
             canvas,
