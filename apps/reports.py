@@ -2217,13 +2217,14 @@ def parse_ai_considerations_sections(ai_text, data):
     - headings with markdown bold, e.g. **Strengths:**
     """
 
-    sections = {
+    sections = { # Initialize a dictionary to hold the parsed considerations for the class teacher and reading specialist
         "class_teacher": [],
         "reading_specialist": [],
     }
 
     current_section = None
-
+    # Iterate through each line of the AI-generated text, cleaning and categorizing statements 
+    # into the appropriate sections based on detected headings and bullet points
     for line in ai_text.splitlines():
         clean_line = line.strip()
 
@@ -2237,11 +2238,11 @@ def parse_ai_considerations_sections(ai_text, data):
         if heading_line.startswith("considerations for a class teacher"):
             current_section = "class_teacher"
             continue
-
+        # Detect headings flexibly.
         if heading_line.startswith("considerations for a reading specialist"):
             current_section = "reading_specialist"
             continue
-
+        # If no section is currently being processed, skip the line.
         if not current_section:
             continue
 
@@ -2257,13 +2258,13 @@ def parse_ai_considerations_sections(ai_text, data):
         ]:
             continue
 
-        if statement:
+        if statement: # If the statement is not empty, append it to the current section's list of considerations
             sections[current_section].append(statement)
 
     # Fallback only for the section that failed.
     if len(sections["class_teacher"]) < 3:
         sections["class_teacher"] = class_teacher_considerations(data)
-
+    # Fallback only for the section that failed.
     if len(sections["reading_specialist"]) < 3:
         sections["reading_specialist"] = reading_specialist_considerations(data)
 
@@ -2298,7 +2299,7 @@ def generate_ai_reader_profile_interpretation(data):
     Falls back to the rule-based interpretation if the AI call fails.
     """
 
-    try:
+    try: # Try to generate an AI-based interpretation of the student's reader profile using the OpenAI API
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         prompt = f"""
@@ -2338,7 +2339,7 @@ def generate_ai_reader_profile_interpretation(data):
 
         return response.choices[0].message.content.strip()
 
-    except Exception:
+    except Exception: # If the AI call fails, fall back to the rule-based interpretation of the student's reader profile
         return data.get("reader_profile", "Reader profile is not available for this student.")
 
 # Helper function to set up the PDF document, styles, and story list.
@@ -2353,7 +2354,7 @@ def setup_individual_report_pdf(output_path):
     - Internal assessment individual reports, such as English, Mathematics, and Science
     """
 
-    doc = SimpleDocTemplate(
+    doc = SimpleDocTemplate( # Set up the PDF document with specified output path, page size, and margins for consistent formatting
         output_path,
         pagesize=A4,
         leftMargin=1.5 * cm,
@@ -2364,7 +2365,7 @@ def setup_individual_report_pdf(output_path):
 
     styles = getSampleStyleSheet()
 
-    if "ReportTitle" not in styles:
+    if "ReportTitle" not in styles: # Add a custom paragraph style for the report title if it doesn't already exist in the styles
         styles.add(ParagraphStyle(
             name="ReportTitle",
             parent=styles["Title"],
@@ -2376,7 +2377,7 @@ def setup_individual_report_pdf(output_path):
             spaceAfter=4
         ))
 
-    if "SubTitle" not in styles:
+    if "SubTitle" not in styles: # Add a custom paragraph style for subtitles if it doesn't already exist in the styles
         styles.add(ParagraphStyle(
             name="SubTitle",
             parent=styles["BodyText"],
@@ -2387,7 +2388,7 @@ def setup_individual_report_pdf(output_path):
             spaceAfter=8
         ))
 
-    if "SectionTitle" not in styles:
+    if "SectionTitle" not in styles: # Add a custom paragraph style for section titles if it doesn't already exist in the styles
         styles.add(ParagraphStyle(
             name="SectionTitle",
             parent=styles["Heading2"],
@@ -2399,7 +2400,7 @@ def setup_individual_report_pdf(output_path):
             spaceAfter=5
         ))
 
-    if "SmallText" not in styles:
+    if "SmallText" not in styles: # Add a custom paragraph style for small text if it doesn't already exist in the styles
         styles.add(ParagraphStyle(
             name="SmallText",
             parent=styles["BodyText"],
@@ -2410,7 +2411,7 @@ def setup_individual_report_pdf(output_path):
             spaceAfter=3
         ))
 
-    if "BoxTitle" not in styles:
+    if "BoxTitle" not in styles: # Add a custom paragraph style for box titles if it doesn't already exist in the styles
         styles.add(ParagraphStyle(
             name="BoxTitle",
             parent=styles["BodyText"],
@@ -2439,7 +2440,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
     """
     data = build_individual_report_data(student_id)
 
-    if not data:
+    if not data: # If no data is returned for the student, return None to indicate that the report cannot be generated
         return None
 
     output_path = os.path.join(
@@ -2452,7 +2453,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
     # =====================================================
     # Page 1
     # =====================================================
-
+    # Add the report title and subtitle to the story, using the defined styles for consistent formatting
     story.append(section_title("External Benchmark Test", styles))
     story.append(Paragraph(
         "This report provides an overview of the student's reading attainment and progress across the available NGRT assessments. "
@@ -2461,38 +2462,38 @@ def generate_ngrt_indv_extl_rpt(student_id):
         styles["SmallText"]
     ))
     story.append(Spacer(1, 10))
-
+    # Add the student information table, KPI table, score interpretation, attainment band, and threshold table to the story,
     story.append(make_student_info_table(data))
     story.append(Spacer(1, 10))
-
+    # Add the KPI table to the story, providing a summary of key performance indicators for the student's NGRT assessment
     story.append(make_kpi_table(data))
     story.append(Spacer(1, 10))
-
+    # Add the score interpretation section to the story, which includes an AI-generated or rule-based interpretation of the student's SAS score and profile
     story.append(section_title("Score Interpretation", styles))
     story.append(Paragraph(score_interpretation(data), styles["SmallText"]))
     story.append(Spacer(1, 10))
-
+    # Add the attainment band section to the story, which includes a visual representation of the student's stanine score and band, along with a threshold table for reference
     story.append(section_title("Attainment Band", styles))
     story.append(Spacer(1, 10))
-
+    # Add the stanine scale to the story, which visually represents the student's stanine score and band, along with a threshold table for reference
     student_full_name = data.get("name", "Student")
     story.append(StanineScale(data["stanine"], student_full_name))
     story.append(Spacer(1, 10))
-
+    # Add the threshold table to the story, which provides a reference for interpreting the student's SAS score and stanine band in relation to age-related expectations
     story.append(make_threshold_table(data))
     story.append(Spacer(1, 10))
-
+    # Add the reader profile section to the story, which includes an AI-generated or rule-based interpretation of the student's reader profile and practical next-step reading support
     story.append(section_title("Reader Profile", styles))
     # generate AI interpretation with fallback to rule-based text if AI fails
     reader_profile_text = generate_ai_reader_profile_interpretation(data)
     story.append(Paragraph(reader_profile_text, styles["SmallText"]))
 
-    story.append(PageBreak())
+    story.append(PageBreak()) # Add a page break to separate the first page from the subsequent content in the report
 
     # =====================================================
     # Page 2
     # =====================================================
-
+    # Add the progress section to the story, which includes a history table of the student's NGRT assessments, a line chart of SAS scores over time, and a comparison bar chart of the student's latest SAS against class and cohort averages
     story.append(section_title("Progress across all External Benchmark Tests (NGRT)", styles))
     story.append(Paragraph(
         "This section tracks the student’s performance across all available NGRT external benchmark tests "
@@ -2500,14 +2501,14 @@ def generate_ngrt_indv_extl_rpt(student_id):
         styles["SmallText"]
     ))
     story.append(Spacer(1, 10))
-    story.append(make_history_table(data))
+    story.append(make_history_table(data)) # Add the history table to the story, which provides a chronological overview of the student's NGRT assessments, including SAS scores, stanine scores, reading ages, and progress categories
     story.append(Spacer(1, 10))
 
-    story.append(SimpleSASLineChart(data["history"]))
+    story.append(SimpleSASLineChart(data["history"])) # Add the SAS line chart to the story, which visually represents the student's SAS scores over time, allowing for easy identification of trends and progress across multiple NGRT assessments
     story.append(Spacer(1, 2))
-    story.append(Paragraph(progress_interpretation(data), styles["SmallText"]))
+    story.append(Paragraph(progress_interpretation(data), styles["SmallText"])) # Add the progress interpretation section to the story, which includes an AI-generated or rule-based interpretation of the student's progress over time based on historical NGRT data
     story.append(Spacer(1, 10))
-
+    # Add the comparison bar chart to the story, which visually compares the student's latest SAS score against class and cohort averages, providing context for the student's performance relative to peers
     story.append(SimpleComparisonBarChart(
         student_sas=data["sas"],
         class_avg=data["averages"]["class_avg_sas"],
@@ -2523,7 +2524,8 @@ def generate_ngrt_indv_extl_rpt(student_id):
 
     story.append(Spacer(1, 10))
     story.append(PageBreak())
-
+    # Add the reading profile and recommended support section to the story, which includes AI-generated or rule-based statements 
+    # about the student's strengths, areas for development, and recommended next steps for reading support
     story.append(section_title("Reading Profile and Recommended Support", styles))
     story.append(Paragraph(
         "The student’s reading profile reflects current strengths, areas for development, and recommended support based on NGRT assessment evidence. "
@@ -2535,7 +2537,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
     ))
     story.append(Spacer(1, 10))
 
-    ai_support = generate_ai_profile_support(data)
+    ai_support = generate_ai_profile_support(data) # Generate AI-based support statements for the student's NGRT profile, including strengths, areas for development, and recommended next steps, with fallback to rule-based content if the AI call fails
 
     # Three support columns with AI-generated content and fallback to rule-based content if AI fails
     support_table = Table(
@@ -2546,7 +2548,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
         ]],
         colWidths=[5.5 * cm, 5.5 * cm, 5.5 * cm]
     )
-
+    # Set the style for the support table, including background colors for each column, borders, padding, and vertical alignment to ensure a visually appealing and readable layout
     support_table.setStyle(TableStyle([
         # Different background color per cell
         ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#CFECF3")),  # Strengths
@@ -2567,7 +2569,8 @@ def generate_ngrt_indv_extl_rpt(student_id):
 
     story.append(support_table)
     story.append(Spacer(1, 10))
-
+    # Add the considerations section to the story, which includes AI-generated or rule-based statements for both the class teacher and reading specialist, 
+    # providing practical guidance for supporting the student's reading development in the classroom and through targeted interventions
     ai_considerations = generate_ai_considerations_support(data)
 
     story.extend(paragraph_list("Considerations for a Class Teacher", ai_considerations["class_teacher"], styles))
@@ -2575,7 +2578,7 @@ def generate_ngrt_indv_extl_rpt(student_id):
 
     story.extend(paragraph_list("Considerations for a Reading Specialist", ai_considerations["reading_specialist"], styles))
 
-    doc.build(
+    doc.build( # Build the PDF document using the assembled story
         story,
         onFirstPage=lambda canvas, doc: add_header_footer(
             canvas,
@@ -2606,16 +2609,18 @@ def build_internal_individual_report_data(student_id):
 
     student = Students.query.filter_by(student_id=student_id).first()
 
-    if not student:
+    if not student: # If no student is found with the given student_id, return None to indicate that the report cannot be generated
         return None
 
     internal = InternalExam.query.filter_by(student_id=student_id).first()
 
-    if not internal:
+    if not internal: # If no internal exam data is found for the given student_id, return None to indicate that the report cannot be generated
         return None
 
     full_name = f"{student.forename or ''} {student.surname or ''}".strip()
 
+    # Build the subjects dictionary with cleaned and formatted data for English, Mathematics, and Science, 
+    # including previous and current percentages, grades, and progress categories
     subjects = {
         "english": {
             "label": "English",
@@ -2642,15 +2647,15 @@ def build_internal_individual_report_data(student_id):
             "progress_category": clean_text(getattr(internal, "sci_progcat", None)),
         },
     }
-
+    # Calculate class and cohort averages for internal assessments in English, Mathematics, and Science using the helper function
     averages = calculate_internal_averages(student)
-
+    # Calculate the overall average of the current percentages across all subjects, ensuring that only non-null values are considered to avoid division by zero errors
     current_values = [
         subject["current_pct"]
         for subject in subjects.values()
         if subject["current_pct"] is not None
     ]
-
+    # Calculate the overall average of the current percentages across all subjects, ensuring that only non-null values are considered to avoid division by zero errors
     overall_average = round(sum(current_values) / len(current_values), 1) if current_values else None
 
     strongest_subject = get_strongest_subject(subjects)
@@ -2683,7 +2688,7 @@ def calculate_internal_averages(student):
     """
 
     yrgrp = getattr(student, "yrgrp", None)
-
+    # Helper function to calculate the average for a specific subject, optionally filtering by class (year group) if specified.
     def avg_for_subject(column_name, class_only=False):
         column = getattr(InternalExam, column_name)
 
@@ -2697,7 +2702,8 @@ def calculate_internal_averages(student):
 
         value = query.scalar()
         return round(float(value), 1) if value is not None else None
-
+    # Return a dictionary containing the calculated class and cohort averages for English, Mathematics, and Science, 
+    # using the helper function to compute the averages based on the specified column names and filtering criteria.
     return {
         "class": {
             "english": avg_for_subject("eng_currPct", class_only=True),
@@ -2714,11 +2720,11 @@ def calculate_internal_averages(student):
 # =============================================================================
 # Report Tables
 # =============================================================================
-
+# Helper function to create a section title paragraph with the specified title and styles for consistent formatting in the report.
 def section_title(title, styles):
     return Paragraph(title, styles["SectionTitle"])
 
-
+# Helper function to create a list of paragraphs with a title and content, using the specified styles for consistent formatting in the report.
 def make_internal_student_info_table(data):
     table_data = [
         [
@@ -2757,18 +2763,19 @@ def make_internal_student_info_table(data):
 
     return table
 
-
+# Helper function to create a KPI table for internal assessments, displaying overall average, strongest subject, main progress category, and support priority.
 def make_internal_kpi_table(data):
     """
     Creates four KPI cards:
     Overall Current Average, Strongest Subject, Main Progress Category, Support Priority.
     """
-
+    # Format the overall average as a percentage string, and handle cases where the strongest subject, main progress category, 
+    # or support priority may be None by providing a default value of "-"
     overall = format_pct(data["overall_average"])
     strongest = data["strongest_subject"] or "-"
     progress = data["main_progress_category"] or "-"
     priority = data["support_priority"] or "-"
-
+    # Create a table with four KPI cells, each representing a key performance indicator for the student's internal assessment,
     table_data = [
         [
             make_kpi_cell(
@@ -2797,9 +2804,10 @@ def make_internal_kpi_table(data):
             ),
         ]
     ]
-
+    # Create a table with four columns, each representing a KPI cell, and set the column widths to ensure consistent sizing and alignment of the KPI cards
     table = Table(table_data, colWidths=[4.2 * cm, 4.2 * cm, 4.2 * cm, 4.2 * cm])
-
+    # Set the style for the KPI table, including borders, background colors for each KPI cell, vertical alignment, 
+    # text alignment, and padding to ensure a visually appealing and readable layout
     table.setStyle(TableStyle([
         ("BOX", (0, 0), (-1, -1), 0.4, EI_BORDER),
         ("INNERGRID", (0, 0), (-1, -1), 0.4, EI_BORDER),
@@ -2817,7 +2825,7 @@ def make_internal_kpi_table(data):
 
     return table
 
-
+# Helper function to create a KPI cell with a value, title, subtitle, and optional value color for consistent formatting in the report.
 def make_kpi_cell(value, title, subtitle, value_color=EI_DARK):
     value_style = ParagraphStyle(
         name=f"KPIValueStyle_{str(value_color)}",
@@ -2836,7 +2844,8 @@ def make_kpi_cell(value, title, subtitle, value_color=EI_DARK):
         Paragraph(subtitle, get_kpi_subtitle_style()),
     ]
 
-
+# Helper function to create a subject summary table for internal assessments, displaying previous 
+# and current percentages, grades, and progress categories for each subject.
 def make_subject_summary_table(data, styles):
     subjects = data["subjects"]
 
@@ -2909,6 +2918,8 @@ def make_subject_summary_table(data, styles):
 
     return table
 
+# Helper function to create a progress table for internal assessments, displaying previous and current percentages, 
+# grades, and progress categories for each subject, with color-coded progress indicators.
 def make_progress_table(data, styles):
     subjects = data["subjects"]
 
@@ -2927,6 +2938,7 @@ def make_progress_table(data, styles):
     # Store row-specific colour styles here
     progress_styles = []
 
+    # Loop through each subject and add a row to the table data, calculating the change in percentage and applying color coding based on the progress category.
     for row_index, subject in enumerate(subjects.values(), start=1):
         previous_pct = subject["previous_pct"]
         current_pct = subject["current_pct"]
@@ -2993,9 +3005,11 @@ def make_progress_table(data, styles):
 
     return table
 
+# Helper function to create a threshold table for internal assessments, displaying achievement status for each threshold.
 def make_internal_threshold_table(data, styles):
     avg = data["overall_average"]
-
+    # Define the thresholds and their meanings, along with a boolean indicating 
+    # whether the student has achieved each threshold based on their overall average percentage.
     thresholds = [
         {
             "threshold": "Current average >= 60%",
@@ -3016,8 +3030,10 @@ def make_internal_threshold_table(data, styles):
 
     table_data = [["Threshold", "Meaning", "Status"]]
 
+    # Store row-specific colour styles here
     status_styles = []
 
+    # Loop through each threshold and add a row to the table data, along with corresponding styles for achieved and not achieved thresholds.
     for row_index, item in enumerate(thresholds, start=1):
         status_text = "Achieved" if item["achieved"] else "Target"
 
@@ -3042,6 +3058,8 @@ def make_internal_threshold_table(data, styles):
 
     table = Table(table_data, colWidths=[4.5 * cm, 8.5 * cm, 3.5 * cm])
 
+    # Set the style for the threshold table, including background colors for the header row, text colors, font styles, 
+    # alignment, borders, and padding to ensure a visually appealing and readable layout
     base_styles = [
         ("BACKGROUND", (0, 0), (-1, 0), EI_BLUE),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
@@ -3067,18 +3085,18 @@ def make_internal_threshold_table(data, styles):
 # =============================================================================
 # Simple ReportLab Charts
 # =============================================================================
-
+# Helper class to create a bar chart comparing previous and current percentages for English, Mathematics, and Science.
 class SubjectProgressBarChart(Flowable):
     """
     Bar chart showing Previous % and Current % for English, Mathematics, and Science.
     """
-
+    # Initialize the SubjectProgressBarChart with the subjects data, width, and height for the chart.
     def __init__(self, subjects, width=16.5 * cm, height=7 * cm):
         super().__init__()
         self.subjects = subjects
         self.width = width
         self.height = height
-
+    # Draw the bar chart on the canvas, including axes, bars for previous and current percentages, labels, and a legend.
     def draw(self):
         c = self.canv
 
@@ -3152,19 +3170,21 @@ class SubjectProgressBarChart(Flowable):
         c.setFillColor(EI_MUTED)
         c.drawString(self.width - 2.1 * cm, legend_y, "Current AY")
 
-
+# =============================================================================
+# Subject Comparison Bar Chart
+# =============================================================================
 class SubjectComparisonBarChart(Flowable):
     """
     Bar chart comparing Student, Class Average, and Cohort Average per subject.
     """
-
+    # Initialize the SubjectComparisonBarChart with the subjects data, averages, width, and height for the chart.
     def __init__(self, subjects, averages, width=16.5 * cm, height=7 * cm):
         super().__init__()
         self.subjects = subjects
         self.averages = averages
         self.width = width
         self.height = height
-
+    # Draw the bar chart on the canvas, including axes, bars for student, class average, and cohort average percentages, labels, and a legend.
     def draw(self):
         c = self.canv
 
@@ -3184,7 +3204,7 @@ class SubjectComparisonBarChart(Flowable):
 
         c.setFont("Helvetica", 6)
         c.setFillColor(EI_MUTED)
-
+        # Draw horizontal grid lines and Y-axis labels at intervals of 20% from 0 to 100%.
         for value in range(0, 101, 20):
             y = y0 + (value / 100) * chart_height
             c.drawRightString(x0 - 4, y - 2, str(value))
@@ -3195,7 +3215,7 @@ class SubjectComparisonBarChart(Flowable):
         group_width = chart_width / len(subject_keys)
         bar_width = 0.85 * cm
         bar_gap = 5
-
+        # Loop through each subject and draw bars for the student's current percentage, class average, and cohort average, along with labels and a legend.
         for index, key in enumerate(subject_keys):
             subject = self.subjects[key]
 
@@ -3228,7 +3248,7 @@ class SubjectComparisonBarChart(Flowable):
             c.setFillColor(EI_MUTED)
             c.drawCentredString(label_x, y0 - 16, subject["label"])
 
-        # Legend
+        # Draw the legend for the bar chart, indicating which color corresponds to the student, class average, and cohort average.
         legend_y = self.height - 0.8 * cm
 
         legend_items = [
@@ -3237,8 +3257,11 @@ class SubjectComparisonBarChart(Flowable):
             ("Cohort Avg", colors.HexColor("#F59E0B")),
         ]
 
+        # Calculate the starting x-coordinate for the legend items, ensuring that they are spaced evenly 
+        # across the legend area and aligned to the right side of the chart.
         legend_x = self.width - 5.7 * cm
 
+        # Draw the legend items with colored rectangles and corresponding labels, adjusting the x-coordinate for each item to space them evenly across the legend area.
         for label, color in legend_items:
             c.setFillColor(color)
             c.rect(legend_x, legend_y, 8, 8, fill=1, stroke=0)
@@ -3250,7 +3273,8 @@ class SubjectComparisonBarChart(Flowable):
 # =============================================================================
 # Text Interpretation Helpers
 # =============================================================================
-
+# Helper function to generate a textual interpretation of the internal assessment data, summarizing the student's overall average, 
+# current scores, strongest subject, support priority, and main progress category.
 def internal_assessment_interpretation(data):
     name = data["student_name"]
     subjects = data["subjects"]
@@ -3273,7 +3297,7 @@ def internal_assessment_interpretation(data):
         f"reviewed alongside classroom evidence, teacher observations, and ongoing formative assessment."
     )
 
-
+# Helper function to generate a textual learning profile for the student, summarizing their current attainment, strengths, support priorities, and progress profile.
 def learning_profile_text(data):
     name = data["student_name"]
     strongest = data["strongest_subject"] or "one subject area"
@@ -3288,7 +3312,7 @@ def learning_profile_text(data):
         f"intervention, feedback, and next-step classroom support."
     )
 
-
+# Helper function to generate a textual interpretation of the student's progress based on previous and current percentages, identifying areas of improvement, decline, or stability.
 def progress_interpretation_internal(data):
     name = data["student_name"]
     subjects = data["subjects"]
@@ -3297,6 +3321,7 @@ def progress_interpretation_internal(data):
     declined_subjects = []
     stable_subjects = []
 
+    # Loop through each subject and compare the previous and current percentages to identify areas of improvement, decline, or stability.
     for subject in subjects.values():
         prev = subject["previous_pct"]
         curr = subject["current_pct"]
@@ -3383,6 +3408,7 @@ def parse_ai_support_sections(ai_text):
 
     current_section = None
 
+    # Loop through each line of the AI-generated text, stripping whitespace and identifying section headers to categorize bullet points into the appropriate sections.
     for line in ai_text.splitlines():
         clean_line = line.strip()
 
@@ -3417,9 +3443,11 @@ def is_valid_support_output(parsed):
     Checks that the AI returned exactly 3 statements
     for each required section.
     """
-
+    # Define the required keys for the support output, which include strengths, development areas, and next steps.
     required_keys = ["strengths", "development_areas", "next_steps"]
 
+    # Loop through each required section and check if it exists in the parsed output, is a list, 
+    # and contains exactly 3 statements. If any of these conditions are not met, return False; otherwise, return True.
     for key in required_keys:
         if key not in parsed:
             return False
@@ -3453,7 +3481,7 @@ def generate_ai_internal_support_points(data):
     overall = format_pct(data.get("overall_average"))
     progress = data.get("main_progress_category") or "available progress information"
 
-    try:
+    try: # Use OpenAI to generate support points based on the provided student data
         api_key = os.getenv("OPENAI_API_KEY")
 
         if not api_key:
@@ -3531,7 +3559,7 @@ def generate_ai_internal_support_points(data):
 
         return parsed
 
-    except Exception as e:
+    except Exception as e: # If any error occurs during the AI generation process, log the error and fall back to the rule-based function to ensure that support points are still generated.
         print(f"AI internal support generation failed: {e}")
         return generate_internal_support_points(data)
 
@@ -3586,6 +3614,8 @@ def parse_ai_subject_considerations(ai_text):
 
     current_section = None
 
+    # Loop through each line of the AI-generated text, stripping whitespace and identifying section headers 
+    # to categorize bullet points into the appropriate subject or class teacher considerations.
     for line in ai_text.splitlines():
         clean_line = line.strip()
 
@@ -3624,14 +3654,15 @@ def is_valid_subject_considerations(parsed):
     Checks that the AI returned exactly 3 statements
     for each required subject/support section.
     """
-
+    # Define the required keys for the subject considerations output, which include English, Mathematics, Science, and Class Teacher.
     required_keys = [
         "english",
         "mathematics",
         "science",
         "class_teacher"
     ]
-
+    # Loop through each required section and check if it exists in the parsed output, is a list, 
+    # and contains exactly 3 statements. If any of these conditions are not met, return False; otherwise, return True.
     for key in required_keys:
         if key not in parsed:
             return False
@@ -3674,7 +3705,7 @@ def generate_ai_subject_considerations(data):
     mathematics = subjects.get("mathematics", {})
     science = subjects.get("science", {})
 
-    try:
+    try: # Use OpenAI to generate subject-specific support considerations based on the provided student data
         api_key = os.getenv("OPENAI_API_KEY")
 
         if not api_key:
@@ -3784,21 +3815,21 @@ def generate_ai_subject_considerations(data):
 
         return parsed
 
-    except Exception as e:
+    except Exception as e: # If any error occurs during the AI generation process, log the error and fall back to the rule-based function to ensure that subject considerations are still generated.
         print(f"AI subject consideration generation failed: {e}")
         return generate_subject_considerations(data)
 
 # =============================================================================
 # Utility and Formatting Helpers
 # =============================================================================
-
+# Helper function to clean and format text values, returning a placeholder if the value is None or empty.
 def clean_text(value):
     if value is None:
         return "-"
     value = str(value).strip()
     return value if value else "-"
 
-
+# Helper function to clean and format numeric values, rounding to one decimal place and returning None if the value is invalid or empty.
 def clean_number(value):
     if value is None or value == "":
         return None
@@ -3808,7 +3839,7 @@ def clean_number(value):
     except (TypeError, ValueError):
         return None
 
-
+# Helper function to format a numeric value as a percentage string, returning a placeholder if the value is None or invalid.
 def format_pct(value):
     if value is None:
         return "-"
@@ -3821,7 +3852,7 @@ def format_pct(value):
     except (TypeError, ValueError):
         return "-"
 
-
+# Helper function to identify the strongest subject based on the highest current percentage, returning a placeholder if no valid subjects are available.
 def get_strongest_subject(subjects):
     valid_subjects = [
         subject for subject in subjects.values()
@@ -3834,7 +3865,7 @@ def get_strongest_subject(subjects):
     strongest = max(valid_subjects, key=lambda item: item["current_pct"])
     return strongest["label"]
 
-
+# Helper function to identify the support priority subject based on the lowest current percentage, returning a placeholder if no valid subjects are available.
 def get_support_priority(subjects):
     valid_subjects = [
         subject for subject in subjects.values()
@@ -3847,7 +3878,8 @@ def get_support_priority(subjects):
     weakest = min(valid_subjects, key=lambda item: item["current_pct"])
     return weakest["label"]
 
-
+# Helper function to determine the main progress category based on the most frequently occurring 
+# progress category among the subjects, returning a placeholder if no valid categories are available.
 def get_main_progress_category(subjects):
     categories = [
         subject["progress_category"]
@@ -3860,7 +3892,7 @@ def get_main_progress_category(subjects):
 
     return max(set(categories), key=categories.count)
 
-
+# Helper function to create a list of Paragraph elements for a given title and list of items, using the specified styles.
 def paragraph_list(title, items, styles):
     elements = [
         Paragraph(f"<b>{title}</b>", styles["BoxTitle"]),
@@ -3875,7 +3907,7 @@ def paragraph_list(title, items, styles):
 # =============================================================================
 # Paragraph styles used by helper tables
 # =============================================================================
-
+# Helper function to define a plain paragraph style with specific font, size, leading, color, and alignment for use in the PDF report.
 def get_plain_style():
     return ParagraphStyle(
         name="InternalPlainStyle",
@@ -3886,7 +3918,7 @@ def get_plain_style():
         alignment=TA_LEFT,
     )
 
-
+# Helper function to define a paragraph style for KPI titles with specific font, size, leading, color, and alignment for use in the PDF report.
 def get_kpi_title_style():
     return ParagraphStyle(
         name="InternalKpiTitleStyle",
@@ -3897,7 +3929,7 @@ def get_kpi_title_style():
         alignment=TA_CENTER,
     )
 
-
+# Helper function to define a paragraph style for KPI values with specific font, size, leading, color, and alignment for use in the PDF report.
 def get_kpi_value_style():
     return ParagraphStyle(
         name="InternalKpiValueStyle",
@@ -3908,7 +3940,7 @@ def get_kpi_value_style():
         alignment=TA_CENTER,
     )
 
-
+# Helper function to define a paragraph style for KPI subtitles with specific font, size, leading, color, and alignment for use in the PDF report.
 def get_kpi_subtitle_style():
     return ParagraphStyle(
         name="InternalKpiSubtitleStyle",
@@ -3922,7 +3954,8 @@ def get_kpi_subtitle_style():
 # =============================================================================
 # Main PDF builder - internal assessments (Assessment Data + Report Generation)
 # =============================================================================
-
+# Function to generate the individual internal assessment PDF report for a given student ID, 
+# including data retrieval, PDF setup, and content generation across multiple pages.
 def generate_intl_indv_rpt(student_id):
     """
     Generates the individual internal assessment PDF report.
@@ -4145,13 +4178,16 @@ def get_listing_styles():
         ),
     }
 
+# -------------------
 # formatting helpers
+# -------------------
+# helper to safely convert a value to a string for PDF output, returning a fallback if the value is None or empty.
 def pdf_safe(value, fallback="-"):
     if value is None or value == "":
         return fallback
     return str(value)
 
-
+# formatting helper to convert a numeric value into a percentage string for PDF output, handling None or invalid values gracefully.
 def pdf_pct(value):
     if value is None or value == "" or value == "-":
         return "-"
@@ -4164,7 +4200,7 @@ def pdf_pct(value):
     except (TypeError, ValueError):
         return str(value)
 
-
+# helper to determine the background and text colors for a progress category, returning default colors if the category is unrecognized.
 def get_progress_colors(progress):
     value = str(progress or "").strip().lower()
 
@@ -4179,7 +4215,8 @@ def get_progress_colors(progress):
 
     return colors.white, colors.HexColor("#111827")
 
-# subject cell builder
+# helper to create a table cell for a subject listing, including previous and current percentages, 
+# grades, and a progress bar with appropriate colors based on the progress category.
 def make_subject_listing_cell(subject_data, styles):
     if not subject_data:
         subject_data = {}
@@ -4242,7 +4279,7 @@ def make_subject_listing_cell(subject_data, styles):
 
     return cell
 
-# student information cell builder
+# helper to create a table cell for a student listing, including student ID, name, gender, nationality
 def make_student_listing_cell(student, styles):
     student_id = pdf_safe(student.get("student_id"))
     name = pdf_safe(student.get("name"))
@@ -4282,7 +4319,9 @@ def get_internal_listing_scope_label(filters):
 
     return "COHORT REPORT", EI_ORANGE
 
-# main PDF generator
+# =========================================================
+# Main PDF builder - internal assessments (Cohort Listing)
+# =========================================================
 def generate_internal_cohort_listing_pdf(filters=None):
     """
     Generates a downloadable PDF cohort listing for InternalExam.
@@ -4291,27 +4330,30 @@ def generate_internal_cohort_listing_pdf(filters=None):
 
     filters = filters or {}
 
-    query_string = urlencode(filters)
+    query_string = urlencode(filters) # Build query string from filters dictionary for API request
 
+    # Determine the base URL for the API request, ensuring it does not have a trailing slash, 
+    # and construct the full API URL for retrieving combined internal assessment data.
     base_url = request.host_url.rstrip("/")
     api_url = f"{base_url}/api/reports/internal/combined-data"
 
-    if query_string:
+    if query_string: # Append query string to API URL if filters are provided, ensuring the request retrieves the correct data based on the specified filters.
         api_url = f"{api_url}?{query_string}"
 
-    response = requests.get(api_url, timeout=20)
+    response = requests.get(api_url, timeout=20) # Make a GET request to the API URL with a timeout of 20 seconds to retrieve the combined internal assessment data for the cohort listing.
 
+    # If the API response status code is not 200 (OK), return None to indicate that the data retrieval failed, preventing further processing of the cohort listing PDF generation.
     if response.status_code != 200:
         return None
 
-    students = response.json()
+    students = response.json() # Parse the JSON response from the API into a list of student records for further processing in the cohort listing PDF generation.
 
     output_path = os.path.join(
         tempfile.gettempdir(),
         "examinsight_internal_cohort_listing.pdf"
     )
 
-    doc = SimpleDocTemplate(
+    doc = SimpleDocTemplate( # Set up the PDF document template with specified output path, page size, and margins for generating the internal assessment cohort listing report.
         output_path,
         pagesize=landscape(A4),
         leftMargin=1.2 * cm,
@@ -4324,8 +4366,9 @@ def generate_internal_cohort_listing_pdf(filters=None):
 
     story = []
 
+    # Determine the report scope label and color based on the provided filters, which will be displayed at the top of the PDF report to indicate whether it is a classwise or cohort report.
     report_scope, report_scope_color = get_internal_listing_scope_label(filters)
-    generated_date = datetime.now().strftime("%a, %d-%b-%Y")    
+    generated_date = datetime.now().strftime("%a, %d-%b-%Y")
     story.append(
         Paragraph(
             f'<font color="{report_scope_color.hexval()}"><b>{report_scope}</b></font>'
@@ -4336,7 +4379,7 @@ def generate_internal_cohort_listing_pdf(filters=None):
     )
     story.append(Spacer(1, 4))
 
-    story.append(Paragraph(
+    story.append(Paragraph( # Add a subtitle to the PDF report indicating that it contains combined internal assessment records for English, Mathematics, and Science, including previous attainment, current attainment, and progress category.
         "Combined English, Mathematics, and Science internal assessment records showing previous attainment, current attainment, and progress category.",
         ParagraphStyle(
             name="ReportSubtitle",
@@ -4351,7 +4394,7 @@ def generate_internal_cohort_listing_pdf(filters=None):
 
     story.append(Spacer(1, 6))
 
-    table_rows = [
+    table_rows = [ # Initialize the table rows for the cohort listing PDF with a header row containing column titles for student information and internal assessment subjects (English, Mathematics, Science).
         [
             Paragraph("STUDENT INFORMATION", styles["header"]),
             Paragraph("ENGLISH", styles["header"]),
@@ -4360,6 +4403,8 @@ def generate_internal_cohort_listing_pdf(filters=None):
         ]
     ]
 
+    # Loop through each student record retrieved from the API and create a row in the table for each student, 
+    # including their information and internal assessment data for English, Mathematics, and Science.
     for student in students:
         internal = student.get("internal_assessment", {})
 
@@ -4369,7 +4414,8 @@ def generate_internal_cohort_listing_pdf(filters=None):
             make_subject_listing_cell(internal.get("mathematics"), styles),
             make_subject_listing_cell(internal.get("science"), styles),
         ])
-
+    # If no student records were found, add a single row indicating that no matching internal assessment records were found, 
+    # ensuring that the PDF report still contains a message for the user.
     if len(table_rows) == 1:
         table_rows.append([
             Paragraph("No matching internal assessment records found.", styles["student"]),
@@ -4377,7 +4423,8 @@ def generate_internal_cohort_listing_pdf(filters=None):
             "",
             ""
         ])
-
+    # Create the table for the cohort listing PDF with specified column widths, repeating the header row on each page, 
+    # and applying styles for background colors, text colors, fonts, grid lines, alignment, and padding to ensure a professional and readable layout.
     table = Table(
         table_rows,
         colWidths=[
@@ -4388,7 +4435,8 @@ def generate_internal_cohort_listing_pdf(filters=None):
         ],
         repeatRows=1
     )
-
+    # Apply styles to the table, including background colors for the header row, text colors, font styles, 
+    # grid lines, alignment, and padding to enhance the visual presentation of the cohort listing PDF report.
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#F8FAFC")),
         ("TEXTCOLOR", (0, 0), (-1, 0), EI_DARK),
@@ -4413,12 +4461,15 @@ def generate_internal_cohort_listing_pdf(filters=None):
 
     story.append(table)
 
+    # Global logo path variable: 
+    # The report will generate even without the logo in case the image file is missing 
+    # or the path is incorrect, but it will simply omit the logo from the header.
     try:
         selected_logo_path = logo_path
     except NameError:
         selected_logo_path = None
 
-    doc.build(
+    doc.build( # Build the PDF document with the specified story content, adding headers and footers to the first and later pages, including the report title and logo if available.
         story,
         onFirstPage=lambda canvas, doc: add_header_footer(
             canvas,
@@ -4453,11 +4504,13 @@ def generate_internal_cohort_listing_by_yrgrp_pdf(yrgrp):
     2-a, 2-b, 2-c, 2-d, 2-e, 2-f.
     """
 
+    # If the provided year group is None or empty, return None to indicate that the request cannot be processed.
     if not yrgrp:
         return None
 
     yrgrp_db = yrgrp.strip().lower()
 
+    # Validate that the provided year group is in the list of allowed internal assessment year groups. If it is not, return None to indicate that the request cannot be processed.
     if yrgrp_db not in ALLOWED_INTERNAL_YRGRPS:
         return None
 
@@ -4647,15 +4700,6 @@ def internal_summary_table_style(subject_label):
     ])
 
 
-# Optional: keep this if your old English code still calls it
-# def english_summary_table_style():
-#     """
-#     Backward-compatible wrapper.
-#     """
-
-#     return internal_summary_table_style()
-
-
 # ---------------------------------------------------------
 # Progress table with background colours
 # ---------------------------------------------------------
@@ -4745,6 +4789,7 @@ def build_internal_subject_summary_data(subject_key, filters=None):
     if not subject_config:
         return None
 
+    # Extract API key and label for the specified subject from the configuration dictionary.
     api_subject_key = subject_config["api_key"]
     subject_label = subject_config["label"]
 
@@ -4759,12 +4804,14 @@ def build_internal_subject_summary_data(subject_key, filters=None):
         if value is not None and str(value).strip() != ""
     }
 
+    # Append query parameters to the API URL if any filters are provided, ensuring that the request retrieves the correct data based on the specified filters.
     if query_params:
         api_url = f"{api_url}?{urlencode(query_params)}"
 
     # Request filtered or full cohort data from your API.
     response = requests.get(api_url, timeout=20)
 
+    # If the API response status code is not 200 (OK), return None to indicate that the data retrieval failed, preventing further processing of the subject summary data.
     if response.status_code != 200:
         return None
 
@@ -4773,6 +4820,8 @@ def build_internal_subject_summary_data(subject_key, filters=None):
     # Keep only students with at least some assessment data for this subject.
     subject_records = []
 
+    # Loop through each student record retrieved from the API and extract the relevant internal assessment data for the specified subject, 
+    # including previous and current percentages, grades, and progress category. Skip any student records that have completely blank subject records.
     for student in students:
         internal = student.get("internal_assessment", {})
         subject_data = internal.get(api_subject_key, {})
@@ -4958,6 +5007,8 @@ def build_internal_subject_summary_data(subject_key, filters=None):
 
     class_rows = []
 
+    # Loop through each year group in the grouped data, calculating average previous and current percentages, changes, attainment thresholds, 
+    # and progress category counts for each class/year group. Store the results in a list of dictionaries for later use in generating the summary report.
     for yrgrp, rows in sorted(grouped.items()):
         class_previous = [
             row["previous_pct"]
@@ -5340,6 +5391,7 @@ def build_internal_subject_summary_pdf(subject_key, filters=None):
 # ---------------------------------------------------------
 # Subject Wrapper Functions
 # ---------------------------------------------------------
+
 
 def build_internal_english_summary_pdf(filters=None):
     """
