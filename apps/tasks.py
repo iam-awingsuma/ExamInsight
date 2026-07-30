@@ -84,7 +84,7 @@ def celery_test( self, task_input ):
     task_json['result'] = 'SUCCESS'
 
     self.update_state(state='FINISHED',
-                    meta={ 'info':'Task is finisled' })    
+                    meta={ 'info':'Task is finished' })    
 
     return task_json
 
