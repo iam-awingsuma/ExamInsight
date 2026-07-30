@@ -342,6 +342,7 @@ def fetch_ngrt_asst_json(db, Students, asst_model):
         .all()
     )
 
+    # Return a list of dictionaries, each containing student info and the corresponding NGRT assessment data
     return [
         {
             **asst.to_dict(),
@@ -350,10 +351,11 @@ def fetch_ngrt_asst_json(db, Students, asst_model):
             "gender": student.gender,
             "yrgrp": student.yrgrp,
         }
-        for student, asst in rows
+        for student, asst in rows # Unpack each tuple of (Students, asst_model) into a combined dictionary
     ]
 
-# Modular function to fetch all 3 NGRT assessments and combine into a single payload dict for the external analytics endpoint
+# Modular function to fetch all 3 NGRT assessments and 
+# combine into a single payload dict for the external analytics endpoint
 def fetch_extl_asst_payload(db, Students, NGRTA, NGRTB, NGRTC):
     """
     Returns the full payload dict for external analytics endpoint.
@@ -434,6 +436,6 @@ def get_filtered_ngrt_combined_data(exam, args=None):
         .order_by(Students.yrgrp, Students.forename)
         .all()
     )
-    
+
     # Return the combined data as a list of tuples (Students, Model)
     return combined_data
