@@ -1,31 +1,34 @@
-import os
-import re
-import uuid
-import re
-from colorama import Fore, Style
-from apps import db
-from apps.authentication.models import Users, NGRTA, NGRTB, NGRTC, InternalExam, Students
-from apps.config import Config
-# from apps.home import make_list_context
-from apps.messages import Messages
-from marshmallow import ValidationError
-from functools import wraps
-from urllib.parse import urlencode
-from flask import request, url_for
-from sqlalchemy import or_, String, literal
-from uuid import uuid4
-import datetime, time
+import os # System files and OS utilities
+import re # Regular expressions for pattern matching and validation
+import uuid # For generating unique identifiers
+from colorama import Fore, Style # Colorama for terminal text styling
+from apps import db # Database instance from the apps package
+from apps.authentication.models import Users, NGRTA, NGRTB, NGRTC, InternalExam, Students # Importing models from the authentication module
+from apps.config import Config # Importing configuration settings from the config module
+from apps.messages import Messages # Importing message templates from the messages module
+from marshmallow import ValidationError # Marshmallow for data validation and error handling
+from functools import wraps # Wraps for preserving function metadata in decorators
+from urllib.parse import urlencode # URL encoding for query parameters
+from flask import request, url_for # Flask request and URL generation utilities
+from sqlalchemy import or_, String, literal # SQLAlchemy utilities for query construction and type handling
+from uuid import uuid4 # For generating unique identifiers
+import datetime, time # Date and time utilities for timestamp generation and manipulation
+
 message = Messages.message
 
+# Global configuration variables retrieved from the Config class
 Currency = Config.CURRENCY
 PAYMENT_TYPE = Config.PAYMENT_TYPE
 STATE = Config.STATE
 
+# Regular expression pattern for validating email addresses
 regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
 
+# FTP image URL retrieved from environment variables
 def get_ts():
     return int(time.time())
 
+# Password validation function
 def password_validate(password):
     """ password validate """
     msg = ''
@@ -45,6 +48,7 @@ def password_validate(password):
         
     return True
 
+# Email validation function
 def emailValidate(email):
     """ validate email  """
     if re.fullmatch(regex, email):
@@ -57,6 +61,7 @@ def sanitise_fille_name(value):
     """ remove special char  """
     return value.strip().lower().replace(' ', '_').replace('(', '').replace(')', '').replace(',', '').replace('=','_').replace('-', '_').replace('#', '')
 
+# create folder for save csv
 def createFolder(folder_name):
     """ create folder for save csv """
     if not os.path.exists(f'{folder_name}'):
@@ -64,35 +69,38 @@ def createFolder(folder_name):
 
     return folder_name
 
+# generate unique file name
 def uniqueFileName(file_name):
     """ for Unique file name"""
     file_uuid = uuid.uuid4()
     IMAGE_NAME = f'{file_uuid}-{file_name}'
     return IMAGE_NAME
 
+# generate server image url
 def serverImageUrl(file_name):
     """ for Unique file name"""
     url = f'{FTP_IMAGE_URL}{file_name}' # type: ignore
     return url
 
+# generate server image url
 def errorColor(error):
     """ for terminal input error color """
     print(Fore.RED + f'{error}')
     print(Style.RESET_ALL)
     return True
 
+# generate server image url
 def splitUrlGetFilename(url):
     """ image url split and get file name  """
     return url.split('/')[-1]
 
-
+# validate state
 def validateState(state):
     """ check valid state methods  """
     # if check state  validate or not
     if state not in list(STATE.keys()):
         raise ValidationError(
             f"{message['invalid_state']}, expected {expectedValue(STATE)}", 422)
-        
     else:
         value = 0
         if state == "completed":
@@ -104,7 +112,7 @@ def validateState(state):
 
     return value 
 
- 
+# validate payment type
 def expectedValue(data):
     """ key get values """
     values = []
@@ -113,13 +121,12 @@ def expectedValue(data):
 
     return ",".join(values)
 
-
+# create access token
 def createAccessToken():
     """ create access token w"""
     rand_token = uuid4()
 
     return f"{str(rand_token)}"
-
 
 # token validate
 def token_required(f):
@@ -153,6 +160,8 @@ def token_required(f):
 
     return decorated
 
+# Helper functions for applying search and filters to SQLAlchemy queries, 
+# generating dropdown values, building URLs, and managing active filters in web applications.
 def _apply_search(query, search_cfg, qval):
     if not qval or not search_cfg:
         return query
@@ -162,6 +171,8 @@ def _apply_search(query, search_cfg, qval):
         ors.append(col.ilike(like) if not hasattr(col, "type") else col.ilike(like))
     return query.filter(or_(*ors))
 
+# Helper function to apply filters to a SQLAlchemy query 
+# based on provided filter configurations and request arguments.
 def _apply_filters(query, filters_cfg, args):
     for f in filters_cfg:
         val = (args.get(f["param"], "") or "").strip()
@@ -174,17 +185,24 @@ def _apply_filters(query, filters_cfg, args):
             query = query.filter(f["column"] == val)
     return query
 
+# Helper function to generate dropdown values for a web application 
+# based on provided configurations and database session.
 def _dropdown_values(dropdowns_cfg, db_session):
     out = {}
     for key, maker in dropdowns_cfg.items():
         out[key] = maker(db_session)
     return out
 
+# Helper function to build a URL for removing a specific filter 
+# from the current request's query parameters.
 def _build_remove_url(endpoint, base_args, key):
     args = base_args.copy()
     args.pop(key, None)
     return url_for(endpoint) + "?" + urlencode(args)
 
+# Helper function to generate a list of active filters 
+# based on the current request's query parameters,
+# provided labels, and the endpoint for removing filters.
 def _active_filters(args, labels, endpoint):
     items = []
     base_args = args.to_dict()
@@ -194,10 +212,12 @@ def _active_filters(args, labels, endpoint):
             items.append((label, val, _build_remove_url(endpoint, base_args, key)))
     return items
 
-
+# Helper functions for generating SQLAlchemy expressions for subject metrics,
+# calculating cohort and class progress, and fetching NGRT assessment data.
 from apps.authentication.models import InternalExam, Students
 from sqlalchemy.sql import func, case
 
+# Helper function to build labeled SQLAlchemy expressions for one subject's metrics.
 def _subject_cols(col, prefix: str, thr60: int, thr70: int):
     """
     Build labeled SQLAlchemy expressions for one subject:
@@ -212,6 +232,8 @@ def _subject_cols(col, prefix: str, thr60: int, thr70: int):
     pct70 = ((ge70 * 100.0) / func.nullif(n, 0)).label(f"{prefix}70_pct")
     return [avg, n, ge60, ge70, pct60, pct70]
 
+# Helper function to generate a full list of labeled columns for ENG, MATHS, and SCI subjects,
+# using the exact labels currently in use (e.g., eng_*, maths_*, sci_*).
 def per_class_metrics(thr60: int = 60, thr70: int = 70):
     """
     Return the full list of labeled columns for ENG / MATHS / SCI
@@ -274,6 +296,7 @@ def class_progress(col, class_col):
     # Normalize values: handle NULL, spaces, commas, casing
     norm = func.lower(func.trim(func.replace(func.coalesce(col, ""), ",", "")))
 
+    # Build a grouped query to calculate counts for each class
     q = (
         db.session.query(
             class_col.label("klass"),
@@ -290,6 +313,7 @@ def class_progress(col, class_col):
     )
 
     result = {}
+    # Iterate over the query results and calculate percentages for each class
     for klass, total, exp_cnt, above_cnt in q.all():
         total = int(total or 0)
         exp_cnt = int(exp_cnt or 0)
@@ -354,15 +378,18 @@ def get_filtered_ngrt_combined_data(exam, args=None):
 
     Model = get_ngrt_model_by_exam(exam)
 
+    # If the exam parameter is invalid, return an empty list
     if Model is None:
         return []
 
+    # Extract search and filter parameters from the request arguments
     q = (args.get("q", "") or "").strip()
     gender = (args.get("gender", "") or "").strip()
     yrgrp = (args.get("yrgrp", "") or "").strip()
     status = (args.get("status", "") or "").strip()
     sped = (args.get("sped", "") or "").strip()
 
+    # Build the base query joining Students with the selected NGRT model
     query = (
         db.session.query(Students, Model)
         .join(Model, Model.student_id == Students.student_id)
@@ -397,7 +424,8 @@ def get_filtered_ngrt_combined_data(exam, args=None):
             query = query.filter(Students.sped != "No")
         elif sped == "No SEN/SPED Support":
             query = query.filter(Students.sped == "No")
-    
+
+    # Filter by progress category (if provided)
     if progress_category := (args.get("progress_category", "") or "").strip():
         query = query.filter(getattr(Model, "progress_category").ilike(progress_category))
 
@@ -406,5 +434,6 @@ def get_filtered_ngrt_combined_data(exam, args=None):
         .order_by(Students.yrgrp, Students.forename)
         .all()
     )
-
+    
+    # Return the combined data as a list of tuples (Students, Model)
     return combined_data
