@@ -1,5 +1,5 @@
-import os
-from pathlib import Path
+import os # System files and OS utilities
+from pathlib import Path # Pathlib for file system path manipulations
 
 class Config(object):
     # sets the base directory of the web app
@@ -21,8 +21,10 @@ class Config(object):
     # OpenAI API Key for ChatGPT integration
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', None)
 
+    # SQLAlchemy configuration for database connection and ORM
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Database connection parameters retrieved from environment variables
     DB_ENGINE   = os.getenv('DB_ENGINE'   , None)
     DB_USERNAME = os.getenv('DB_USERNAME' , None)
     DB_PASS     = os.getenv('DB_PASS'     , None)
@@ -30,6 +32,7 @@ class Config(object):
     DB_PORT     = os.getenv('DB_PORT'     , None)
     DB_NAME     = os.getenv('DB_NAME'     , None)
 
+    # Flag to determine whether to use SQLite as the database
     USE_SQLITE  = True 
 
     # try to set up a Relational DBMS
@@ -60,6 +63,7 @@ class Config(object):
         SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3')
         SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Dynamic Data Table Mapping
     DYNAMIC_DATATB = {
         "products": "apps.models.Product"
     }
@@ -68,10 +72,12 @@ class Config(object):
     CDN_DOMAIN = os.getenv('CDN_DOMAIN')
     CDN_HTTPS = os.getenv('CDN_HTTPS', True)
 
+    # retrieves the currency, payment type, and state from environment variables with default values
     CURRENCY = os.getenv("CURRENCY", "AED")
     PAYMENT_TYPE = os.getenv("PAYMENT_TYPE", "STANDARD")
     STATE = os.getenv("STATE", "DRAFT")
 
+# Production configuration class that inherits from the base Config class
 class ProductionConfig(Config):
     DEBUG = False
 
@@ -80,6 +86,7 @@ class ProductionConfig(Config):
     REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_DURATION = 3600
 
+# Debug configuration class that inherits from the base Config class
 class DebugConfig(Config):
     DEBUG = True
 
