@@ -1,16 +1,19 @@
+// Render internal scatter plot for grade distribution
 function renderInternalScatter() {
 
+    // Get the chart container and student data
     const chartId = "internal_scatter_chart";
     const allStudents = window.internalScatterData || [];
 
-    if (!allStudents.length) {
+    if (!allStudents.length) { // Exit if no student data is available
         Plotly.react(chartId, [], {});
         return;
     }
 
-    const x = allStudents.map((_, i) => i + 1);
-    const names = allStudents.map(s => `${s.forename} ${s.surname}`);
+    const x = allStudents.map((_, i) => i + 1); // Create an array of student indices for the x-axis
+    const names = allStudents.map(s => `${s.forename} ${s.surname}`); // Create an array of student names for hover text
 
+    // Create traces for English subject with scatter plot markers
     const engTrace = {
         x: x,
         y: allStudents.map(s => s.eng_currGr),
@@ -24,6 +27,7 @@ function renderInternalScatter() {
         marker: { size: 10, color: "#0BA6DF", opacity: 0.7 }
     };
 
+    // Create traces for Maths subject with scatter plot markers
     const mathsTrace = {
         x: x,
         y: allStudents.map(s => s.maths_currGr),
@@ -37,6 +41,7 @@ function renderInternalScatter() {
         marker: { size: 10, color: "#FCB53B", opacity: 0.7 }
     };
 
+    // Create traces for Science subject with scatter plot markers
     const sciTrace = {
         x: x,
         y: allStudents.map(s => s.sci_currGr),
@@ -50,13 +55,10 @@ function renderInternalScatter() {
         marker: { size: 10, color: "#A7E399", opacity: 0.7 }
     };
 
+    // Define the layout for the Plotly scatter plot
     const layout = {
         autosize: true,
         margin: { l: 70, r: 30, t: 20, b: 70 },
-
-        // xaxis: {
-        //     title: "<b>Students</b>"
-        // },
 
         yaxis: {
             title: "Grade",
@@ -70,6 +72,7 @@ function renderInternalScatter() {
         legend: { orientation: "h", y: -0.2, font: { size: 11 } }
     };
 
+    // Render the scatter plot using Plotly
     Plotly.react(chartId, [engTrace, mathsTrace, sciTrace], layout, {
         displayModeBar: false,
         responsive: true
