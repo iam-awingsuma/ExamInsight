@@ -24,9 +24,12 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     ge70_count[i] = Number(r.ge70_count ?? 0);
   });
 
+  // Map counts & percentages (>= 70%) per subject into a 2D array [count, percentage]
   const custom70 = subjects.map((_, i) => [ge70_count[i], (n[i] ? (ge70_count[i]/n[i]*100) : ge70_pct[i])]);
+  // Map counts & percentages (>= 60%) per subject into a 2D array [count, percentage]
   const custom60 = subjects.map((_, i) => [ge60_count[i], (n[i] ? (ge60_count[i]/n[i]*100) : ge60_pct[i])]);
 
+  // Create bar traces for Plotly
   const t70 = {
     x: subjects,
     y: ge70_count,
@@ -41,6 +44,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>≥70% (above curriculum standard)<extra></extra>"
   };
 
+  // Create bar traces for Plotly
   const t60 = {
     x: subjects,
     y: ge60_count,
@@ -55,6 +59,7 @@ window.renderCohortAttainment = function (elId = "chart_cohort_attainment") {
     hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>≥60% (at/above curriculum standard)<extra></extra>"
   };
 
+  // Render the stacked bar chart using Plotly
   Plotly.newPlot(
     elId,
     [t70, t60],

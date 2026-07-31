@@ -23,9 +23,12 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     cntAboveOnly[i]       = Number(r.count_above_only ?? 0);
   });
 
+  // Map counts & percentages (made better progress) per subject into a 2D array [count, percentage]
   const customAboveOnly = subjects.map((_, i) => [cntAboveOnly[i], (n[i] ? (cntAboveOnly[i]/n[i]*100) : aboveOnly[i])]);
+  // Map counts & percentages (made expected or better progress) per subject into a 2D array [count, percentage]
   const customExpectedAbove = subjects.map((_, i) => [cntExpectedAbove[i], (n[i] ? (cntExpectedAbove[i]/n[i]*100) : sumExpectedAbove[i])]);
 
+  // Create bar traces for 'made better progress' for Plotly
   const tAboveOnly = {
     x: subjects,
     y: cntAboveOnly,
@@ -39,6 +42,7 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>made better progress<extra></extra>"
   };
 
+  // Create bar traces for 'made expected or better progress' for Plotly
   const tExpectedAbove = {
     x: subjects,
     y: cntExpectedAbove,
@@ -52,6 +56,7 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
     hovertemplate: "(<b>%{x}</b>, %{customdata[0]:,d} students, %{customdata[1]:.1f}%)<br>made expected or better progress<extra></extra>"
   };
 
+  // Render the stacked bar chart using Plotly
   Plotly.newPlot(
     elId,
     [tAboveOnly, tExpectedAbove],
@@ -61,6 +66,7 @@ window.renderCohortProgress = function (elId = "chart_cohort_progress") {
       margin: { t: 20, r: 20, b: 60, l: 60 }, legend: { orientation: "h", font: { size: 11 } }
     }, { displayModeBar: false, responsive: true });
   
+  // Resize the chart when the window is resized or when the tab/collapse is shown
   const el = document.getElementById(elId);
   window.addEventListener("resize", () => Plotly.Plots.resize(el));
   new ResizeObserver(() => Plotly.Plots.resize(el)).observe(el);
