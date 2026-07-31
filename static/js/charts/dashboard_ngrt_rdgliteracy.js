@@ -1,28 +1,38 @@
 async function renderNGRTClasswiseThresholdChart() {
+  // Fetch classwise reading threshold metrics from backend API
   const res = await fetch("/api/ngrt_classwise_reading_thresholds");
+  // Parse response payload as JSON
   const data = await res.json();
 
+  // Extract exam label fallback to "NGRT"
   const examLabel = data.exam_label || "NGRT";
+  // Extract year groups array for X-axis categories
   const x = data.year_groups || [];
 
+  // Extract percentage metrics per threshold category (SAS ≥90, ≥110, ≥120)
   const sas90Pct = data.sas_90_pct || [];
   const sas110Pct = data.sas_110_pct || [];
   const sas120Pct = data.sas_120_pct || [];
 
+  // Extract student counts per threshold category
   const sas90Count = data.sas_90_count || [];
   const sas110Count = data.sas_110_count || [];
   const sas120Count = data.sas_120_count || [];
+  // Extract total student count array
   const totals = data.totals || [];
 
+  // Update DOM element text with active exam label if present
   const examLabelEl = document.getElementById("ngrt-threshold-exam-label");
   if (examLabelEl) {
     examLabelEl.textContent = examLabel;
   }
 
+  // Map custom data tuples [category_count, total_students] for hover tooltips
   const sas90Custom = sas90Count.map((count, i) => [count, totals[i] || 0]);
   const sas110Custom = sas110Count.map((count, i) => [count, totals[i] || 0]);
   const sas120Custom = sas120Count.map((count, i) => [count, totals[i] || 0]);
 
+  // Define Plotly grouped bar trace for SAS ≥ 90
   const sas90Trace = {
     x: x,
     y: sas90Pct,
@@ -38,6 +48,7 @@ async function renderNGRTClasswiseThresholdChart() {
       "Total: <b>%{customdata[1]}</b> student(s)<extra></extra>",
   };
 
+  // Define Plotly grouped bar trace for SAS ≥ 110
   const sas110Trace = {
     x: x,
     y: sas110Pct,
@@ -53,6 +64,7 @@ async function renderNGRTClasswiseThresholdChart() {
       "Total: <b>%{customdata[1]}</b> student(s)<extra></extra>",
   };
 
+  // Define Plotly grouped bar trace for SAS ≥ 120
   const sas120Trace = {
     x: x,
     y: sas120Pct,
@@ -68,8 +80,10 @@ async function renderNGRTClasswiseThresholdChart() {
       "Total: <b>%{customdata[1]}</b> student(s)<extra></extra>",
   };
 
+  // Combine traces into a single data array
   const traces = [sas90Trace, sas110Trace, sas120Trace];
 
+  // Configure chart layout dimensions, legend, unified hover, and grouped bar mode
   const layout = {
     autosize: true,
     width: null,
@@ -92,22 +106,29 @@ async function renderNGRTClasswiseThresholdChart() {
     bargroupgap: 0.05
   };
 
+  // Set Plotly display options for responsiveness and toolbar visibility
   const config = {
     responsive: true,
     displayModeBar: false
   };
 
+  // Target container element and render chart
   const el = document.getElementById("chart-ngrt-classwise-thresholds");
 
   if (el) {
+    // Render plot in target container
     Plotly.newPlot(el, traces, layout, config);
 
+    // Initial resize trigger after DOM paint delay
     setTimeout(() => Plotly.Plots.resize(el), 100);
+    // Listen to window resize events to keep chart responsive
     window.addEventListener("resize", () => Plotly.Plots.resize(el));
 
+    // Observe element-level container dimensions for responsive adjustments
     const ro = new ResizeObserver(() => Plotly.Plots.resize(el));
     ro.observe(el);
   }
 }
 
+// Execute chart initialization once DOM tree is fully loaded
 document.addEventListener("DOMContentLoaded", renderNGRTClasswiseThresholdChart);
