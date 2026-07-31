@@ -1,11 +1,10 @@
 // js/charts/extl_analytics_ngrta.js
 
 (() => {
-  // ---------------------------------------------
-  // API Cache (fetch once for both charts)
-  // ---------------------------------------------
+  // Cache for API payload to avoid duplicate network calls
   let _extNgrtCache = null;
 
+  // Fetches NGRT analytics data from API endpoint with caching
   async function getExtNgrtPayload() {
     if (_extNgrtCache) return _extNgrtCache;
 
@@ -19,9 +18,7 @@
     return _extNgrtCache;
   }
 
-  // -------------------------------------------------------------
-  // Small UI helpers: add loading, error, empty states
-  // -------------------------------------------------------------
+  // Updates inner HTML of a target DOM element by ID
   function setMessage(elId, html) {
     const el = document.getElementById(elId);
     if (!el) return false;
@@ -29,40 +26,41 @@
     return true;
   }
 
+  // Displays a italicized loading state message in target element
   function setLoading(elId) {
     return setMessage(elId, `<p class="text-muted text-sm fst-italic p-2 mb-0">Loading...</p>`);
   }
 
+  // Displays a red error badge message in target element
   function setError(elId, msg = "Failed to load data") {
     return setMessage(elId, `<p class="badge bg-danger mt-1">${msg}</p>`);
   }
 
+  // Displays a red empty-data badge message in target element
   function setEmpty(elId, msg = "No data available") {
     return setMessage(elId, `<p class="badge bg-danger mt-1">${msg}</p>`);
   }
 
-  // -----------------------------
-  // Cohort Insights Graphs
-  // -----------------------------
-
-  // Cohort stanine pie renderer
+  // Renders a pie chart showing proportion of students above vs below a stanine threshold
   async function renderStanineThresholdPie({
     elId,
     datasetKey = "ngrta",
     stanineKey = "stanine",
     threshold = 5
   }) {
-    // If container missing, silently exit
+    // Return early if container element does not exist in DOM
     const container = document.getElementById(elId);
     if (!container) return;
 
-    // Loading placeholder
+    // Show loading text while fetching data
     setLoading(elId);
 
     try {
+      // Fetch payload and extract dataset rows
       const payload = await getExtNgrtPayload();
       const rows = payload?.[datasetKey] || [];
 
+      // Render empty state if dataset is missing or empty
       if (!Array.isArray(rows) || rows.length === 0) {
         setEmpty(elId);
         return;
@@ -71,6 +69,7 @@
       let above = 0;
       let below = 0;
 
+      // Count students meeting or falling below threshold score
       for (const row of rows) {
         const s = Number(row?.[stanineKey]);
         if (!Number.isFinite(s)) continue;
@@ -78,7 +77,7 @@
         else below++;
       }
 
-      // If no valid stanine values found:
+      // Render empty state if no valid numeric scores exist
       if (above === 0 && below === 0) {
         setEmpty(elId, "No valid stanine values found.");
         return;
@@ -87,25 +86,27 @@
       const el = document.getElementById(elId);
       if (!el) return;
 
-      // clear "Loading..." or any placeholder HTML
+      // Clear loading message before rendering chart
       el.innerHTML = "";
 
+      // Configure Plotly pie chart trace
       const trace = {
         type: "pie",
         labels: [`Stanine ${threshold} and above`, `Stanine ${threshold - 1} and below`],
         values: [above, below],
-        hole: 0.3,
+        hole: 0.3, // Donut style chart hole ratio
         textinfo: "label+percent",
         marker: {
-            colors: ['#67C6E3', '#F5F1DC'] // Custom colors for better distinction
+          colors: ['#67C6E3', '#F5F1DC'] // Color palette for pie slices
         },
         hovertemplate:
-            "<b>%{label}</b><br>" +
-            "Students: %{value}<br>" +
-            "Percentage: %{percent}" +
-            "<extra></extra>"
+          "<b>%{label}</b><br>" +
+          "Students: %{value}<br>" +
+          "Percentage: %{percent}" +
+          "<extra></extra>"
       };
 
+      // Configure layout margins, legend position, and responsiveness
       const layout = {
         margin: { t: 30, r: 10, b: 60, l: 10 },
         showlegend: true,
@@ -119,12 +120,11 @@
         }
       };
 
+      // Plot chart and resize after initial paint and layout animation
       Plotly.newPlot(elId, [trace], layout, { responsive: true })
       .then(() => {
         const gd = document.getElementById(elId);
-        // resize immediately
         Plotly.Plots.resize(gd);
-        // resize after 150ms to handle any Bootstrap animation/layout changes
         setTimeout(() => Plotly.Plots.resize(gd), 150);
       });
     } catch (err) {
@@ -133,7 +133,7 @@
     }
   }
 
-  // Generic gender stanine bar renderer
+  // Renders a bar chart comparing percentage of male vs female students meeting a stanine threshold
   async function renderGenderStanineThresholdBar({
     elId,
     datasetKey = "ngrta",
@@ -155,14 +155,13 @@
         return;
       }
 
-      // Denominators (all students by gender)
+      // Initialize counter variables for gender totals and threshold achievements
       let maleTotal = 0;
       let femaleTotal = 0;
-
-      // Numerators (students >= threshold by gender)
       let maleMeet = 0;
       let femaleMeet = 0;
 
+      // Aggregate counts by gender and stanine threshold criteria
       for (const row of rows) {
         const gRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
         const isMale = (gRaw === "m" || gRaw === "male");
@@ -190,8 +189,10 @@
       const totals = [maleTotal, femaleTotal];
       const meets = [maleMeet, femaleMeet];
 
+      // Calculate percentage values per gender group
       const percentValues = meets.map((v, i) => (totals[i] ? (v / totals[i]) * 100 : 0));
 
+      // Construct detailed hover text for bar tooltips
       const hoverText = labels.map((lbl, i) =>
         `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
       );
@@ -199,9 +200,9 @@
       const el = document.getElementById(elId);
       if (!el) return;
 
-      // clear "Loading..." or any placeholder HTML
       el.innerHTML = "";
 
+      // Configure separate traces for Male and Female bar series
       const traces = [
         {
           type: "bar",
@@ -229,6 +230,7 @@
         }
       ];
 
+      // Set Y-axis percentage limits and unified x-hover mode
       const layout = {
         margin: { t: 30, r: 20, b: 60, l: 60 },
         yaxis: { title: "Percent of Gender Total", ticksuffix: "%", range: [0, 110], rangemode: "tozero" },
@@ -245,23 +247,14 @@
     }
   }
 
-  // -----------------------------
-  // Year Group Insights Graphs
-  // -----------------------------
-
-  // Bar graph renderer External NGRTA - Year Group Insights
-  // at/above curriculum standards (St5 & above) and
-  // at least level above curriculum standards (St6 & above)
+  // Renders bar charts and tables comparing class groups and full cohort for Stanine 5+ and 6+
   async function renderYearGroupStanineThresholdBars({
-  elId5,
-  elId6,
-  datasetKey = "ngrta",
-  stanineKey = "stanine",
-  yrgrpKey = "yrgrp"
+    elId5,
+    elId6,
+    datasetKey = "ngrta",
+    stanineKey = "stanine",
+    yrgrpKey = "yrgrp"
   }) {
-
-    // const thresholds = { 5: {}, 6: {} };
-
     const container5 = document.getElementById(elId5);
     const container6 = document.getElementById(elId6);
     if (!container5 || !container6) return;
@@ -270,7 +263,6 @@
     setLoading(elId6);
 
     try {
-
       const payload = await getExtNgrtPayload();
       const rows = payload?.[datasetKey] || [];
 
@@ -282,6 +274,7 @@
 
       const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
 
+      // Initialize class and cohort counters
       const totals = {
         "2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0
       };
@@ -289,8 +282,8 @@
       const meets5 = {...totals};
       const meets6 = {...totals};
 
+      // Populate counters for Stanine >= 5 and Stanine >= 6
       for (const row of rows) {
-
         const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
         if (!yrGroups.includes(yrgrpRaw)) continue;
 
@@ -313,18 +306,18 @@
 
       const labels = [...yrGroups,"Cohort"];
 
+      // Map color scheme to specific class labels and cohort bar
       const colorMap = {
         "2-A":"#F3A1B4", "2-B":"#C8DBAC", "2-C":"#FBE8AF",
         "2-D":"#B8EAEF", "2-E":"#D2CBF6", "2-F":"#E6978B",
         "Cohort":"#5DA3D4"
       };
 
+      // Helper function to build and plot year group bar graphs
       function renderGraph(elId, meets, threshold){
-
         const el = document.getElementById(elId);
         if (!el) return;
 
-        // remove "Loading..." placeholder
         el.innerHTML = "";
 
         const percentValues = labels.map(l =>
@@ -335,6 +328,7 @@
           `${l}: ${meets[l]}/${totals[l]} students (${percentValues[labels.indexOf(l)].toFixed(1)}%)`
         );
 
+        // Map labels to individual bar traces with distinct colors
         const traces = labels.map((label,i)=>({
           type:"bar",
           x:[label],
@@ -367,15 +361,13 @@
         Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true})
         .then(() => {
           const gd = document.getElementById(elId);
-          // resize immediately
           Plotly.Plots.resize(gd);
-          // resize after 150ms to handle any Bootstrap animation/layout changes
           setTimeout(() => Plotly.Plots.resize(gd), 150);
         });
       }
 
+      // Helper function to populate summary HTML table rows
       function renderTable(tblId, meets){
-
         const percentValues = labels.map(l =>
           totals[l] ? (meets[l]/totals[l])*100 : 0
         );
@@ -393,16 +385,14 @@
         `).join("");
       }
 
-      // ---------- Render STANINE 5 ----------
+      // Render Stanine 5 graph and table
       renderGraph(elId5,meets5,5);
       renderTable("tbl-yrgrp-st5-extl-ngrta",meets5);
 
-      // ---------- Render STANINE 6 ----------
+      // Render Stanine 6 graph and table
       renderGraph(elId6,meets6,6);
       renderTable("tbl-yrgrp-st6-extl-ngrta",meets6);
-
     }
-
     catch(err){
       console.error("Stanine combined error:",err);
       setError(elId5);
@@ -410,8 +400,7 @@
     }
   }
 
-  // Bar graph renderer External NGRTA - Year Group Insights
-  // Gender-specific | Stanine 5 & above only
+  // Renders gender-filtered year group bar charts and tables for Stanine 5 & above
   async function renderYearGroupStanine5GenderBars({
     elIdMale,
     elIdFemale,
@@ -420,7 +409,6 @@
     yrgrpKey = "yrgrp",
     genderKey = "gender"
   }) {
-
     const containerMale = document.getElementById(elIdMale);
     const containerFemale = document.getElementById(elIdFemale);
     if (!containerMale || !containerFemale) return;
@@ -429,7 +417,6 @@
     setLoading(elIdFemale);
 
     try {
-
       const payload = await getExtNgrtPayload();
       const rows = payload?.[datasetKey] || [];
 
@@ -441,6 +428,7 @@
 
       const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
 
+      // Factory for nested counter structures
       function buildCounters(){
         return {
           totals: {"2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0},
@@ -451,8 +439,8 @@
       const male = buildCounters();
       const female = buildCounters();
 
+      // Filter and count male and female performance per class
       for (const row of rows) {
-
         const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
         const genderRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
 
@@ -483,8 +471,8 @@
         "Cohort":"#5DA3D4"
       };
 
+      // Render chart for gender-filtered dataset
       function renderGraph(elId, data, title){
-
         const el = document.getElementById(elId);
         if (!el) return;
 
@@ -535,6 +523,7 @@
         });
       }
 
+      // Render table for gender-filtered dataset
       function renderGenderYearGroupTable(tblId, data){
         const percentValues = labels.map(l =>
           data.totals[l] ? (data.meets[l] / data.totals[l]) * 100 : 0
@@ -551,17 +540,15 @@
             <td class="table-success">${percentValues[i].toFixed(1)}%</td>
           </tr>
         `).join("");
-
       }
 
-      // --------- Render Table & Graphs ---------
+      // Execute render for Male and Female Stanine 5+ sections
       renderGraph(elIdMale, male);
       renderGenderYearGroupTable("tbl-yrgrp-male-st5-extl-ngrta", male);
 
       renderGraph(elIdFemale, female);
       renderGenderYearGroupTable("tbl-yrgrp-female-st5-extl-ngrta", female);
     }
-
     catch(err){
       console.error("Gender Year Group Stanine5 error:",err);
       setError(elIdMale);
@@ -569,8 +556,7 @@
     }
   }
 
-  // Bar graph renderer External NGRTA - Year Group Insights
-  // Gender-specific | Stanine 6 & above only
+  // Renders gender-filtered year group bar charts and tables for Stanine 6 & above
   async function renderYearGroupStanine6GenderBars({
     elIdMale,
     elIdFemale,
@@ -579,7 +565,6 @@
     yrgrpKey = "yrgrp",
     genderKey = "gender"
   }) {
-
     const containerMale = document.getElementById(elIdMale);
     const containerFemale = document.getElementById(elIdFemale);
     if (!containerMale || !containerFemale) return;
@@ -588,7 +573,6 @@
     setLoading(elIdFemale);
 
     try {
-
       const payload = await getExtNgrtPayload();
       const rows = payload?.[datasetKey] || [];
 
@@ -610,8 +594,8 @@
       const male = buildCounters();
       const female = buildCounters();
 
+      // Aggregate male and female counts for Stanine >= 6
       for (const row of rows) {
-
         const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
         const genderRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
 
@@ -643,7 +627,6 @@
       };
 
       function renderGraph(elId, data, title){
-
         const el = document.getElementById(elId);
         if (!el) return;
 
@@ -704,17 +687,15 @@
             <td class="table-success">${percentValues[i].toFixed(1)}%</td>
           </tr>
         `).join("");
-
       }
 
-      // --------- Render Table & Graphs ---------
+      // Execute render for Male and Female Stanine 6+ sections
       renderGraph(elIdMale, male);
       renderGenderYearGroupTable("tbl-yrgrp-male-st6-extl-ngrta", male);
 
       renderGraph(elIdFemale, female);
       renderGenderYearGroupTable("tbl-yrgrp-female-st6-extl-ngrta", female);
     }
-
     catch(err){
       console.error("Gender Year Group Stanine6 error:",err);
       setError(elIdMale);
@@ -722,9 +703,7 @@
     }
   }
 
-  // ---------------------------------------------------
-  // Resize Plotly charts when Bootstrap tabs/collapse open
-  // ---------------------------------------------------
+  // Listens to Bootstrap tab switches to trigger Plotly container resizing
   document.addEventListener("shown.bs.tab", function () {
     [
       "pie-st5-extl-ngrta", "pie-st6-extl-ngrta",
@@ -738,6 +717,7 @@
     });
   });
 
+  // Listens to Bootstrap collapse expansion events to trigger Plotly container resizing
   document.addEventListener("shown.bs.collapse", function () {
     [
       "pie-st5-extl-ngrta", "pie-st6-extl-ngrta",
@@ -751,9 +731,7 @@
     });
   });
 
-  // -----------------------------
-  // Public functions (window.*)
-  // -----------------------------
+  // Expose public global methods on window object
   window.renderStanine5Pie = function (elId = "pie-st5-extl-ngrta") {
     return renderStanineThresholdPie({
       elId,
@@ -813,7 +791,7 @@
     });
   }
 
-  // one function to render BOTH pies
+  // Master function to execute rendering of all NGRT-A attainment charts
   window.renderExternalNgrtAttainmentPies = function () {
     // Cohort pies
     window.renderStanine5Pie("pie-st5-extl-ngrta");
@@ -833,45 +811,41 @@
     window.renderYearGroupStanine6GenderBars();
   };
 
-  // ---------------------------------------------
-  // Render on page accordion display
-  // ---------------------------------------------
+  // Attaches event listeners to render charts when accordion panel collapses/expands
   function wireAccordionRender() {
     const panel = document.getElementById("btn_extl_att");
     if (!panel) return;
 
-    // If panel is already visible on load
+    // Render immediately if panel is visible on page load
     if (panel.classList.contains("show")) {
       window.renderExternalNgrtAttainmentPies();
     }
 
-    // Render when accordion opens
+    // Trigger chart render upon expanding collapse element
     panel.addEventListener("shown.bs.collapse", () => {
       window.renderExternalNgrtAttainmentPies();
     });
   }
 
-  // -----------------------------
-  // Resize handling
-  // -----------------------------
+  // Attaches window resize listener to update all active Plotly charts
   function wireResize() {
-  window.addEventListener("resize", () => {
-    const ids = [
-      "pie-st5-extl-ngrta", "pie-st6-extl-ngrta",
-      "bar-gender-st5-extl-ngrta", "bar-gender-st6-extl-ngrta",
-      "bar-yrgrp-st5-extl-ngrta", "bar-yrgrp-st6-extl-ngrta",
-      "bar-yrgrp-male-st5-extl-ngrta", "bar-yrgrp-female-st5-extl-ngrta",
-      "bar-yrgrp-male-st6-extl-ngrta", "bar-yrgrp-female-st6-extl-ngrta",
-    ];
+    window.addEventListener("resize", () => {
+      const ids = [
+        "pie-st5-extl-ngrta", "pie-st6-extl-ngrta",
+        "bar-gender-st5-extl-ngrta", "bar-gender-st6-extl-ngrta",
+        "bar-yrgrp-st5-extl-ngrta", "bar-yrgrp-st6-extl-ngrta",
+        "bar-yrgrp-male-st5-extl-ngrta", "bar-yrgrp-female-st5-extl-ngrta",
+        "bar-yrgrp-male-st6-extl-ngrta", "bar-yrgrp-female-st6-extl-ngrta",
+      ];
 
-    for (const id of ids) {
-      const el = document.getElementById(id);
-      if (el) Plotly.Plots.resize(el);
-    }
-  });
-}
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el) Plotly.Plots.resize(el);
+      }
+    });
+  }
 
-  // Init
+  // Initialize event bindings once DOM content is fully loaded
   document.addEventListener("DOMContentLoaded", () => {
     wireAccordionRender();
     wireResize();
