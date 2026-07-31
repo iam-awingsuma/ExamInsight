@@ -6,6 +6,7 @@
   // ---------------------------------------------
   let _extNgrtCache = null;
 
+  // Fetches NGRT analytics data from API endpoint with caching
   async function getExtNgrtPayload() {
     if (_extNgrtCache) return _extNgrtCache;
 
@@ -19,9 +20,7 @@
     return _extNgrtCache;
   }
 
-  // -------------------------------------------------------------
-  // Small UI helpers: add loading, error, empty states
-  // -------------------------------------------------------------
+  // Updates inner HTML of a target DOM element by ID
   function setMessage(elId, html) {
     const el = document.getElementById(elId);
     if (!el) return false;
@@ -29,105 +28,104 @@
     return true;
   }
 
+  // Displays a italicized loading state message in target element
   function setLoading(elId) {
     return setMessage(elId, `<p class="text-muted text-sm fst-italic p-2 mb-0">Loading...</p>`);
   }
 
+  // Displays a red error badge message in target element
   function setError(elId, msg = "Failed to load data") {
     return setMessage(elId, `<p class="badge bg-danger mt-1">${msg}</p>`);
   }
 
+  // Displays a red empty-data badge message in target element
   function setEmpty(elId, msg = "No data available") {
     return setMessage(elId, `<p class="badge bg-danger mt-1">${msg}</p>`);
   }
 
-  // -----------------------------
-  // Stanine pie renderer
-  // -----------------------------
-  async function renderStanineThresholdPie({
-    elId,
-    datasetKey = "ngrtb",
-    stanineKey = "stanine",
-    threshold = 5
-  }) {
-    // If container missing, silently exit
+  // Renders a pie chart showing proportion of students above vs below a stanine threshold
+  async function renderStanineThresholdPie({elId, datasetKey = "ngrtb", stanineKey = "stanine", threshold = 5}) {
+    // Return early if container element does not exist in DOM
     const container = document.getElementById(elId);
-    if (!container) return;
+    if (!container) return; // Exit if element is missing
 
-    // Loading placeholder
-    setLoading(elId);
+    // Show loading text while fetching data
+    setLoading(elId); // Display loading UI placeholder
 
     try {
-      const payload = await getExtNgrtPayload();
-      const rows = payload?.[datasetKey] || [];
+      const payload = await getExtNgrtPayload(); // Fetch dataset payload from API
+      const rows = payload?.[datasetKey] || []; // Extract data rows for specified key
 
+      // Display empty state if dataset is invalid or empty
       if (!Array.isArray(rows) || rows.length === 0) {
-        setEmpty(elId);
+        setEmpty(elId); // Show empty status message
         return;
       }
 
-      let above = 0;
-      let below = 0;
+      let above = 0; // Counter for scores at or above threshold
+      let below = 0; // Counter for scores below threshold
 
+      // Loop through rows and count students by threshold criteria
       for (const row of rows) {
-        const s = Number(row?.[stanineKey]);
-        if (!Number.isFinite(s)) continue;
-        if (s >= threshold) above++;
-        else below++;
+        const s = Number(row?.[stanineKey]); // Cast stanine value to number
+        if (!Number.isFinite(s)) continue; // Skip invalid or non-numeric values
+        if (s >= threshold) above++; // Increment count above threshold
+        else below++; // Increment count below threshold
       }
 
-      // If no valid stanine values found:
+      // If no valid stanine values found display custom message
       if (above === 0 && below === 0) {
-        setEmpty(elId, "No valid stanine values found.");
+        setEmpty(elId, "No valid stanine values found."); // Show specific empty message
         return;
       }
 
+      // Configure Plotly pie chart trace specifications
       const trace = {
-        type: "pie",
-        labels: [`Stanine ${threshold} and above`, `Stanine ${threshold - 1} and below`],
-        values: [above, below],
-        hole: 0.3,
-        textinfo: "label+percent",
+        type: "pie", // Pie chart type
+        labels: [`Stanine ${threshold} and above`, `Stanine ${threshold - 1} and below`], // Slice category labels
+        values: [above, below], // Slice dataset values
+        hole: 0.3, // Donut chart center hole ratio
+        textinfo: "label+percent", // Display slice label and percentage text
         marker: {
-            colors: ['#A4CE95', '#FFDEB9'] // Custom colors for better distinction
+          colors: ['#A4CE95', '#FFDEB9'] // Color scheme for pie slices (green & peach)
         },
         hovertemplate:
-            "<b>%{label}</b><br>" +
-            "Students: %{value}<br>" +
-            "Percentage: %{percent}" +
-            "<extra></extra>"
+          "<b>%{label}</b><br>" + // Custom tooltip header
+          "Students: %{value}<br>" + // Tooltip student count
+          "Percentage: %{percent}" + // Tooltip percentage share
+          "<extra></extra>" // Hide trace name suffix in tooltip
       };
 
+      // Configure Plotly layout and legend orientation
       const layout = {
-        autosize: true,
-        margin: { t: 30, r: 10, b: 60, l: 10 },
-        showlegend: true,
+        autosize: true, // Enable automatic container sizing
+        margin: { t: 30, r: 10, b: 60, l: 10 }, // Set chart margins
+        showlegend: true, // Display chart legend
         legend: {
-          orientation: "h",
-          y: -0.1,
-          x: 0.5,
-          xanchor: "center",
-          yanchor: "top"
+          orientation: "h", // Horizontal legend layout
+          y: -0.1, // Position legend below plot
+          x: 0.5, // Center legend horizontally
+          xanchor: "center", // Align horizontal center
+          yanchor: "top" // Align top anchor
         }
       };
 
+      // Render Plotly pie chart and trigger responsive resizing
       Plotly.newPlot(elId, [trace], layout, { responsive: true })
       .then(() => {
-        const gd = document.getElementById(elId);
+        const gd = document.getElementById(elId); // Get rendered graph DOM element
         // resize immediately
-        Plotly.Plots.resize(gd);
+        Plotly.Plots.resize(gd); // Trigger immediate canvas resize
         // resize after 150ms to handle any Bootstrap animation/layout changes
-        setTimeout(() => Plotly.Plots.resize(gd), 150);
+        setTimeout(() => Plotly.Plots.resize(gd), 150); // Delayed resize after DOM paint
       });
     } catch (err) {
-      console.error("Stanine pie error:", err);
-      setError(elId);
+      console.error("Stanine pie error:", err); // Log error details to console
+      setError(elId); // Display error UI state
     }
   }
-
-  // ---------------------------------------------
-  // Gender stanine bar renderer
-  // ---------------------------------------------
+  
+  // Renders a bar chart comparing percentage of male vs female students meeting a stanine threshold
   async function renderGenderStanineThresholdBar({
     elId,
     datasetKey = "ngrtb",
@@ -159,6 +157,7 @@
       let maleMeet = 0;
       let femaleMeet = 0;
 
+      // Loop through rows to count totals and meets by gender
       for (const row of rows) {
         const gRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
         const isMale = (gRaw === "m" || gRaw === "male");
@@ -186,12 +185,15 @@
       const totals = [maleTotal, femaleTotal];
       const meets = [maleMeet, femaleMeet];
 
+      // Calculate percentage values for each gender
       const percentValues = meets.map((v, i) => (totals[i] ? (v / totals[i]) * 100 : 0));
 
+      // Generate hover text for each gender bar with
       const hoverText = labels.map((lbl, i) =>
         `${lbl}: ${meets[i]}/${totals[i]} students (${percentValues[i].toFixed(1)}%)`
       );
 
+      // Configure separate traces for Male and Female bar series
       const traces = [
         {
           type: "bar",
@@ -219,6 +221,7 @@
         }
       ];
 
+      // Set Y-axis percentage limits and unified x-hover mode
       const layout = {
         autosize: true,
         margin: { t: 30, r: 20, b: 60, l: 60 },
@@ -295,6 +298,7 @@
 
       let labels, values;
 
+      // Determine pie chart labels and values based on selected mode
       if (mode === "expected_plus") {
         labels = ["Expected & Better Progress", "Below Expected"];
         values = [expected + better, lower];
@@ -312,6 +316,7 @@
       // clear "Loading..." or any placeholder HTML
       el.innerHTML = "";
 
+      // Configure Plotly pie chart trace specifications
       const trace = {
         type: "pie",
         labels,
@@ -326,6 +331,7 @@
           "<extra></extra>"
       };
 
+      // Configure Plotly layout and legend orientation
       const layout = {
         autosize: true,
         height: 360,
@@ -340,6 +346,7 @@
         }
       };
 
+      // Render Plotly pie chart and trigger responsive resizing
       Plotly.newPlot(elId, [trace], layout, {displayModeBar: false, responsive: true })
       .then(() => {
         const gd = document.getElementById(elId);
@@ -433,12 +440,14 @@
         }
       }
 
+      // If no valid gender rows with progress_category
       if (maleTotal === 0 && femaleTotal === 0) {
         if (c1) setEmpty(elIdExpectedPlus, "No valid gender rows with progress_category != '-' found.");
         if (c2) setEmpty(elIdBetterOnly, "No valid gender rows with progress_category != '-' found.");
         return;
       }
 
+      // Function to build bar charts
       function buildBar(elId, title, maleCount, femaleCount) {
         const el = document.getElementById(elId);
         if (!el) return;
@@ -446,6 +455,7 @@
         // clear "Loading..." or any placeholder HTML
         el.innerHTML = "";
 
+        // Calculate percentages for male and female
         const totals = [maleTotal, femaleTotal];
         const counts = [maleCount, femaleCount];
         const labels = ["Male", "Female"];
@@ -456,6 +466,7 @@
           `${lbl}: ${counts[i]}/${totals[i]} students (${pct[i].toFixed(1)}%)`
         );
 
+        // Build traces for male and female bars with
         const traces = [
           {
             type: "bar",
@@ -485,6 +496,7 @@
           }
         ];
 
+        // Set Y-axis percentage limits and unified x-hover mode
         const layout = {
           autosize: true,
           height: 360,
@@ -508,6 +520,7 @@
           },
         };
 
+        // Render Plotly bar chart and trigger responsive resizing
         Plotly.newPlot(elId, traces, layout, { displayModeBar: false, responsive: true })
         .then(() => {
           const gd = document.getElementById(elId);
@@ -572,6 +585,7 @@
       const payload = await getExtNgrtPayload();
       const rows = payload?.[datasetKey] || [];
 
+      // If no data rows, show empty state for both graphs
       if (!Array.isArray(rows) || rows.length === 0) {
         setEmpty(elId5);
         setEmpty(elId6);
@@ -587,6 +601,7 @@
       const meets5 = {...totals};
       const meets6 = {...totals};
 
+      // Count totals and meets for each year group and cohort
       for (const row of rows) {
 
         const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
@@ -617,6 +632,7 @@
         "Cohort":"#5DA3D4"
       };
 
+      // Render bar graph for a given year group and stanine threshold
       function renderGraph(elId, meets, threshold){
 
         const el = document.getElementById(elId);
@@ -625,14 +641,17 @@
         // remove "Loading..." placeholder
         el.innerHTML = "";
 
+        // Calculate percentage values for each year group and cohort
         const percentValues = labels.map(l =>
           totals[l] ? (meets[l]/totals[l])*100 : 0
         );
 
+        // Generate hover text for each year group bar with counts and percentages
         const hoverText = labels.map(l =>
           `${l}: ${meets[l]}/${totals[l]} students (${percentValues[labels.indexOf(l)].toFixed(1)}%)`
         );
 
+        // Build traces for each year group bar with hover text
         const traces = labels.map((label,i)=>({
           type:"bar", x:[label], y:[percentValues[i]],
           name:label,
@@ -642,6 +661,7 @@
           marker:{color:colorMap[label]}
         }));
 
+        // Configure Plotly layout with percentage y-axis and unified hover mode
         const layout = {
           autosize:true, barmode:"group",
           bargap: 0, bargroupgap: 0.1,
@@ -656,6 +676,7 @@
           hovermode:"x unified"
         };
 
+        // Render Plotly bar chart and trigger responsive resizing
         Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true})
         .then(() => {
           const gd = document.getElementById(elId);
@@ -666,6 +687,7 @@
         });
       }
 
+      // Render table for a given year group and stanine threshold
       function renderTable(tblId, meets){
         const percentValues = labels.map(l =>
           totals[l] ? (meets[l]/totals[l])*100 : 0
@@ -724,6 +746,7 @@
       const payload = await getExtNgrtPayload();
       const rows = payload?.[datasetKey] || [];
 
+      // If no data rows, show empty state for both graphs
       if (!Array.isArray(rows) || rows.length === 0) {
         setEmpty(elIdMale);
         setEmpty(elIdFemale);
@@ -732,6 +755,7 @@
 
       const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
 
+      // Builds a counter object for totals and meets by year group and cohort
       function buildCounters(){
         return {
           totals: {"2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0},
@@ -742,20 +766,21 @@
       const male = buildCounters();
       const female = buildCounters();
 
+      // Count totals and meets for each year group and cohort by gender
       for (const row of rows) {
 
         const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
         const genderRaw = String(row?.[genderKey] ?? "").trim().toLowerCase();
 
-        if (!yrGroups.includes(yrgrpRaw)) continue;
+        if (!yrGroups.includes(yrgrpRaw)) continue; // Skip invalid year groups
 
         const s = Number(row?.[stanineKey]);
-        if (!Number.isFinite(s)) continue;
+        if (!Number.isFinite(s)) continue; // Skip invalid stanine values
 
         const group = genderRaw === "male" ? male :
                       genderRaw === "female" ? female : null;
 
-        if (!group) continue;
+        if (!group) continue; // Skip if gender is neither male nor female
 
         group.totals[yrgrpRaw]++;
         group.totals["Cohort"]++;
@@ -774,21 +799,26 @@
         "Cohort":"#5DA3D4"
       };
 
+      // Renders a bar graph for a given gender and year group with hover text and percentage values
       function renderGraph(elId, data, title){
 
+        // If container element is missing, exit early
         const el = document.getElementById(elId);
         if (!el) return;
 
         el.innerHTML = "";
 
+        // Calculate percentage values for each year group and cohort
         const percentValues = labels.map(l =>
           data.totals[l] ? (data.meets[l]/data.totals[l])*100 : 0
         );
 
+        // Generate hover text for each year group bar with counts and percentages
         const hoverText = labels.map(l =>
           `${l}: ${data.meets[l]}/${data.totals[l]} students (${percentValues[labels.indexOf(l)].toFixed(1)}%)`
         );
 
+        // Build traces for each year group bar with hover text and color mapping
         const traces = labels.map((label,i)=>({
           type:"bar",
           x:[label],
@@ -801,6 +831,7 @@
           marker:{color:colorMap[label]}
         }));
 
+        // Configure Plotly layout with percentage y-axis and unified hover mode
         const layout = {
           title:"",
           autosize:true,
@@ -818,6 +849,7 @@
           hovermode:"x unified"
         };
 
+        // Render Plotly bar chart and trigger responsive resizing
         Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true})
         .then(() => {
           const gd = document.getElementById(elId);
@@ -826,6 +858,7 @@
         });
       }
 
+      // Renders a table for a given gender and year group with totals, meets, and percentage values
       function renderGenderYearGroupTable(tblId, data){
         const percentValues = labels.map(l =>
           data.totals[l] ? (data.meets[l] / data.totals[l]) * 100 : 0
@@ -873,7 +906,7 @@
 
     const containerMale = document.getElementById(elIdMale);
     const containerFemale = document.getElementById(elIdFemale);
-    if (!containerMale || !containerFemale) return;
+    if (!containerMale || !containerFemale) return; // Exit if either container is missing
 
     setLoading(elIdMale);
     setLoading(elIdFemale);
@@ -883,6 +916,7 @@
       const payload = await getExtNgrtPayload();
       const rows = payload?.[datasetKey] || [];
 
+      // If no data rows, show empty state for both graphs
       if (!Array.isArray(rows) || rows.length === 0) {
         setEmpty(elIdMale);
         setEmpty(elIdFemale);
@@ -891,6 +925,7 @@
 
       const yrGroups = ["2-A","2-B","2-C","2-D","2-E","2-F"];
 
+      // Builds a counter object for totals and meets by year group and cohort
       function buildCounters(){
         return {
           totals: {"2-A":0,"2-B":0,"2-C":0,"2-D":0,"2-E":0,"2-F":0,"Cohort":0},
@@ -901,6 +936,7 @@
       const male = buildCounters();
       const female = buildCounters();
 
+      // Count totals and meets for each year group and cohort by gender
       for (const row of rows) {
 
         const yrgrpRaw = String(row?.[yrgrpKey] ?? "").trim().toUpperCase();
@@ -933,6 +969,7 @@
         "Cohort":"#5DA3D4"
       };
 
+      // Renders a bar graph for a given gender and year group with hover text and percentage values
       function renderGraph(elId, data, title){
 
         const el = document.getElementById(elId);
@@ -940,14 +977,17 @@
 
         el.innerHTML = "";
 
+        // Calculate percentage values for each year group and cohort
         const percentValues = labels.map(l =>
           data.totals[l] ? (data.meets[l]/data.totals[l])*100 : 0
         );
 
+        // Generate hover text for each year group bar with counts and percentages
         const hoverText = labels.map(l =>
           `${l}: ${data.meets[l]}/${data.totals[l]} students (${percentValues[labels.indexOf(l)].toFixed(1)}%)`
         );
 
+        // Build traces for each year group bar with hover text and color mapping
         const traces = labels.map((label,i)=>({
           type:"bar", x:[label], y:[percentValues[i]],
           name:label,
@@ -958,6 +998,7 @@
           marker:{color:colorMap[label]}
         }));
 
+        // Configure Plotly layout with percentage y-axis and unified hover mode
         const layout = {
           autosize:true, barmode: "group",
           bargap: 0, bargroupgap: 0.1,
@@ -972,6 +1013,7 @@
           hovermode:"x unified"
         };
 
+        // Render Plotly bar chart and trigger responsive resizing
         Plotly.newPlot(elId,traces,layout,{displayModeBar:false,responsive:true})
         .then(() => {
           const gd = document.getElementById(elId);
@@ -980,6 +1022,7 @@
         });
       }
 
+      // Renders a table for a given gender and year group with totals, meets, and percentage values
       function renderGenderYearGroupTable(tblId, data){
         const percentValues = labels.map(l =>
           data.totals[l] ? (data.meets[l] / data.totals[l]) * 100 : 0
@@ -1050,7 +1093,7 @@
         return;
       }
 
-      // Process dataset
+      // Count totals and meets for each year group and cohort based on progress category
       rows.forEach(row => {
         const yr = String(row?.[yrgrpKey] ?? "")
           .trim().toUpperCase();
@@ -1548,26 +1591,26 @@
   // Resize handling
   // -----------------------------
   function wireResize() {
-  window.addEventListener("resize", () => {
-    const ids = [
-      "pie-st5-extl-ngrtb", "pie-st6-extl-ngrtb",
-      "bar-gender-st5-extl-ngrtb", "bar-gender-st6-extl-ngrtb",
-      "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
-      "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb",
-      "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb",
-      "bar-yrgrp-male-st5-extl-ngrtb", "bar-yrgrp-female-st5-extl-ngrtb",
-      "bar-yrgrp-male-st6-extl-ngrtb", "bar-yrgrp-female-st6-extl-ngrtb",
-      "bar-yrgrp-ebp-extl-ngrtb", "bar-yrgrp-bp-extl-ngrtb",
-      "bar-male-ebp-extl-ngrtb", "bar-female-ebp-extl-ngrtb",
-      "bar-male-bp-extl-ngrtb", "bar-female-bp-extl-ngrtb",
-    ];
+    window.addEventListener("resize", () => {
+      const ids = [
+        "pie-st5-extl-ngrtb", "pie-st6-extl-ngrtb",
+        "bar-gender-st5-extl-ngrtb", "bar-gender-st6-extl-ngrtb",
+        "pie-prog-exp-plus-extl-ngrtb", "pie-prog-better-extl-ngrtb",
+        "bar-gender-exp-plus-extl-ngrtb", "bar-gender-better-extl-ngrtb",
+        "bar-yrgrp-st5-extl-ngrtb", "bar-yrgrp-st6-extl-ngrtb",
+        "bar-yrgrp-male-st5-extl-ngrtb", "bar-yrgrp-female-st5-extl-ngrtb",
+        "bar-yrgrp-male-st6-extl-ngrtb", "bar-yrgrp-female-st6-extl-ngrtb",
+        "bar-yrgrp-ebp-extl-ngrtb", "bar-yrgrp-bp-extl-ngrtb",
+        "bar-male-ebp-extl-ngrtb", "bar-female-ebp-extl-ngrtb",
+        "bar-male-bp-extl-ngrtb", "bar-female-bp-extl-ngrtb",
+      ];
 
-    for (const id of ids) {
-      const el = document.getElementById(id);
-      if (el) Plotly.Plots.resize(el);
-    }
-  });
-}
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el) Plotly.Plots.resize(el);
+      }
+    });
+  }
 
   // Init
   document.addEventListener("DOMContentLoaded", () => {
