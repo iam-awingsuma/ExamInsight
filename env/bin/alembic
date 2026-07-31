@@ -1,7 +1,9 @@
 #!/Users/awingsuma/Downloads/repos/ExamInsight/env/bin/python3
-import sys
-from alembic.config import main
-if __name__ == '__main__':
-    if sys.argv[0].endswith('.exe'):
-        sys.argv[0] = sys.argv[0][:-4]
-    sys.exit(main())
+
+import sys  # System-specific parameters and functions module
+from alembic.config import main  # Main CLI entry point execution function for Alembic migrations
+
+if __name__ == '__main__':  # Runs script logic only when executed directly as main program
+    if sys.argv[0].endswith('.exe'):  # Checks if script path ends with executable extension (.exe)
+        sys.argv[0] = sys.argv[0][:-4]  # Strips .exe extension from command name argument
+    sys.exit(main())  # Executes Alembic CLI and exits with returned status code

@@ -1,7 +1,9 @@
 #!/Users/awingsuma/Downloads/repos/ExamInsight/env/bin/python3
-import sys
-from htmlmin.command import main
-if __name__ == '__main__':
-    if sys.argv[0].endswith('.exe'):
-        sys.argv[0] = sys.argv[0][:-4]
-    sys.exit(main())
+
+import sys  # System module
+from htmlmin.command import main  # htmlmin HTML minifier CLI launcher
+
+if __name__ == '__main__':  # Script entry point
+    if sys.argv[0].endswith('.exe'):  # Check for .exe extension
+        sys.argv[0] = sys.argv[0][:-4]  # Strip .exe extension
+    sys.exit(main())  # Run htmlmin CLI and exit

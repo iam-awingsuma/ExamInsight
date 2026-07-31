@@ -1,7 +1,9 @@
 #!/Users/awingsuma/Downloads/repos/ExamInsight/env/bin/python3
-import sys
-from charset_normalizer.cli import cli_detect
-if __name__ == '__main__':
-    if sys.argv[0].endswith('.exe'):
-        sys.argv[0] = sys.argv[0][:-4]
-    sys.exit(cli_detect())
+
+import sys  # System module
+from charset_normalizer.cli import cli_detect  # Charset Normalizer encoding detection CLI launcher
+
+if __name__ == '__main__':  # Script entry point
+    if sys.argv[0].endswith('.exe'):  # Check for .exe extension
+        sys.argv[0] = sys.argv[0][:-4]  # Strip .exe extension
+    sys.exit(cli_detect())  # Run CLI detector and exit

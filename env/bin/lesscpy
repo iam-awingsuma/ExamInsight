@@ -1,7 +1,9 @@
 #!/Users/awingsuma/Downloads/repos/ExamInsight/env/bin/python3
-import sys
-from lesscpy.scripts.compiler import run
-if __name__ == '__main__':
-    if sys.argv[0].endswith('.exe'):
-        sys.argv[0] = sys.argv[0][:-4]
-    sys.exit(run())
+
+import sys  # System module
+from lesscpy.scripts.compiler import run  # lesscpy LESS CSS compiler CLI launcher
+
+if __name__ == '__main__':  # Script entry point
+    if sys.argv[0].endswith('.exe'):  # Check for .exe extension
+        sys.argv[0] = sys.argv[0][:-4]  # Strip .exe extension
+    sys.exit(run())  # Run lesscpy compiler CLI and exit

@@ -1,9 +1,9 @@
-# Environment variables
+# Environment variables (Secrets)
 .env
 .env.local
 .env.*.local
 
-# Python
+# Python / Byte-compiled
 __pycache__/
 *.py[cod]
 *$py.class
@@ -28,80 +28,50 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Virtual Environment
+# Virtual Environments
 env/
 venv/
+.venv/
 ENV/
 env.bak/
 venv.bak/
 
-# Database
+# Databases
 *.db
 *.sqlite3
 *.sqlite
 db.sqlite3
 
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Logs
+# Logs & Temporary Files
 *.log
 logs/
-
-# Flask
-instance/
-.webassets-cache
-
-# Pytest
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# Celery
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Temporary files
 *.tmp
 *.bak
 *.swp
+*.swo
 *~
 
-# OS files
+# Flask & Celery
+instance/
+.webassets-cache
+celerybeat-schedule
+celerybeat.pid
+
+# Testing & Tools
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints
+.python-version
+*.sage.py
+
+# IDEs & System Files
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
-# Static files (if generated)
+# User Uploads & Generated Static Assets
 static/assets/csv/*.csv
-
-# User uploads
 static/assets/images/avatars/*
 !static/assets/images/avatars/.gitkeep
-
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
