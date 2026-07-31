@@ -4,8 +4,6 @@
 # If you need more help, visit the Dockerfile reference guide at
 # https://docs.docker.com/go/dockerfile-reference/
 
-# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
-
 ARG PYTHON_VERSION=3.13.2
 FROM python:${PYTHON_VERSION}-slim AS base
 
@@ -19,6 +17,7 @@ ENV FLASK_APP=run.py
 # the application crashes without emitting any logs due to buffering.
 ENV PYTHONUNBUFFERED=1
 
+# Set the working directory to /ExamInsight. All subsequent commands will be run from this directory.
 WORKDIR /ExamInsight
 
 # Create a non-privileged user that the app will run under.
