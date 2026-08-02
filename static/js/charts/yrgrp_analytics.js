@@ -33,6 +33,7 @@ window.yrgrp_analytics = function (elId = "chart_yrgrp_analytics") {
         hovertemplate: "<b>"+r.name+"</b>: %{y:.1f}<extra></extra>"
       }));
 
+      // Render the Plotly bar chart with grouped bars, percentage y-axis, and responsive layout
       Plotly.newPlot(
         elId,
         traces,
@@ -146,6 +147,7 @@ window.yrgrp_analytics60 = function (elId = "chart_yrgrp_analytics60") {
         };
       });
 
+      // Render the Plotly bar chart with grouped bars, percentage y-axis, and responsive layout
       Plotly.newPlot(
         elId,
         traces,
@@ -231,6 +233,7 @@ window.yrgrp_analytics70 = function (elId = "chart_yrgrp_analytics70") {
         };
       });
 
+      // Render the Plotly bar chart with grouped bars, percentage y-axis, and responsive layout
       Plotly.newPlot(
         elId,
         traces,
@@ -279,6 +282,7 @@ window.yrgrp_progressChart = function (
       // ---- Builds a single Cohort row from td.cohort_progress (3 rows: Eng/Maths/Sci) ----
       const cohortRec = { class: "Cohort" };
 
+      // Fill in cohortRec with the appropriate percentage fields from td.cohort_progress
       if (Array.isArray(td.cohort_progress)) {
         td.cohort_progress.forEach(c => {
           const subj = (c.subject || "").toLowerCase();
@@ -337,6 +341,7 @@ window.yrgrp_progressChart = function (
           };
         });
 
+        // Render the Plotly bar chart with grouped bars, percentage y-axis, and responsive layout
       Plotly.newPlot(
         elId,
         traces,
