@@ -1,6 +1,6 @@
 /**
  * AI Performance Interpretation Module
- * Integrates ChatGPT analysis into student insights pages
+ * Integrates ChatGPT analysis into student insights page of Internal Assmt Analytics.
  */
 class AIPerformanceInterpreter {
     constructor(options = {}) { // Accept optional configuration parameters
