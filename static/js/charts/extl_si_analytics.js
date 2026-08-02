@@ -8,10 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const chartId = main?.getAttribute("data-chart") || "extl_ngrt_scatter";
     console.log("Dataset from HTML:", dataset);
 
-    const elYrgrp = document.getElementById("yrgrp");
-    const elStudent = document.getElementById("student");
+    const elYrgrp = document.getElementById("yrgrp"); // Get year group element from DOM
+    const elStudent = document.getElementById("student"); // Get student element from DOM
 
-    const rdgProfileCard = document.getElementById("rdg_profile_card");
+    const rdgProfileCard = document.getElementById("rdg_profile_card"); // Get reading profile card element from DOM
 
     // Store API data once
     let allStudents = [];
@@ -114,11 +114,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         elYrgrp.innerHTML = '<option value="">All Year Groups</option>';
 
+        // Convert Set to sorted array and iterate over each year group
         [...yrgrpSet].sort().forEach(yr => {
-            const option = document.createElement("option");
-            option.value = yr;
-            option.textContent = yr;
-            elYrgrp.appendChild(option);
+            const option = document.createElement("option"); // Create new HTML option element
+            option.value = yr; // Set option value to year group
+            option.textContent = yr; // Set visible text to year group
+            elYrgrp.appendChild(option); // Append option to year group dropdown menu
         });
     }
 
@@ -155,6 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // Filter students matching the selected year group
         const filtered = allStudents.filter(s => {
             return (
                 s.yrgrp &&
@@ -162,6 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         });
 
+        // Populate student dropdown options and enable student select input
         filtered.forEach(s => {
             const fullname = `${s.forename} ${s.surname}`;
             addStudentOption(s.student_id, fullname);
@@ -222,6 +225,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const profileDescription = document.getElementById("rdg_profile_description");
         const profileAI = document.getElementById("rdg_profile_ai_recommendations");
 
+        // Reset profile category text placeholder and remove badge styling classes
         if (profileCategory) {
             profileCategory.textContent = "Select a student & click 'Generate AI Analysis' to view their reading profile.";
             profileCategory.classList.remove(
@@ -231,10 +235,12 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         }
 
+        // Reset profile description text placeholder
         if (profileDescription) {
             profileDescription.textContent = "Select a student & click 'Generate AI Analysis' to view their reading profile description.";
         }
 
+        // Reset AI analysis text placeholder
         if (profileAI) {
             profileAI.textContent = "Click 'Generate AI Analysis' to interpret the results using AI.";
         }
@@ -251,6 +257,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const yrgrp = elYrgrp.value;
         const studentId = elStudent.value;
 
+        // Filter students by selected year group, or include all students if no year group is specified
         const cohort = yrgrp
             ? allStudents.filter(s =>
                 s.yrgrp &&
@@ -266,10 +273,11 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const x = cohort.map(s => Number(s.sas));
-        const y = cohort.map(s => Number(s.stanine));
-        const names = cohort.map(s => `${s.forename} ${s.surname}`);
+        const x = cohort.map(s => Number(s.sas));  // Extract and convert student SAS scores for X-axis
+        const y = cohort.map(s => Number(s.stanine));  // Extract and convert student stanine scores for Y-axis
+        const names = cohort.map(s => `${s.forename} ${s.surname}`);  // Format full names for hover labels/tooltips
 
+        // Define Plotly scatter trace configuration for cohort data points
         const cohortTrace = {
             x: x, y: y,
             mode: "markers", type: "scatter",
@@ -305,6 +313,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
+        // Define Plotly layout configuration including transparent backgrounds, axis ranges, 
+        // colored stanine band shapes, and the national average benchmark line with annotations
         const layout = {
             autosize: true,
             margin: { l: 70, r: 30, t: 20, b: 70 },
@@ -371,6 +381,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             ]
         };
+
+        // Render Plotly chart canvas with traces, layout options, and responsive settings
         Plotly.react(chartId, traces, layout, {displayModeBar: false, responsive:true});
     }
 
@@ -378,6 +390,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Render KPIs for Student Insights External
     // ---------------------------------------------
     function renderKPIs(cohort = [], student = null) {
+        // Safely updates a DOM element's text content by ID, formatting numbers 
+        // to whole integers and falling back to "-" if null/undefined
         const set = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.textContent =
@@ -403,14 +417,14 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // Calculate total cohort size, average SAS score, and average Stanine score
         const totalStudents = cohort.length;
-
         const avgSAS =
             cohort.reduce((sum, s) => sum + Number(s.sas || 0), 0) / totalStudents;
-
         const avgStanine =
             cohort.reduce((sum, s) => sum + Number(s.stanine || 0), 0) / totalStudents;
 
+        // Update KPI display elements with total student count, average SAS, and average Stanine
         set("kpi_total_value", totalStudents);
         set("kpi_sas", avgSAS);
         set("kpi_stanine", avgStanine);
@@ -422,17 +436,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let mostCommon = "-";
 
+        // Determine the most common category by calculating frequency counts
         if (categories.length) {
             const counts = {};
+            // Count occurrences of each category in the array
             categories.forEach(cat => {
                 counts[cat] = (counts[cat] || 0) + 1;
             });
 
+            // Find the category key with the highest count
             mostCommon = Object.keys(counts).reduce((a, b) =>
                 counts[a] > counts[b] ? a : b
             );
         }
 
+        // Update progress category KPI display element
         set("kpi_progcat", mostCommon);
     }
 
@@ -440,9 +458,11 @@ document.addEventListener("DOMContentLoaded", function () {
     // NGRT Line Graph (SAS + Stanine) - Attainment over Time
     // -------------------------------------------------------------
     function renderNgrtAttainmentLine(cohort = [], student = null) {
+        // Define x-axis labels for comparing previous and latest SAS and Stanine test scores
         const SASlabels = ["Previous SAS", "Latest SAS"];
         const Staninelabels = ["Previous Stanine", "Latest Stanine"];
 
+        // Initialize numerical variables for storing previous and current SAS and Stanine test scores
         let prevSAS = 0, currSAS = 0;
         let prevStanine = 0, currStanine = 0;
 
@@ -469,18 +489,21 @@ document.addEventListener("DOMContentLoaded", function () {
             currStanine = avg(cohort, "stanine");
         }
 
+        // Define Plotly trace data array for the Standard Age Score (SAS) comparison line chart
         const traceSAS = [
             {x: SASlabels, y: [prevSAS, currSAS], type: "scatter", mode: "lines+markers", name: "SAS", 
                 marker: { color: "#6FAF4F", size: 8 }, line: { color: "#A7E399", width: 2 }, 
             hovertemplate: "<b>SAS: </b><b>%{y}</b><extra></extra>"}
         ];
 
+        // Define Plotly trace data array for the Stanine score comparison line chart
         const traceStanine = [
             {x: Staninelabels, y: [prevStanine, currStanine], type: "scatter", mode: "lines+markers", name: "Stanine", 
                 marker: { color: "#6FAF4F", size: 8 }, line: { color: "#A7E399", width: 2 }, 
             hovertemplate: "<b>Stanine: </b><b>%{y}</b><extra></extra>"}
         ];
 
+        // Define Plotly layout configuration for styling the comparison line charts
         const layout = {
             autosize: true,
             width: null,
@@ -492,9 +515,11 @@ document.addEventListener("DOMContentLoaded", function () {
             plot_bgcolor: "rgba(0,0,0,0)"
         };
 
+        // Get DOM references for attainment and progress over time chart containers
         const chart1 = document.getElementById("chart_attainment_over_time");
         const chart2 = document.getElementById("chart_progress_over_time");
 
+        // Render SAS chart using Plotly and attach dynamic resize listeners
         if (chart1) {
             Plotly.react(chart1, traceSAS, layout, {
                 displayModeBar: false,
@@ -509,6 +534,7 @@ document.addEventListener("DOMContentLoaded", function () {
             observer1.observe(chart1);
         }
 
+        // Render Stanine chart using Plotly and attach dynamic resize listeners
         if (chart2) {
             Plotly.react(chart2, traceStanine, layout, {
                 displayModeBar: false,
@@ -579,6 +605,8 @@ document.addEventListener("DOMContentLoaded", function () {
             total ? ((v / total) * 100).toFixed(1) : 0
         );
 
+        // Generate an array of Plotly bar chart traces for each category label 
+        // with percentage text, custom colors, and hover tooltips
         const trace = labels.map((label, i) => ({
             x: [displayLabels[i]],
             y: [yValues[i]],
@@ -598,6 +626,8 @@ document.addEventListener("DOMContentLoaded", function () {
             showlegend: true
         }));
 
+        // Define Plotly layout configuration with axis formatting, legend placement, 
+        // custom bar spacing, and transparent backgrounds
         const layout = {
             autosize: true,
             width: null,
@@ -639,6 +669,8 @@ document.addEventListener("DOMContentLoaded", function () {
             plot_bgcolor: "rgba(0,0,0,0)"
         };
 
+        // Render Plotly chart for external stanine distribution and
+        // handle initial, window, and observer-based container resizing
         const el = document.getElementById("chart_extl_stanine_dist");
         if (el) {
             Plotly.newPlot(el, trace, layout, { displayModeBar: false, responsive: true });
@@ -684,13 +716,16 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
+        // Extract count values for each label and calculate the total count sum
         const yValues = labels.map(l => counts[l]);
         const total = yValues.reduce((a, b) => a + b, 0);
 
+        // Calculate percentage breakdown per label formatted to one decimal place
         const percentages = yValues.map(v =>
             total ? ((v / total) * 100).toFixed(1) : 0
         );
 
+        // Generate an array of Plotly bar chart traces for each progress category label
         const trace = labels.map((label, i) => ({
             x: [displayLabels[i]],
             y: [yValues[i]],
@@ -710,6 +745,8 @@ document.addEventListener("DOMContentLoaded", function () {
             showlegend: true
         }));
 
+        // Define Plotly layout configuration with axis formatting, legend placement,
+        // custom bar spacing, and transparent backgrounds
         const layout = {
             autosize: true,
             width: null,
@@ -754,6 +791,8 @@ document.addEventListener("DOMContentLoaded", function () {
             plot_bgcolor: "rgba(0,0,0,0)"
         };
 
+        // Render Plotly chart for external progress category distribution and
+        // handle initial, window, and observer-based container resizing
         const el = document.getElementById("chart_extl_progcat");
         if (el) {
             Plotly.newPlot(el, trace, layout, { displayModeBar: false, responsive: true });
@@ -812,16 +851,20 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
+        // Extract count values for each label and calculate the total count sum
         const yValues = labels.map(l => counts[l]);
 
+        // Calculate total number of students with valid SAS scores for percentage calculations
         const total = student
             ? (getStudentSas(student) !== null ? 1 : 0)
             : cohort.filter(s => getStudentSas(s) !== null).length;
 
+        // Calculate percentage breakdown per label formatted to one decimal place
         const percentages = yValues.map(v =>
             total ? ((v / total) * 100).toFixed(1) : "0.0"
         );
 
+        // Generate an array of Plotly bar chart traces for each reading literacy threshold label
         const trace = labels.map((label, i) => ({
             x: [displayLabels[i]],
             y: [yValues[i]],
@@ -841,6 +884,8 @@ document.addEventListener("DOMContentLoaded", function () {
             showlegend: true
         }));
 
+        // Define Plotly layout configuration with axis formatting, legend placement,
+        // custom bar spacing, and transparent backgrounds
         const layout = {
             autosize: true,
             width: null,
@@ -885,12 +930,15 @@ document.addEventListener("DOMContentLoaded", function () {
             plot_bgcolor: "rgba(0,0,0,0)"
         };
 
+        // Render Plotly chart for external reading literacy threshold distribution and
         const el = document.getElementById("chart_extl_sas_threshold");
 
+        // Handle initial, window, and observer-based container resizing
         if (!el) {
             console.warn("Missing chart container: chart_extl_sas_threshold");
             return;
         }
+        // Render Plotly chart with traces, layout options, and responsive settings
         Plotly.react(el, trace, layout, { displayModeBar: false, responsive: true });
         setTimeout(() => { Plotly.Plots.resize(el); }, 100);
         window.addEventListener("resize", () => Plotly.Plots.resize(el));
@@ -907,6 +955,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Filter cohort
         let cohort = allStudents;
 
+        // Filter students by selected year group if specified
         if (yrgrp) {
             cohort = allStudents.filter(s =>
                 s.yrgrp &&
