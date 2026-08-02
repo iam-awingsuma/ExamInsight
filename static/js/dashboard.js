@@ -1,8 +1,11 @@
+// JS for dashboard.html — handles tab switching and chart resizing
 document.addEventListener("DOMContentLoaded", function () {
 
+  // Tab switching logic for the dashboard
   const tabs = document.querySelectorAll(".ei-tab");
   const sections = document.querySelectorAll(".tab-section");
 
+  // Initialize by showing the first section and setting the first tab as active
   tabs.forEach(tab => {
     tab.addEventListener("click", () => {
 
@@ -17,12 +20,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const target = tab.dataset.tab;
       const section = document.getElementById("section-" + target);
 
-    // const activeSection = document.getElementById("section-" + target);
+    // Show the selected section and hide others
     section.classList.remove("d-none");
-
-    //   if (activeSection) {
-    //     activeSection.classList.remove("d-none");
-    //   }
     
     // resize Plotly AFTER showing
     setTimeout(() => {
