@@ -8,6 +8,7 @@ class AIExternalPerformanceInterpreter {
 
     constructor(options = {}) {
 
+        // API endpoint for AI interpretation
         this.apiEndpoint = options.apiEndpoint || '/api/interpret_external_performance';
         this.loadingSelector = options.loadingSelector || '#ai-loading';
         this.resultSelector = options.resultSelector || '#ai-interpretation';
@@ -24,7 +25,7 @@ class AIExternalPerformanceInterpreter {
         params.dataset = this.dataset;
         const queryString = this._buildQueryString(params);
 
-        try {
+        try { // Show loading indicator
             this._showLoading();
             const response = await fetch(`${this.apiEndpoint}${queryString}`);
             const data = await response.json();
@@ -42,8 +43,8 @@ class AIExternalPerformanceInterpreter {
             const profileAI = document.getElementById("rdg_profile_ai_recommendations");
             const profileResult = document.getElementById("rdg_profile_result");
 
-            if (data.student_id) {
-                if (profileCategory) {
+            if (data.student_id) { // Only update profile card if student_id is present
+                if (profileCategory) { // Update profile category badge based on reader profile
                     const noProfile = !data.reader_profile;
                     // reset previous badge styles
                     profileCategory.classList.remove(
@@ -51,8 +52,7 @@ class AIExternalPerformanceInterpreter {
                         "bg-gradient-danger",
                         "bg-gradient-info"
                     );
-                    if (!noProfile && (this.dataset === "ngrtb" || this.dataset === "ngrtc")) {
-                        // profile exists for NGRT-B or NGRT-C
+                    if (!noProfile && (this.dataset === "ngrtb" || this.dataset === "ngrtc")) { // profile exists for NGRT-B or NGRT-C
                         profileCategory.textContent = data.reader_profile;
                         profileCategory.classList.add("badge", "bg-gradient-info", "px-2","py-1", "text-sm", "text-capitalize");
                     } else { // no profile for NGRT-A or missing reader profile
@@ -61,25 +61,25 @@ class AIExternalPerformanceInterpreter {
                     }
                 }
 
-                if (profileDescription) {
+                if (profileDescription) { // Update profile description text
                     profileDescription.textContent = data.profile_description || "No profile description available";
                 }
 
-                if (profileAI) {
+                if (profileAI) { // Update AI recommendations text
                     profileAI.textContent = data.profile_ai_interpretation || "No AI interpretation available for this reading profile";
                 }
 
-                if (profileResult) {
+                if (profileResult) { // Show the profile result section
                     profileResult.style.display = "block";
                 }
             }
 
             return data;
 
-        } catch (error) {
+        } catch (error) { // Display error message
             this._showError(error.message);
             throw error;
-        } finally {
+        } finally { // Hide loading indicator
             this._hideLoading();
         }
     }
@@ -91,11 +91,12 @@ class AIExternalPerformanceInterpreter {
 
         button.addEventListener("click", async () => {
 
+            // Retrieve DOM element references for the AI title section, student dropdown, and year group dropdown
             const title = document.getElementById("ai_title");
-
             const studentSelect = document.getElementById("student");
             const yrgrpSelect = document.getElementById("yrgrp");
 
+            // Get current filter values from the page
             const studentId = studentSelect?.value;
             const yrgrp = yrgrpSelect?.value;
 
@@ -132,11 +133,11 @@ class AIExternalPerformanceInterpreter {
 
             button.disabled = true;
 
-            try {
+            try { // Generate AI interpretation based on selected filters
                 await this.generateInterpretation(params);
-            } catch (error) {
+            } catch (error) { // Log error to console for debugging
                 console.error("AI analysis failed.", error);
-            } finally {
+            } finally { // Re-enable the button after processing
                 button.disabled = false;
             }
         });
@@ -144,10 +145,11 @@ class AIExternalPerformanceInterpreter {
 
     // Auto-load when filters change
     initAutoLoad() {
+        // Get references to the student and year group dropdown elements
         const studentSelect = document.getElementById("student");
         const yearSelect = document.getElementById("yrgrp");
 
-        const loadHandler = async () => {
+        const loadHandler = async () => { // Get current filter values from the page
             const studentId = studentSelect?.value;
             const yrgrp = yearSelect?.value;
 
@@ -158,18 +160,19 @@ class AIExternalPerformanceInterpreter {
             if (studentId) params.student_id = studentId;
             if (yrgrp) params.yrgrp = yrgrp;
 
-            try {
+            try { // Generate AI interpretation based on selected filters
                 await this.generateInterpretation(params);
-            } catch (error) {
+            } catch (error) { // Log error to console for debugging
                 console.error("AI auto-load failed:", error);
             }
         };
+        // Attach event listeners to the student and year group dropdowns to trigger auto-load on change
         studentSelect?.addEventListener("change", loadHandler);
         yearSelect?.addEventListener("change", loadHandler);
     }
 
     // Helper Methods
-    _buildQueryString(params) {
+    _buildQueryString(params) { // Build query string from parameters
         const queryParams = Object.entries(params)
             .filter(([_, value]) => value)
             .map(([key, value]) => `${key}=${encodeURIComponent(value)}`);
@@ -177,7 +180,7 @@ class AIExternalPerformanceInterpreter {
         return queryParams.length ? "?" + queryParams.join("&") : "";
     }
 
-    _showLoading() {
+    _showLoading() { // Show loading indicator and hide result section
         const loading = document.querySelector(this.loadingSelector);
         const result = document.querySelector(this.resultSelector);
 
@@ -191,7 +194,7 @@ class AIExternalPerformanceInterpreter {
         if (profileResult) profileResult.style.display = "none";
     }
 
-    _hideLoading() {
+    _hideLoading() { // Hide loading indicator and show result section
         const loading = document.querySelector(this.loadingSelector);
         if (loading) loading.style.display = "none";
 
@@ -199,7 +202,7 @@ class AIExternalPerformanceInterpreter {
         if (profileLoading) profileLoading.style.display = "none";
     }
 
-    _showResult(interpretation) {
+    _showResult(interpretation) { // Display the AI interpretation result in the designated section
         const result = document.querySelector(this.resultSelector);
         const text = document.querySelector(this.textSelector);
 
@@ -208,7 +211,7 @@ class AIExternalPerformanceInterpreter {
         if (result) result.style.display = "block";
     }
 
-    _showError(message) {
+    _showError(message) { // Display error message in the result section
         const result = document.querySelector(this.resultSelector);
         const text = document.querySelector(this.textSelector);
 
@@ -224,6 +227,7 @@ class AIExternalPerformanceInterpreter {
     }
 }
 
+// Utility function to convert a string to title case
 function toTitleCase(name) {
     return name
         .toLowerCase()
