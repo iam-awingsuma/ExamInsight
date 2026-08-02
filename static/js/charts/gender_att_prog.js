@@ -3,6 +3,7 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
   const el = document.getElementById(elId);
   if (!el) return console.error(`[renderGenderThresholdBars] Missing #${elId}`);
 
+  // Parse JSON data from the specified blob element, defaulting to an empty array on failure
   let data = [];
   try { data = JSON.parse(document.getElementById(blobId)?.textContent || "[]"); }
   catch { data = []; }
@@ -31,10 +32,12 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
     const mN = (r.male_n ?? null),   mT = (r.male_total ?? null);
     const fN = (r.female_n ?? null), fT = (r.female_total ?? null);
 
+    // Use template literals to create hover text with subject, gender, numerator/total, and percentage
     maleHover[i] = (mN !== null && mT !== null)
       ? `${subjects[i]}<br><b>Male:</b> ${mN}/${mT} (${male[i].toFixed(1)}%)`
       : `${subjects[i]}<br><b>Male:</b> ${male[i].toFixed(1)}%`;
 
+    // Use template literals to create hover text with subject, gender, numerator/total, and percentage
     femaleHover[i] = (fN !== null && fT !== null)
       ? `${subjects[i]}<br><b>Female:</b> ${fN}/${fT} (${female[i].toFixed(1)}%)`
       : `${subjects[i]}<br><b>Female:</b> ${female[i].toFixed(1)}%`;
@@ -62,7 +65,7 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
     }
   ];
 
-  // Layout
+  // Render the Plotly bar chart with grouped bars, percentage y-axis, and responsive layout
   Plotly.newPlot(elId, traces, {
     autosize:true,
     barmode:"group",
@@ -79,11 +82,3 @@ window.renderGenderThresholdBars = function (blobId, elId, labelSuffix = "") {
   window.addEventListener("resize", () => Plotly.Plots.resize(el));
   new ResizeObserver(() => Plotly.Plots.resize(el)).observe(el);
 };
-
-// Tiny auto-init (a one-time hook)
-// document.addEventListener("DOMContentLoaded", () => {
-//   document.querySelectorAll('[data-render="gender-threshold-bars"]').forEach(node => {
-//     // call the same function; args come from data-attributes
-//     window.renderGenderThresholdBars(undefined, node.id, undefined);
-//   });
-// });
