@@ -1,12 +1,11 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
+<!-- Main container wrapper for Analytics Dashboard -->
 <main class="container py-4">
+  
+  <!-- Header title block with icon and subtitle description -->
   <div class="d-flex align-items-start gap-1 mb-3">
-    <!-- <div>
-      <h5 class="h5 mb-1">📊 Analytics Dashboard - Internal Assessments</h5>
-      <div class="text-xs">View insights across internal assessments, track progress, and compare performance.</div>
-    </div> -->
     <img class="me-1 mt-0" width="42" height="42" src="https://img.icons8.com/?size=100&id=U6PP5OT1Bp86&format=png&color=000000" 
         alt="Analytics - Internal Assessments" title="Analytics - Internal Assessments"/>
     <div class="d-flex-inline">
@@ -16,29 +15,28 @@
   </div>
   
 
-  <!-- Accordion for cohort, year group, and student insights -->
+  <!-- Accordion wrapper for Cohort, Year Group, and Student insights sections -->
   <div class="accordion" id="oneAtATime">
-    <!-- Tab buttons in one row -->
+    
+    <!-- Top tab control buttons inclusion -->
     {% include "partials/btns_insights.html" %}
 
-    <!-- Collapsible contents -->
-    <!-- Accordion 1: Cohort Insights -->
+    <!-- Accordion Panel 1: Cohort Insights -->
     <div id="c1" class="accordion-collapse collapse show" data-bs-parent="#oneAtATime">
-      <!-- Cohort Avg Attainment (E/M/S) - previous year vs. current year [Performance Over Time] -->
+      <!-- Performance over time partial inclusion -->
       {% include "partials/ci_perf_over_time.html" %}
 
-      <!-- Cohort Attainment and Progress Charts -->
+      <!-- Cohort attainment and progress charts partial inclusion -->
       {% include "partials/ci_att_prog_chart.html" %}
 
-      <!-- Attainment Charts - Cohort (Gender-specific)  -->
+      <!-- Gender-specific attainment charts container -->
       <div class="container-fluid px-0 mb-3">
         <div class="row g-3 align-items-stretch">
-          <!-- Cohort Gender-specific Attainment Charts  -->
           {% include "partials/ci_gender_att_charts.html" %}
         </div>
       </div>
 
-      <!-- Progress Charts - Cohort (Gender-specific)  -->
+      <!-- Gender-specific progress charts container -->
       <div class="container-fluid px-0">
         <div class="row g-3 align-items-stretch">
           {% include "partials/ci_gender_prog_charts.html" %}
@@ -47,25 +45,23 @@
     </div>
     <!-- End of Accordion 1 -->
 
-    <!-- Collapsible contents -->
-    <!-- Accordion 2: Year Group Insights -->
-    <!-- Year Group vs. Cohort: Average Attainment Comparison Chart -->
+    <!-- Accordion Panel 2: Year Group Insights -->
     <div id="c2" class="accordion-collapse collapse" data-bs-parent="#oneAtATime">
+      <!-- Average attainment comparison partial inclusion -->
       <div class="container-fluid px-0 mb-3">
         <div class="row g-0">
           {% include "partials/yi_avg_att_comparison.html" %}
         </div>
       </div>
 
-    <!-- Attainment Comparison Chart | Year Group vs. Cohort -->
-      <!-- Attainment Comparison Chart | Year Group vs. Cohort ≥60 & ≥70 -->
+      <!-- Year group attainment charts partial inclusion -->
       <div class="container-fluid px-0 mb-3">
         <div class="row g-3 align-items-stretch">
           {% include "partials/yi_yg_att_charts.html" %}
         </div>
       </div>
 
-      <!-- Progress Category Distribution Charts | Expected/Better Progress & Better Progress -->
+      <!-- Year group progress charts partial inclusion -->
       <div class="container-fluid px-0 mb-3">
         <div class="row g-3 align-items-stretch">
           {% include "partials/yi_yg_prog_charts.html" %}
@@ -74,20 +70,18 @@
     </div>
     <!-- End of Accordion 2 -->
 
-    <!-- Collapsible contents -->
-    <!-- Accordion 3: Student Insights -->
+    <!-- Accordion Panel 3: Student Insights -->
     <div id="c3" class="accordion-collapse collapse" data-bs-parent="#oneAtATime">
-
-      <!-- Student Insights Filters -->
+      <!-- Student insights search filters partial inclusion -->
       {% include "partials/si_filters.html" %}
 
-      <!-- Student KPI cards -->
-       {% include "partials/si_kpi.html" %}
+      <!-- Student Key Performance Indicators partial inclusion -->
+      {% include "partials/si_kpi.html" %}
 
-      <!-- AI Interpretation - Internal Assessment [Student Insights] -->
+      <!-- AI interpretation summary partial inclusion -->
       {% include "partials/si_ai_interpretation.html" %}
 
-      <!-- Student Insights Charts -->
+      <!-- Student-level charts partial inclusion -->
       {% include "partials/si_charts.html" %}
     </div>
     <!-- End of Accordion 3 -->
@@ -97,12 +91,12 @@
 {% endblock content %}
 
 {% block extra_js %}
+  <!-- External libraries and chart rendering dependencies -->
   <script defer src="https://unpkg.com/lucide@latest"></script>
-  <!-- <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script> -->
   <script src="{{ url_for('static', filename='js/plotly.min.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- Jinja data blobs -->
+  <!-- Embedded JSON data blobs passed from Jinja backend context -->
   <script id="chart-perf-over-time" type="application/json">{{ data | default({}) | tojson | safe }}</script>
   <script id="chart-cohort-attainment" type="application/json">{{ threshold_data | default([]) | tojson | safe }}</script>
   <script id="chart-cohort-progress" type="application/json">{{ progress_simple_data | default([]) | tojson | safe }}</script>
@@ -111,24 +105,22 @@
   <script id="gender-prog-exp-above" type="application/json">{{ gender_prog_exp_above | default([]) | tojson | safe }}</script>
   <script id="gender-prog-above-data" type="application/json">{{ gender_prog_above_data | default([]) | tojson | safe }}</script>
 
-  <!-- chart globals -->
+  <!-- Modular JavaScript chart module references -->
   <script src="{{ url_for('static', filename='js/charts/perf_over_time.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_attainment.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/cohort_progress.js') }}?v=3"></script>
   <script src="{{ url_for('static', filename='js/charts/gender_att_prog.js') }}?v=1"></script>
   <script src="{{ url_for('static', filename='js/student_insights.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/charts/yrgrp_analytics.js') }}"></script>
-  <!-- AI Interpretation - Internal Assessment [Student Insights] -->
   <script src="{{ url_for('static', filename='js/ai_interpretation.js') }}"></script>
 
+  <!-- Inline script for dynamic chart rendering and responsive Plotly resizing -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Render both charts
+      // Render initial gender-specific threshold and progress charts
       if (window.renderGenderThresholdBars) {
-        // Cohort Attainment: Gender-specific
         window.renderGenderThresholdBars('gender-ge60-data', 'chart_gender_ge60');
         window.renderGenderThresholdBars('gender-ge70-data', 'chart_gender_ge70');
-        // Cohort Progress: Gender-specific
         window.renderGenderThresholdBars('gender-prog-exp-above', 'chart_gender_exp_above');
         window.renderGenderThresholdBars('gender-prog-above-data', 'chart_gender_above_data');
       }
@@ -136,20 +128,20 @@
       const accordion = document.getElementById('two_AtATime');
       if (!accordion || !window.yrgrp_progressChart) return;
 
-      // Map metric to chart container id
+      // Map metric identifier to its corresponding DOM chart container ID
       const chartIdByMetric = {
-        exp_above: 'chart_yrgrp_progress_ebp', // inside btn_yrgrp_prog_ebp
-        above_only: 'chart_yrgrp_progress_bp'  // inside btn_yrgrp_prog_bp
+        exp_above: 'chart_yrgrp_progress_ebp',
+        above_only: 'chart_yrgrp_progress_bp'
       };
 
-      // Render initial state based on whichever panel is open
+      // Render chart for the active initial accordion panel
       const initialPanel = accordion.querySelector('.accordion-collapse.show');
       const initialMetric = initialPanel?.dataset?.metric || 'exp_above';
       const initialChartId = chartIdByMetric[initialMetric] || chartIdByMetric.exp_above;
       
       window.yrgrp_progressChart(initialChartId, initialMetric);
 
-      // Render whenever an accordion panel opens
+      // Re-render chart and trigger Plotly resize when an accordion panel expands
       accordion.addEventListener('shown.bs.collapse', (e) => {
         const metric = e.target?.dataset?.metric || 'exp_above';
         const chartId = chartIdByMetric[metric] || chartIdByMetric.exp_above;
@@ -158,18 +150,17 @@
 
         window.yrgrp_progressChart(chartId, metric);
 
-        // Plotly sometimes needs a resize after becoming visible
         const el = document.getElementById(chartId);
         if (el) setTimeout(() => Plotly.Plots.resize(el), 50);
       });
     });
 
-    // Year Group Analytics: Average Attainment Comparison
+    // Execute year group analytics chart initializations
     window.yrgrp_analytics('chart_yrgrp_analytics');
     window.yrgrp_analytics60('chart_yrgrp_analytics60');
     window.yrgrp_analytics70('chart_yrgrp_analytics70');
     
-    // if chart is in collapsed accordion/tab:
+    // Automatically trigger Plotly layout resize when accordion sections expand
     document.addEventListener('shown.bs.collapse', () => {
       ['chart_gender_ge60','chart_gender_ge70','chart_gender_exp_above','chart_gender_above_data', 
       'chart_line', 'chart_bands', 'chart_progcats', 'chart_yrgrp_progress_ebp',
@@ -179,6 +170,6 @@
     });
   </script>
 
-  <!-- Page controller LAST -->
+  <!-- Page controller script initialization -->
   <script src="{{ url_for('static', filename='js/internal_exam.page.js') }}?v=3"></script>
 {% endblock %}
