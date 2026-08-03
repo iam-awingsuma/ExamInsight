@@ -4,20 +4,28 @@
 
 {% block content %}
 
+    <!-- Main layout wrapper for authentication/error pages -->
     <div class="auth-wrapper">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <div class="text-center">
+
+                        <!-- Generic error graphic image -->
                         <img src="{{url_for('static', filename = 'assets/images/error/generic.png')}}" alt="" class="img-fluid">
+
+                        <!-- Server error status message text -->
                         <h5 class="text-muted my-4">
                             Server Error. Please contact support.
                         </h5>
+
+                        <!-- Form action redirecting user back to home page -->
                         <form action="#">
                             <a href="/" class="btn btn-primary mb-4">
                                 HOME
                             </a>
                         </form>
+
                     </div>
                 </div>
             </div>
