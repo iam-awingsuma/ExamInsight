@@ -2,11 +2,16 @@
 <html lang="en">
 
 <head>
+  <!-- Include metadata and global CSS stylesheets -->
   {% include "includes/head.html" %}
+
+  <!-- Page-specific custom styles extension block -->
   {% block extrastyle %}{% endblock extrastyle %}
 </head>
 
 <body class="">
+
+  <!-- Top navigation bar / header container -->
   <div class="container position-sticky z-index-sticky top-0">
     <div class="row">
       <div class="col-12">
@@ -15,8 +20,13 @@
     </div>
   </div>
 
+  <!-- Main page layout content block -->
   {% block content %}{% endblock content %}
+
+  <!-- Include core JavaScript dependencies -->
   {% include "includes/scripts.html" %}
+
+  <!-- Page-specific custom scripts extension block -->
   {% block extra_js %}{% endblock extra_js %}
 
 </body>
