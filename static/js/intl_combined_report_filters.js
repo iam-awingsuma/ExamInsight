@@ -4,7 +4,7 @@
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Search filter elements
+  // Search filter DOM element references
   const internalSearchInput = document.getElementById("internalSearchInput");
   const genderFilter = document.getElementById("intlGenderFilter");
   const yrgrpFilter = document.getElementById("intlYrgrpFilter");
@@ -12,11 +12,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const senFilter = document.getElementById("intlSenFilter");
   const clearBtn = document.getElementById("clearIntlFiltersBtn");
 
-  // Table elements
+  // Table display DOM element references
   const tableBody = document.getElementById("intlCombinedTableBody");
   const resultCount = document.getElementById("intlResultCount");
 
-  // Stop script if this page does not contain the report filter section.
+  // Guard clause: abort initialization if required filter or table DOM elements are missing
   if (
     !internalSearchInput ||
     !genderFilter ||
@@ -30,9 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
-  // ---------------------------------------------------------
-  // Build query parameters for the API request
-  // ---------------------------------------------------------
+  // Construct URL query parameters string from active filter input values
   function buildQueryParams() {
     const params = new URLSearchParams();
 
@@ -45,10 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return params.toString();
   }
 
-  // ---------------------------------------------------------
-  // Check if at least one filter is selected
-  // This prevents loading all data accidentally.
-  // ---------------------------------------------------------
+  // Check if at least one non-default filter is applied to prevent triggering empty queries
   function hasActiveFilter() {
     return (
       internalSearchInput.value.trim().length > 0 ||
@@ -59,9 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
-  // ---------------------------------------------------------
-  // Show empty/loading/error message inside table
-  // ---------------------------------------------------------
+  // Display status or error message spanning across all table columns and update record counter
   function setTableMessage(message) {
     tableBody.innerHTML = `
       <tr>
@@ -74,9 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
     resultCount.textContent = "No records loaded";
   }
 
-  // ---------------------------------------------------------
-  // Format blank values safely
-  // ---------------------------------------------------------
+  // Safely format missing, null, or undefined values with a placeholder dash
   function formatValue(value) {
     if (value === null || value === undefined || value === "") {
       return "-";
@@ -85,9 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return value;
   }
 
-  // ---------------------------------------------------------
-  //   Apply gender icon based on gender value
-  // ---------------------------------------------------------
+  // Return male/female icon HTML string according to gender parameter
   function getGenderIcon(gender) {
     const value = String(gender || "").trim().toLowerCase();
 
@@ -120,32 +109,18 @@ document.addEventListener("DOMContentLoaded", function () {
     return "";
   }
 
-  // ---------------------------------------------------------
-  //   Display the SEN/SPED status as text based on boolean value
-  // ---------------------------------------------------------
+  // Format SEN/SPED details badge HTML if student has non-empty/non-"no" SEN status
   function getSenValue(sen) {
-    // Convert the database value into a clean string.
     const value = String(sen || "").trim();
 
-    // If No, show nothing.
-    if (
-        // value === "" ||
-        value.toLowerCase() === "no"
-        // value.toLowerCase() === "none" ||
-        // value.toLowerCase() === "null" ||
-        // value.toLowerCase() === "undefined"
-    ) {
+    if (value.toLowerCase() === "no") {
         return "";
     }
 
-    // Otherwise, show the actual database value from the sped column.
     return `SEN Details:&nbsp;<span class="badge bg-gradient-danger">${value}</span>`;
   }
 
-  // ---------------------------------------------------------------------
-  // Progress category class
-  // Works for: below expected, expected, above expected
-  // ---------------------------------------------------------------------
+  // Determine progress CSS class mapping based on keywords (below, above, expected)
   function getProgressClass(progressCategory) {
     if (!progressCategory) {
       return "";
@@ -168,10 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return "";
   }
 
-  // ---------------------------------------------------------------------
-  // Render one Internal Assessment subject cell
-  // Example: Previous %/Grade | Current %/Grade | Progress
-  // ---------------------------------------------------------------------
+  // Render table cell HTML for an individual internal assessment subject (English, Maths, or Science)
   function renderSubjectCells(subjectResult) {
     if (!subjectResult) {
       return `
@@ -193,11 +165,8 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
   }
 
-  // ----------------------------------------
-  // Fetch Internal Assessment combined data
-  // ----------------------------------------
+  // Asynchronously fetch combined internal assessment data from API and render student table rows
   async function loadInternalAssessmentData() {
-    // Do not load data if no filter is selected
     if (!hasActiveFilter()) {
       setTableMessage("Select filters to view Internal Assessment data.");
       return;
@@ -294,11 +263,8 @@ document.addEventListener("DOMContentLoaded", function () {
       resultCount.textContent = "Error loading records";
     }
   }
-  
-  // ---------------------------------------------------------
-  // Debounce typing in Internal Assessment search box
-  // This avoids sending an API request on every single key press.
-  // ---------------------------------------------------------
+
+  // Handle debounced search input to limit API request frequency while typing
   let internalSearchTimer = null;
 
   function handleInternalSearchInput() {
@@ -309,9 +275,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 300);
   }
 
-  // ---------------------------------------------------------
-  // Event listeners
-  // ---------------------------------------------------------
+  // Attach event listeners for text search, dropdown filters, and filter reset
   internalSearchInput.addEventListener("input", handleInternalSearchInput);
   genderFilter.addEventListener("change", loadInternalAssessmentData);
   yrgrpFilter.addEventListener("change", loadInternalAssessmentData);
@@ -328,6 +292,6 @@ document.addEventListener("DOMContentLoaded", function () {
     setTableMessage("Select filters to view Internal Assessment data.");
   });
 
-  // Initial table message
+  // Display initial instruction message on page load
   setTableMessage("Select filters to view Internal Assessment data.");
 });

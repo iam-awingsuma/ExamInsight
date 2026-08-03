@@ -1,9 +1,10 @@
 (function () {
+  // DOM element references for filter controls
   const elYrgrp   = document.getElementById('yrgrp');
   const elStudent = document.getElementById('student');
   // const btnViewAnalytics = document.getElementById('btnViewAnalytics');
 
-  // Helpers
+  // Utility functions for student dropdown state and options management
   function setStudentDisabled(disabled) { elStudent.disabled = disabled; }
   function clearStudents() {
     elStudent.innerHTML = '<option value="">All Students in the Year Group</option>';
@@ -15,6 +16,7 @@
     elStudent.appendChild(opt);
   }
 
+  // Fetch and populate student options based on selected year group
   async function fetchStudentsByYear(yrgrp) {
     clearStudents();
     if (!yrgrp) { setStudentDisabled(true); return; }
@@ -30,6 +32,7 @@
     }
   }
 
+  // Fetch analytics payload and trigger all chart/KPI rendering functions
   async function fetchAnalytics() {
     const yrgrp = elYrgrp.value.trim();
     const sid   = elStudent.value.trim();
@@ -55,8 +58,7 @@
     }
   }
 
-  // Renderers: display three adaptive KPI cards
-  // per subject KPI (adapt to scope)
+  // Update subject-specific KPI card text displays
   function renderKPIs(k = {}) {
     const set = (id, val) => {
       const el = document.getElementById(id);
@@ -73,6 +75,7 @@
     set('kpi_sci',   k.science);
   }
 
+  // Update overall cohort KPI card title and student count
   function renderTotalKPI(t = {}) {
     const titleEl = document.getElementById('kpi_total_title');
     const countEl = document.getElementById('kpi_total_value');
@@ -81,7 +84,7 @@
     if (countEl) countEl.textContent = t.count ?? '—';
   }
 
-  // Performance over time line chart (Eng, Maths, Sci))
+  // Render performance line chart over time for core subjects using Plotly
   function renderLine(line) {
     const labels = line.labels || ['Previous','Current'];
     const eng = line.english || [0,0];
@@ -100,7 +103,7 @@
     Plotly.newPlot('chart_line', traces, layout, {displayModeBar:false, responsive:true});
   }
 
-  // Performance bands bar chart (D/E, C, B, A, A*) - stacked by subject
+  // Render stacked or grouped performance bands bar chart using Plotly
   function renderBands(bands = {}) {
     const labels = bands.labels || ['D/E','C','B','A','A*'];
     const hasStacks = Array.isArray(bands.english) && Array.isArray(bands.maths) && Array.isArray(bands.science);
@@ -122,7 +125,7 @@
     }, {displayModeBar:false, responsive:true});
   }
 
-  // Progress categories bar chart (Below Expected, Expected, Above Expected) - stacked by subject
+  // Render progress categories stacked bar chart using Plotly
   function renderProgCats(progcats = {}) {
     // x-axis categories (order locked)
     const labels = progcats.labels || ['Below Expected', 'Expected', 'Above Expected'];
@@ -149,7 +152,7 @@
     }, {displayModeBar:false, responsive:true});
   }
 
-  // Event bindings
+  // Bind change event listeners to filter dropdowns to reload students and analytics
   elYrgrp.addEventListener('change', async () => {
     await fetchStudentsByYear(elYrgrp.value);
     await fetchAnalytics();
@@ -158,6 +161,7 @@
   elStudent.addEventListener('change', fetchAnalytics);
   // btnViewAnalytics.addEventListener('click', fetchAnalytics);
 
+  // Initial execution block to preload student options and fetch dashboard analytics on page load
   (async () => {
     if (elYrgrp.value) {
       await fetchStudentsByYear(elYrgrp.value);   // preload students if a year group is preselected
@@ -167,7 +171,7 @@
     await fetchAnalytics();
   })();
 
-  // Responsive charts
+  // Attach dynamic resize listeners to all chart containers for window, tab, and collapse events
   ['chart_line','chart_bands','chart_progcats', 'progressChart'].forEach(id => {
     const el = document.getElementById(id);
     window.addEventListener('resize', () => Plotly.Plots.resize(el));

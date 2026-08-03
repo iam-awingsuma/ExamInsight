@@ -4,7 +4,7 @@
 // =========================================================
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Search filter elements
+  // Search filter DOM element references
   const searchInput = document.getElementById("ngrtStudentSearch");
   const genderFilter = document.getElementById("ngrtGenderFilter");
   const yrgrpFilter = document.getElementById("ngrtYrgrpFilter");
@@ -12,11 +12,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const senFilter = document.getElementById("ngrtSenFilter");
   const clearBtn = document.getElementById("clearNgrtFiltersBtn");
 
-  // Table elements
+  // Table display DOM element references
   const tableBody = document.getElementById("ngrtCombinedTableBody");
   const resultCount = document.getElementById("ngrtResultCount");
 
-  // Stop script if this page does not contain the NGRT report filter section.
+  // Guard clause: abort initialization if required filter or table DOM elements are missing
   if (
     !searchInput ||
     !genderFilter ||
@@ -30,9 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
-  // ---------------------------------------------------------
-  // Build query parameters for the API request
-  // ---------------------------------------------------------
+  // Construct URL query parameters string from active filter input values
   function buildQueryParams() {
     const params = new URLSearchParams();
 
@@ -45,10 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return params.toString();
   }
 
-  // ---------------------------------------------------------
-  // Check if at least one filter is selected
-  // This prevents loading all data accidentally.
-  // ---------------------------------------------------------
+  // Check if at least one non-default filter is applied to prevent triggering empty queries
   function hasActiveFilter() {
     return (
       searchInput.value.trim().length > 0 ||
@@ -59,9 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
-  // ---------------------------------------------------------
-  // Show empty/loading/error message inside table
-  // ---------------------------------------------------------
+  // Display status or error message spanning across all table columns and update record counter
   function setTableMessage(message) {
     tableBody.innerHTML = `
       <tr>
@@ -74,9 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
     resultCount.textContent = "No records loaded";
   }
 
-  // ---------------------------------------------------------
-  // Format blank values safely
-  // ---------------------------------------------------------
+  // Safely format missing, null, or undefined values with a placeholder dash
   function formatValue(value) {
     if (value === null || value === undefined || value === "") {
       return "-";
@@ -85,10 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return value;
   }
 
-  // ---------------------------------------------------------
-  // Apply color class based on stanine band
-  // 1-3 Below Average, 4-6 Average, 7-9 Above Average
-  // ---------------------------------------------------------
+  // Determine CSS class for Stanine scores based on standard score thresholds (1-3 below, 4-6 average, 7-9 above)
   function getStanineBandClass(stanine) {
     const value = Number(stanine);
 
@@ -100,10 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return "ngrt-band-above";
   }
 
-  // ---------------------------------------------------------
-  //   Apply color to class based on progress category
-  //   lower than expected = below, expected = expected, better than expected = above
-  // ---------------------------------------------------------
+  // Return CSS class mapping based on progress category description
   function getProgressClass(progress) {
     if (!progress) return "";
 
@@ -119,9 +104,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // ---------------------------------------------------------
-  //   Apply gender icon based on gender value
-  // ---------------------------------------------------------
+  // Return male/female icon HTML string according to gender parameter
   function getGenderIcon(gender) {
     const value = String(gender || "").trim().toLowerCase();
 
@@ -154,32 +137,18 @@ document.addEventListener("DOMContentLoaded", function () {
     return "";
   }
 
-  // ---------------------------------------------------------
-  //   Display the SEN/SPED status as text based on boolean value
-  // ---------------------------------------------------------
+  // Format SEN/SPED details badge HTML if student has non-empty/non-"no" SEN status
   function getSenValue(sen) {
-    // Convert the database value into a clean string.
     const value = String(sen || "").trim();
 
-    // If No, show nothing.
-    if (
-        // value === "" ||
-        value.toLowerCase() === "no"
-        // value.toLowerCase() === "none" ||
-        // value.toLowerCase() === "null" ||
-        // value.toLowerCase() === "undefined"
-    ) {
+    if (value.toLowerCase() === "no") {
         return "";
     }
 
-    // Otherwise, show the actual database value from the sped column.
     return `SEN Details:&nbsp;<span class="badge bg-gradient-danger">${value}</span>`;
   }
 
-  // ---------------------------------------------------------
-  // Render one NGRT assessment set of cells
-  // Example: NGRT-A SAS, Stanine, Reading Age, Progress
-  // ---------------------------------------------------------
+  // Render table cell HTML for an individual NGRT assessment set (SAS, Stanine, Reading Age, and Progress)
   function renderNgrtCells(result) {
     const bandClass = getStanineBandClass(result.stanine);
     const progressClass = getProgressClass(result.progress_category);
@@ -193,9 +162,7 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
   }
 
-  // ---------------------------------------------------------
-  // Load combined NGRT-A, NGRT-B, NGRT-C data from Flask API
-  // ---------------------------------------------------------
+  // Fetch combined NGRT data from API using active query parameters and render table rows
   function loadNgrtCombinedData() {
     if (!hasActiveFilter()) {
       setTableMessage("Select filters to view NGRT data.");
@@ -277,10 +244,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  // ---------------------------------------------------------
-  // Debounce typing in search box
-  // This avoids sending an API request every single key press.
-  // ---------------------------------------------------------
+  // Handle debounced search input to limit API request frequency while typing
   let searchTimer = null;
 
   function handleSearchInput() {
@@ -291,9 +255,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 300);
   }
 
-  // ---------------------------------------------------------
-  // Event listeners
-  // ---------------------------------------------------------
+  // Attach event listeners for text search, dropdown filters, and filter reset
   searchInput.addEventListener("input", handleSearchInput);
   genderFilter.addEventListener("change", loadNgrtCombinedData);
   yrgrpFilter.addEventListener("change", loadNgrtCombinedData);
@@ -310,6 +272,6 @@ document.addEventListener("DOMContentLoaded", function () {
     setTableMessage("Select filters to view NGRT data.");
   });
 
-  // Initial table message
+  // Display initial instruction message on page load
   setTableMessage("Select filters to view NGRT data.");
 });
