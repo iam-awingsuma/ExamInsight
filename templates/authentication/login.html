@@ -1,14 +1,17 @@
 {% extends "layouts/base-auth.html" %}
 
 {% block content %}
-
+  <!-- Main authentication page layout wrapper -->
   <main class="main-content mt-0">
     <section>
+      <!-- Centered container for login elements -->
       <div class="page-header min-vh-75">
         <div class="container">
           <div class="row mt-n4">
+            <!-- Left column containing the login form card -->
             <div class="col-xl-4 col-lg-5 col-md-6 d-flex flex-column mx-auto">
               <div class="card card-plain mt-8">
+                <!-- Card header with school logo and title -->
                 <div class="card-header pb-0 text-left bg-transparent mt-n4">
                   <img src="{{ url_for('static', filename='assets/img/pps-logo.png') }}" alt="PPS Logo" class="mb-n2 mt-n5 ms-4" style="max-width:220px;">
                   <h1 class="font-weight-bolder text-info text-gradient">ExamInsight</h1>
@@ -17,25 +20,30 @@
                     Internal Assessments and External Benchmark Tests at Pristine Private School.
                   </p>
                 </div>
+                <!-- Card body containing authentication form inputs -->
                 <div class="card-body">
-
                   <form role="form" method="post">
+                    <!-- Hidden CSRF security token -->
                     {{ form.hidden_tag() }}
 
+                    <!-- Display validation or authentication error message -->
                     {% if msg %}
                       <span class="d-block text-danger mb-3">{{ msg | safe }}</span>
                     {% endif %} 
 
+                    <!-- Username text input -->
                     <label>Username</label>
                     <div class="mb-3">
                       {{ form.username(placeholder="Username", class="form-control") }}
                     </div>
 
+                    <!--Password secret input -->
                     <label>Password</label>
                     <div class="mb-3">
                       {{ form.password(placeholder="Password", class="form-control", type="password") }}
                     </div>
 
+                    <!--Form submission button -->
                     <div class="text-center">
                       <button type="submit" name="login" class="btn bg-gradient-info w-100 mt-4 mb-0">Sign in</button>
                     </div>
@@ -43,6 +51,7 @@
                 </div>
               </div>
             </div>
+            <!-- Right column side graphic for desktop screens -->
             <div class="col-md-6">
               <div class="oblique position-absolute top-0 h-100 d-md-block d-none me-n8">
                 <div class="oblique-image bg-cover position-absolute fixed-top ms-auto h-100 z-index-0 ms-n6" style="background-image:url('{{ url_for('static', filename='assets/img/curved-images/amara14.png') }}')"></div>

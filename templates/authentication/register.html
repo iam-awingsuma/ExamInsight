@@ -2,8 +2,11 @@
 
 {% block content %}
 
+  <!-- Main user registration page layout wrapper -->
   <main class="main-content  mt-0">
     <section class="min-vh-100 mb-8">
+
+      <!-- Header banner with background image and page title -->
       <div class="page-header align-items-start min-vh-50 pt-5 pb-11 m-3 border-radius-lg" style="background-image: url('{{ url_for('static', filename='assets/img/curved-images/amara14.png') }}');">
         <span class="mask bg-gradient-dark opacity-6"></span>
         <div class="container">
@@ -15,45 +18,70 @@
           </div>
         </div>
       </div>
+
+      <!-- Registration form container -->
       <div class="container">
         <div class="mt-lg-n10 mt-md-n11 mt-n10">
           <div class="col-xl-4 col-lg-5 col-md-7 mx-auto">
             <div class="card z-index-0">
+
+              <!-- Card header title -->
               <div class="card-header text-center pt-4">
                 <h5>Create Account</h5>
               </div>
+
+              <!-- Form card body -->
               <div class="card-body">
+
+                <!-- Registration success alert and redirect link -->
                 {% if success %}
                   <a href="{{ url_for('home_blueprint.index') }}" class="d-block text-center w-100 btn btn-primary shadow-2 mb-4">Sign in</a>
                 {% else %}
+
+                <!-- User registration submission form -->
                 <form role="form text-left" method="post">
+
+                  <!-- Hidden CSRF security token -->
                   {{ form.hidden_tag() }}
 
+                  <!-- Flash error notification message -->
                   {% if msg %}
                     <span class="d-block text-danger mb-3">{{ msg | safe }}</span>
                   {% endif %} 
 
+                  <!-- Username field input block -->
                   <div class="mb-3">
                     {{ form.username(placeholder="Username", class="form-control") }}
                   </div>
+
+                  <!-- Email field input block -->
                   <div class="mb-3">
                     {{ form.email(placeholder="Email", class="input form-control", type="email") }}
                   </div>
+
+                  <!-- Password field input block -->
                   <div class="mb-3">
                     {{ form.password(placeholder="Password", class="form-control", type="password") }}
                   </div>
 
+                  <!-- Submit registration button -->
                   <div class="text-center">
                     <button type="submit" name="register" class="btn bg-gradient-info w-100 my-4 mb-2">Sign up</button>
                   </div>
+
+                  <!-- Login redirection link -->
                   <p class="text-sm mt-3 mb-0">Already have an account? <a href="{{ url_for('home_blueprint.index') }}" class="text-dark font-weight-bolder">Log in</a></p>
+
                 </form>
                 {% endif %}
+
               </div>
+
             </div>
           </div>
         </div>
       </div>
+
     </section>
   </main>
 
