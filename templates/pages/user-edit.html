@@ -1,10 +1,14 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
+
+<!-- Main container wrapper for Edit User Information page -->
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card">
+                
+                <!-- Card Header: Icon, title, and page subtitle -->
                 <div class="card-header pb-0">
                     <div class="d-flex align-items-start gap-1">
                         <img class="me-1 mt-0" width="42" height="42" src="https://img.icons8.com/?size=100&id=93GdqgOETvkz&format=png&color=000000" 
@@ -15,7 +19,11 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Card Body: Alert messages, summary badges, and edit form -->
                 <div class="card-body">
+                    
+                    <!-- Flashed notification and error alert messages section -->
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                         <div class="px-3 pt-2">
@@ -28,6 +36,7 @@
                         {% endif %}
                     {% endwith %}
 
+                    <!-- User account overview badges (Username and Account Type) -->
                     <div class="row">
                         <div class="col-md-6 text-sm mb-2">
                             <span class="text-xs fw-bold">Username:</span>
@@ -39,7 +48,10 @@
                         </div>
                     </div>
 
+                    <!-- User information update form -->
                     <form method="post" action="{{ url_for('home_blueprint.edit_user', user_id=user.id) }}">
+                        
+                        <!-- Row 1: First Name and Last Name input fields -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="first_name" class="form-label">First Name *</label>
@@ -51,6 +63,7 @@
                             </div>
                         </div>
 
+                        <!-- Row 2: Email Address and Designation / Class Code input fields -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="email" class="form-label">E-mail address *</label>
@@ -62,6 +75,7 @@
                             </div>
                         </div>
 
+                        <!-- Row 3: Physical Address input field -->
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <label for="address" class="form-label">Address *</label>
@@ -69,14 +83,18 @@
                             </div>
                         </div>
 
+                        <!-- Form action buttons: Submit changes and Close navigation -->
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-sm btn-primary shadow-2 mb-0">Save Changes</button>
                             <a href="{{ url_for('home_blueprint.allusers') }}" class="btn btn-outline-secondary mb-0">Close</a>
                         </div>
                     </form>
+
                 </div>
+
             </div>
         </div>
     </div>
 </div>
+
 {% endblock content %}

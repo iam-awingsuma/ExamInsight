@@ -2,10 +2,13 @@
 
 {% block content %}
 
+<!-- Main container wrapper for User Accounts list view -->
 <div class="container-fluid py-2">
   <div class="row">
     <div class="col-12">
       <div class="card mb-4">
+        
+        <!-- Card Header: Title banner and section icon -->
         <div class="card-header pb-0">
           <div class="d-flex align-items-start gap-1">
               <img class="me-1 mt-n2" width="42" height="42" src="https://img.icons8.com/?size=100&id=Gziha7xJGho9&format=png&color=000000" 
@@ -13,6 +16,8 @@
               <h5>Account Information</h5>
           </div>
         </div>
+
+        <!-- Flashed alert notifications section (Errors / Success messages) -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             <div class="px-3 pt-2">
@@ -24,6 +29,8 @@
             </div>
           {% endif %}
         {% endwith %}
+
+        <!-- Card Body: Accounts table container -->
         <div class="card-body px-0 pt-0 pb-2">
           <div class="table-responsive p-0">
             <table class="table align-items-center mb-0">
@@ -39,6 +46,7 @@
                 {% for user in users %}
                 <tr>
 
+                    <!-- User details column: Avatar image, full name, username, email, and address -->
                     <td>
                       <div class="d-flex px-2 py-1">
                         <div>
@@ -54,6 +62,7 @@
                       </div>
                     </td>
 
+                    <!-- Designation / Class Code column -->
                     <td>
                       <div>
                         <div class="d-flex flex-column justify-content-center">
@@ -62,35 +71,42 @@
                       </div>
                     </td>
 
+                    <!-- Role status badge column (Admin vs Basic User) -->
                     <td class="align-middle text-center text-xs text-secondary mb-0">
                         <span class="badge badge-sm bg-gradient-{{ 'success' if user.is_admin else 'info' }}">
                           {{ 'Admin' if user.is_admin else 'Basic User' }}
                         </span>
                     </td>
 
+                    <!-- Action controls column: Edit, Grant/Revoke Admin rights, and Delete Account -->
                     <td class="align-middle text-center">
                       {% if not user.is_admin %}
-                      <!-- Edit account information or details -->
+                      
+                      <!-- Actions for non-admin accounts: Edit user details -->
                       <form action="{{ url_for('home_blueprint.edit_user', user_id=user.id) }}" method="get" style="display:inline;">
                         <button type="submit" class="btn btn-link pt-4" alt="Edit User Account" title="Edit User Account">
                           <img class="me-1" width="36" height="36" src="https://img.icons8.com/?size=100&id=93GdqgOETvkz&format=png&color=000000" alt="Edit user" title="Edit {{user.first_name}} {{user.last_name}}'s account"/>
                         </button>
                       </form>
-                      <!-- Show grant admin button for non-admin accounts -->
+
+                      <!-- Grant admin rights button -->
                       <form action="{{ url_for('home_blueprint.make_admin', user_id=user.id) }}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-link pt-4 ms-n4" alt="Grant Admin Access" title="Grant Admin Rights"
                         onclick="alert('&#8505; Admin rights granted to user [ {{user.first_name}} {{user.last_name}} ]')">
                           <img class="me-1" width="36" height="36" src="https://img.icons8.com/?size=100&id=FZQamLEORsJ1&format=png&color=000000" alt="Grant admin rights" title="Grant admin rights to {{user.username}}"/>
                         </button>
                       </form>
-                      <!-- Only show delete button for non-admin accounts -->
+
+                      <!-- Delete user account form -->
                       <form id="delete-form-{{ user.id }}" action="{{ url_for('home_blueprint.delete_user', user_id=user.id) }}" method="post" style="display:inline;">
                         <button type="button" class="btn btn-link pt-4 ms-n4" alt="Delete User Account" title="Delete User Account" onclick="confirmDelete({{ user.id }})">
                           <img class="me-1" width="36" height="36" src="https://img.icons8.com/?size=100&id=Hxb73V61I1rW&format=png&color=000000" alt="Delete user" title="Delete {{user.username}}"/>
                         </button>
                       </form>
+
                       {% else %}
-                      <!-- Admin users cannot have their admin rights revoked -->
+
+                      <!-- Actions for admin accounts: Revoke admin rights (disabled for current logged-in user) -->
                       <form action="{{ url_for('home_blueprint.remove_admin', user_id=user.id) }}" method="post" style="display:inline;">  
                         {% if current_user.id == user.id %}
                           <button type="" class="btn btn-link pt-4" alt="Remove Admin Access" title="Remove Admin Rights"
@@ -104,7 +120,8 @@
                           </button>
                         {% endif %}
                       </form>
-                      <!-- Admin users cannot be deleted, including themselves -->
+
+                      <!-- Delete admin account form (restricted for own account) -->
                       <form id="delete-form-{{ user.id }}" action="{{ url_for('home_blueprint.delete_user', user_id=user.id) }}" method="post" style="display:inline;">
                         {% if current_user.id == user.id %}
                           <button type="" class="btn btn-link pt-4 ms-n4" alt="Delete User Account" title="Delete User Account"
@@ -118,6 +135,7 @@
                           </button>
                         {% endif %}
                       </form>
+
                       {% endif %}
                     </td> 
                 </tr>
@@ -126,12 +144,15 @@
             </table>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 </div>
 {% endblock content %}
+
 {% block extra_js %}
+<!-- JavaScript helper function for user account deletion confirmation dialog -->
 <script>
   function confirmDelete(userId) {
       let confirmation = confirm('❓ Are you sure you want to delete this user?');
