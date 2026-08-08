@@ -1,19 +1,23 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
+<!-- Fluid main container wrapper for Student Management view -->
 <div class="container-fluid py-2">
 <div class="row">
     <div class="col-12">
     <div class="card mb-4">
+        
+        <!-- Search Filters Header and Form Section -->
         <div class="card-header pb-0">
             <p class="text-uppercase text-xs text-dark font-weight-bolder">Search Filters</p>
             <form id="filterForm" class="row gy-2 gx-2 align-items-center mb-1" method="get" action="#">
-                <!-- Search -->
+                
+                <!-- Search text input -->
                 <div class="col-12 col-md-4">
                 <input type="search" id="q" name="q" value="{{ q or '' }}" class="form-control text-xs" placeholder="Student Name or ID...">
                 </div>
 
-                <!-- Dropdown filters -->
+                <!-- Gender selection dropdown -->
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="gender" id="gender">
                         <option value="">All Genders</option>
@@ -23,6 +27,7 @@
                     </select>
                 </div>
 
+                <!-- Year Group selection dropdown -->
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="yrgrp" id="yrgrp">
                         <option value="">All Year Groups</option>
@@ -32,6 +37,7 @@
                     </select>
                 </div>
 
+                <!-- Registration Status selection dropdown -->
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="status" id="status">
                         <option value="">All Registration Status</option>
@@ -41,7 +47,7 @@
                     </select>
                 </div>
 
-                <!-- SEN/SPED -->
+                <!-- SEN / SPED selection dropdown -->
                 <div class="col-6 col-md-2">
                     <select class="form-select text-xs" name="sped" id="sped">
                         <option value="">All SEN/SPED</option>
@@ -51,12 +57,13 @@
                     </select>
                 </div>
 
+                <!-- Clear filters button -->
                 <div class="col-12 d-flex gap-2">
                     <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('home_blueprint.student_management') }}">Clear</a>
                 </div>
             </form>
             
-            <!-- Filter chips -->
+            <!-- Active filter chips list -->
             {% if active_filters and active_filters|length %}
             <div class="d-flex align-items-center mb-3">
                 <span class="text-uppercase text-xs text-muted me-2">Active Filters:</span>
@@ -70,6 +77,7 @@
 
         <hr class="horizontal dark mt-0 mb-0">
         
+        <!-- Table Title Header -->
         <div class="card-header pb-0">
             <div class="d-flex align-items-start gap-1">
                 <img class="me-1 mt-n2" width="42" height="42" src="https://img.icons8.com/?size=100&id=Gziha7xJGho9&format=png&color=000000" 
@@ -77,6 +85,8 @@
                 <h5>Student Information</h5>
             </div>
         </div>
+
+        <!-- Flashed alert messages section -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="px-3 pt-2">
@@ -88,6 +98,8 @@
                 </div>
             {% endif %}
         {% endwith %}
+
+        <!-- Data availability check and Student Information Table -->
         {% if no_data and students is none %}
             <p class="d-block text-danger">
                 WARNING!!!<br />
@@ -100,7 +112,6 @@
                 <table class="table align-items-center mb-0">
                 <thead>
                     <tr>
-                        <!-- ID No., Forename, Surname, DOB, Reg. Status, SEN Details -->
                         <th class="text-uppercase text-secondary text-dark text-xs font-weight-bolder ps-3">Personal Details</th>
                         <th class="text-uppercase text-secondary text-dark text-xs font-weight-bolder ps-2">Gender</th>
                         <th class="text-uppercase text-secondary text-dark text-xs font-weight-bolder ps-2">Year Group</th>
@@ -113,8 +124,9 @@
                 <tbody>
                     {% for student in students %}
                     <tr>
+                        
+                        <!-- Personal Details Column: Avatar, ID, Name, DOB, Status, and SEN -->
                         <td style="width: 1%;">
-                            <!-- <div class="d-flex px-2 py-1"> -->
                             <div class="d-inline-flex align-items-center justify-content-center gap-1 text-nowrap">
                                 <div>
                                     {% if (student.gender or "") | trim | lower == "male" %}
@@ -134,7 +146,7 @@
                                     </p>
                                     <p class="text-xs text-secondary mb-0">
                                         {% if student.sped == 'No' or student.sped == 'None' %}
-                                            <!-- show nothing -->
+                                            <!-- No SEN details to display -->
                                         {% else %}
                                             SEN Details: <span class="badge bg-gradient-danger">{{student.sped}}</span>
                                         {% endif %}
@@ -143,6 +155,7 @@
                             </div>
                         </td>
 
+                        <!-- Gender Column -->
                         <td style="width: 1%;">
                             <div>
                                 <div class="d-flex flex-column justify-content-center">
@@ -151,6 +164,7 @@
                             </div>
                         </td>
 
+                        <!-- Year Group Column -->
                         <td style="width: 1%;">
                             <div>
                                 <div class="d-flex flex-column justify-content-center">
@@ -159,6 +173,7 @@
                             </div>
                         </td>
 
+                        <!-- Nationality Column -->
                         <td style="width: 1%;">
                             <div>
                                 <div class="d-flex flex-column justify-content-center">
@@ -167,6 +182,7 @@
                             </div>
                         </td>
 
+                        <!-- Admin Action Column: Edit student link -->
                         {% if current_user.is_admin %}
                         <td class="text-center" style="width: 1%;">
                             <a href="{{ url_for('home_blueprint.edit_student', student_id=student.student_id) }}" alt="Edit Student Details" title="Edit Student Details">
@@ -190,7 +206,9 @@
 </div>
 </div>
 {% endblock content %}
+
 {% block extra_js %}
+<!-- JavaScript event listeners for automatic filter submission -->
 <script>
   document.querySelectorAll('#gender,#yrgrp,#status,#sped').forEach(el => {
     el.addEventListener('change', () => document.getElementById('filterForm').submit());
@@ -206,7 +224,7 @@
       typingTimer = setTimeout(() => form.submit(), 450);
     });
 
-    // on page load, move caret to the end of input
+    // Automatically focus caret to end of input string on page load
     const len = q.value.length;
     q.setSelectionRange(len, len);
     q.focus();
