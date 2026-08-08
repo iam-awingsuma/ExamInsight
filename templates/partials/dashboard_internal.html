@@ -1,17 +1,23 @@
+<!-- Main container wrapper for Cohort Insights Dashboard -->
 <div class="container-fluid py-0">
-    <!-- KPI-Average Attainment, Internal Assessment E/M/S -->
+
+    <!-- Row 1: KPI Cards Inclusion (Average Attainment, Internal Assessment E/M/S) -->
     <div class="row mb-2">
         <div class="col-12 m-0">
-        <!-- Cohort KPI cards-->
+        <!-- Cohort KPI summary cards partial inclusion -->
         {% include "partials/ci_kpi.html" %}
         </div>
     </div>
 
+    <!-- Row 2: Equal Height 3-Column Grid for Cohort Visualizations and AI Analytics -->
     <div class="row g-2 align-items-stretch mb-2">
-        <!-- Dashboard column/barchart - Cohort Attainment -->
+        
+        <!-- Column 1: Cohort Attainment Column Chart -->
         <div class="col-lg-4 col-md-4 col-sm-12">
         <div class="card h-100 chart-card">
             <div class="card-body d-flex flex-column">
+            
+            <!-- Card Header: Title and Icon -->
             <div class="row">
                 <div class="d-flex align-items-start gap-1">
                 <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=n0l89fjn0Zez&format=png&color=000000" 
@@ -22,17 +28,22 @@
                 </div>
                 </div>
             </div>
+
+            <!-- Chart Container: Cohort Attainment -->
             <div class="chart-body mt-1 mx-n3">
                 <div id="chart_cohort_attainment" class="w-100" style="height:360px;"></div>
             </div>
+
             </div>
         </div>
         </div>
 
-        <!-- Dashboard column/bar chart - Progress Distribution -->
+        <!-- Column 2: Progress Distribution Bar Chart -->
         <div class="col-lg-4 col-md-4 col-sm-12">
         <div class="card h-100 chart-card">
             <div class="card-body d-flex flex-column">
+            
+            <!-- Card Header: Title and Icon -->
             <div class="row">
                 <div class="d-flex align-items-start gap-1">
                 <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=j6eik5DXroff&format=png&color=000000" 
@@ -43,16 +54,21 @@
                 </div>
                 </div>
             </div>
+
+            <!-- Chart Container: Cohort Progress -->
             <div class="chart-body mt-1 mx-n3">
                 <div id="chart_cohort_progress" class="w-100" style="height:360px;"></div>
             </div>
+
             </div>
         </div>
         </div>
 
-        <!-- Dashboard - AI Performance Insights -->
+        <!-- Column 3: AI-Driven Performance Insights & Recommendations Panel -->
         <div class="col-lg-4 col-md-4 col-sm-12">
             <div class="card h-100 chart-card ps-3 pt-3">
+                
+                <!-- AI Section Header -->
                 <div class="col-md-10 d-flex align-items-start gap-2 mb-2">
                     <img width="42" height="42" src="https://img.icons8.com/?size=100&id=BU7Clwq5bV9D&format=png&color=000000" 
                     alt="AI Performance Insights" title="AI Performance Insights"/>
@@ -60,6 +76,8 @@
                         <span class="text-uppercase text-info font-weight-bolder">AI Insight Lens</span>
                     </h5>
                 </div>
+
+                <!-- Strengths Box (Green Theme) -->
                 <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-1" style="background-color: #DDF6D2; height: auto !important;">
                     <div class="d-flex align-items-end gap-2 mb-2">
                         <img width="32" height="32" src="https://img.icons8.com/?size=100&id=7Zk9m4C4u82V&format=png&color=000000" 
@@ -76,6 +94,8 @@
                         </ul>
                     </div>
                 </div>
+
+                <!-- Concerns Box (Red Theme) -->
                 <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-1" style="background-color: #F9DFDF; height: auto !important;">
                     <div class="d-flex align-items-end gap-2 mb-2">
                         <img width="32" height="32" src="https://img.icons8.com/?size=100&id=7svKOkN1CiaR&format=png&color=000000" 
@@ -92,6 +112,8 @@
                         </ul>
                     </div>
                 </div>
+
+                <!-- Recommendations Box (Yellow Theme) -->
                 <div class="card-body rounded-3 pt-1 pb-1 me-3 mb-3" style="background-color: #FEFDDF; height: auto !important;">
                     <div class="d-flex align-items-end gap-2 mb-2">
                         <img width="32" height="32" src="https://img.icons8.com/?size=100&id=w5vsJopX73g7&format=png&color=000000" 
@@ -108,15 +130,21 @@
                         </ul>
                     </div>
                 </div>
+
             </div>
         </div>
+
     </div>
 
+    <!-- Row 3: 2-Column Grid for Grade Distribution & Trends Analysis -->
     <div class="row g-2 align-items-stretch mb-3">
-        <!-- Dasboard chart - Internal Assessment Scatter Plot -->
+        
+        <!-- Column 1: Internal Assessment Scatter Plot -->
         <div class="col-lg-6 col-md-6 col-sm-12">
         <div class="card h-100 chart-card">
             <div class="card-body d-flex flex-column">
+            
+            <!-- Card Header -->
             <div class="row">
                 <div class="d-flex align-items-start gap-1">
                 <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=wcbCKdrSmiHG&format=png&color=000000" 
@@ -127,17 +155,22 @@
                 </div>
                 </div>
             </div>
+
+            <!-- Chart Container: Grade Distribution Scatter Plot -->
             <div class="chart-body mt-1 mx-n3">
                 <div id="internal_scatter_chart" class="w-100" style="height:360px;"></div>
             </div>
+
             </div>
         </div>
         </div>
 
-        <!-- Dashboard line chart - Year Group Average Attainment -->
+        <!-- Column 2: Year Group Average Attainment Line Chart -->
         <div class="col-lg-6 col-md-6 col-sm-12">
         <div class="card h-100 chart-card">
             <div class="card-body d-flex flex-column">
+            
+            <!-- Card Header -->
             <div class="row">
                 <div class="d-flex align-items-start gap-1">
                 <img class="me-1 mt-n1" width="42" height="42" src="https://img.icons8.com/?size=100&id=0wuOEMdKmQHe&format=png&color=000000" 
@@ -148,11 +181,16 @@
                 </div>
                 </div>
             </div>
+
+            <!-- Chart Container: Attainment Line Chart -->
             <div class="chart-body mt-1 mx-n3">
                 <div id="line_attainment_chart" class="w-100" style="height:360px;"></div>
             </div>
+
             </div>
         </div>
         </div>
+
     </div>
+
 </div>
