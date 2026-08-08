@@ -1,12 +1,15 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
+
+<!-- Main container wrapper for editing student details -->
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card">
+                
+                <!-- Card Header: Title banner and page icon -->
                 <div class="card-header pb-0">
-                    <!-- <h5 class="mb-0">📝 Edit Student Information</h5> -->
                     <div class="d-flex align-items-start gap-1">
                         <img class="me-1 mt-0" width="42" height="42" src="https://img.icons8.com/?size=100&id=93GdqgOETvkz&format=png&color=000000" 
                             alt="Edit Student Information" title="Edit Student Information"/>
@@ -16,7 +19,11 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Card Body: Alert notifications and profile editing form -->
                 <div class="card-body">
+                    
+                    <!-- Flashed alert messages display section (Errors / Success messages) -->
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                             <div class="px-3 pt-2">
@@ -29,7 +36,10 @@
                         {% endif %}
                     {% endwith %}
 
+                    <!-- Student information update form -->
                     <form method="post" action="{{ url_for('home_blueprint.edit_student', student_id=student.student_id) }}">
+                        
+                        <!-- Row 1: Student ID and Year Group inputs -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="student_id" class="form-label">Student ID *</label>
@@ -41,6 +51,7 @@
                             </div>
                         </div>
 
+                        <!-- Row 2: Forename and Surname inputs -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="forename" class="form-label">Forename *</label>
@@ -52,6 +63,7 @@
                             </div>
                         </div>
 
+                        <!-- Row 3: Gender and Date of Birth inputs -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="gender" class="form-label">Gender <span class="text-muted fw-light">[ Male | Female ] *</label>
@@ -63,6 +75,7 @@
                             </div>
                         </div>
 
+                        <!-- Row 4: Nationality and Enrollment Status inputs -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="nationality" class="form-label">Nationality *</label>
@@ -74,19 +87,24 @@
                             </div>
                         </div>
 
+                        <!-- Special Education Needs (SEN/SPED) input field -->
                         <div class="mb-3">
                             <label for="sped" class="form-label">SEN/SPED <span class="text-muted fw-light">[ No | Specific Diagnosis ]</span></label>
                             <input id="sped" name="sped" type="text" class="form-control" value="{{ student.sped or '' }}">
                         </div>
 
+                        <!-- Form submission and navigation action buttons -->
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-sm btn-primary shadow-2 mb-0">Save Changes</button>
                             <a href="{{ url_for('home_blueprint.student_management') }}" class="btn btn-outline-secondary mb-0">Cancel</a>
                         </div>
+
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
+
 {% endblock content %}
