@@ -1,11 +1,13 @@
+<!-- Search Filters Partial Inclusion for External NGRT Reports -->
 <div class="mb-3">
   {% include "partials/search_filters_extl_reports.html" %}
 </div>
 
-
+<!-- Card Container for NGRT Combined Report Results -->
 <div class="card text-xs">
   <div class="card-body">
 
+    <!-- Header: Dynamic Results Count Summary -->
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h6 class="text-uppercase font-weight-bold mb-0 text-xs">
         RESULTS&nbsp;
@@ -13,10 +15,9 @@
             No records loaded
         </small>&nbsp;]
       </h6>
-
-      
     </div>
 
+    <!-- Responsive Table: NGRT-A, NGRT-B, NGRT-C Assessment Summary -->
     <div class="table-responsive">
       <table class="table table-sm align-middle" id="ngrtCombinedTable">
         <thead class="table-light text-xs">
@@ -29,6 +30,7 @@
           </tr>
         </thead>
 
+        <!-- Dynamic Table Body populated via JavaScript -->
         <tbody id="ngrtCombinedTableBody">
           <tr>
             <td colspan="17" class="text-center text-muted py-4">
@@ -41,6 +43,8 @@
 
   </div>
 </div>
+
 {% block extra_js %}
+    <!-- External JS Script: Filters and dynamic data loading for combined NGRT report -->
     <script src="{{ url_for('static', filename='js/ngrt_combined_report_filters.js') }}"></script>
 {% endblock extra_js %}
